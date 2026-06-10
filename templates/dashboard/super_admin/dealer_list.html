@@ -1,0 +1,91 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2>Dealer List</h2>
+
+<a
+    href="{% url 'dealer_create' %}"
+    class="btn btn-success mb-3"
+>
+    Add Dealer
+</a>
+
+<table class="table table-bordered">
+
+    <thead>
+
+        <tr>
+
+            <th>Name</th>
+
+            <th>Phone</th>
+
+            <th>Email</th>
+
+            <th>Status</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+{% for dealer in dealers %}
+
+<tr>
+
+    <td>{{ dealer.name }}</td>
+
+    <td>{{ dealer.phone }}</td>
+
+    <td>{{ dealer.email }}</td>
+
+    <td>
+
+        {% if dealer.is_active %}
+            Active
+        {% else %}
+            Inactive
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        <a
+            href="{% url 'dealer_edit' dealer.id %}"
+            class="btn btn-warning btn-sm"
+        >
+            Edit
+        </a>
+         <a
+        href="{% url 'dealer_delete' dealer.id %}"
+        class="btn btn-danger btn-sm"
+        onclick="return confirm('Deactivate this dealer?')"
+    >
+        Delete
+    </a>
+
+        <a
+            href="{% url 'dealer_toggle_status' dealer.id %}"
+            class="btn btn-danger btn-sm"
+        >
+            {% if dealer.is_active %}
+                Deactivate
+            {% else %}
+                Activate
+            {% endif %}
+        </a>
+
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

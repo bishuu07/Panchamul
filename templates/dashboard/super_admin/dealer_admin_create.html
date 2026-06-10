@@ -1,0 +1,28 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h2>Create Dealer Admin</h2>
+
+    <hr>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            Create Dealer Admin
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

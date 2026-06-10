@@ -1,0 +1,47 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2>Company Staff</h2>
+
+<a
+    href="{% url 'staff_create' %}"
+    class="btn btn-success mb-3"
+>
+    Add Staff
+</a>
+
+<table class="table table-bordered">
+
+<tr>
+
+    <th>Name</th>
+
+    <th>Username</th>
+
+    <th>Email</th>
+
+</tr>
+
+{% for staff in staffs %}
+
+<tr>
+
+    <td>
+
+        {{ staff.first_name }}
+        {{ staff.last_name }}
+
+    </td>
+
+    <td>{{ staff.username }}</td>
+
+    <td>{{ staff.email }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

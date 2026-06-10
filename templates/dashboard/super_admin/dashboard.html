@@ -1,0 +1,59 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2>Super Admin Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-3">
+
+        <div class="card-box">
+
+            <h5>Total Dealers</h5>
+
+            <h2>{{ total_dealers }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card-box">
+
+            <h5>Dealer Admins</h5>
+
+            <h2>{{ total_dealer_admins }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card-box">
+
+            <h5>Company Staff</h5>
+
+            <h2>{{ total_staff }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card-box">
+
+            <h5>Products</h5>
+
+            <h2>{{ total_products }}</h2>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

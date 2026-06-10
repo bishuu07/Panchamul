@@ -1,0 +1,21 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h2>Company Staff Dashboard</h2>
+
+    <hr>
+
+    <h5>
+        Welcome {{ request.user.first_name }}
+    </h5>
+
+    <p>
+        You can only access the modules assigned by the administrator.
+    </p>
+
+</div>
+
+{% endblock %}

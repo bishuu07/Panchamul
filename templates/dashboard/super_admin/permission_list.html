@@ -1,0 +1,54 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+<h2>Permission List</h2>
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>User</th>
+<th>Module</th>
+<th>View</th>
+<th>Add</th>
+<th>Edit</th>
+<th>Delete</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for p in permissions %}
+
+<tr>
+
+<td>{{ p.user.username }}</td>
+
+<td>{{ p.module }}</td>
+
+<td>{{ p.can_view }}</td>
+
+<td>{{ p.can_add }}</td>
+
+<td>{{ p.can_edit }}</td>
+
+<td>{{ p.can_delete }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

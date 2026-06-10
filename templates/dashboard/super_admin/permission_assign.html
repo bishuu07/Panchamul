@@ -1,0 +1,107 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+<h2>Assign Permissions</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+
+<label>User</label>
+
+<select
+    name="user"
+    class="form-control"
+    required
+>
+
+<option value="">
+    Select User
+</option>
+
+{% for user in users %}
+
+<option value="{{ user.id }}">
+    {{ user.username }}
+    ({{ user.role }})
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>Module</th>
+<th>View</th>
+<th>Add</th>
+<th>Edit</th>
+<th>Delete</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for module in modules %}
+
+<tr>
+
+<td>{{ module }}</td>
+
+<td>
+<input
+type="checkbox"
+name="{{ module }}_view">
+</td>
+
+<td>
+<input
+type="checkbox"
+name="{{ module }}_add">
+</td>
+
+<td>
+<input
+type="checkbox"
+name="{{ module }}_edit">
+</td>
+
+<td>
+<input
+type="checkbox"
+name="{{ module }}_delete">
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<button
+type="submit"
+class="btn btn-primary"
+>
+Save Permissions
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}

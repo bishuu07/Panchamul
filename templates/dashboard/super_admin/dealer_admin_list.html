@@ -1,0 +1,79 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between">
+
+        <h2>Dealer Admin List</h2>
+
+        <a
+            href="{% url 'dealer_admin_create' %}"
+            class="btn btn-success"
+        >
+            Add Dealer Admin
+        </a>
+
+    </div>
+
+    <hr>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Username</th>
+
+                <th>Name</th>
+
+                <th>Email</th>
+
+                <th>Phone</th>
+
+                <th>Dealer</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for admin in dealer_admins %}
+
+            <tr>
+
+                <td>{{ admin.username }}</td>
+
+                <td>
+
+                    {{ admin.first_name }}
+                    {{ admin.last_name }}
+
+                </td>
+
+                <td>{{ admin.email }}</td>
+
+                <td>{{ admin.phone }}</td>
+
+                <td>
+
+                    {% if admin.dealerprofile %}
+                        {{ admin.dealerprofile.dealer.name }}
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
