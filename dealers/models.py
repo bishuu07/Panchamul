@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
+
 class Dealer(models.Model):
 
     name = models.CharField(max_length=200)
@@ -48,3 +49,8 @@ class DealerProfile(models.Model):
 
     def __str__(self):
         return self.dealer.name
+    
+
+
+
+

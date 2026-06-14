@@ -1,0 +1,55 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dispatch List</h3>
+
+    <a href="{% url 'dispatch_create' %}"
+       class="btn btn-success mb-3">
+
+        New Dispatch
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Dispatch No</th>
+                <th>Date</th>
+                <th>Dealer</th>
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for d in dispatches %}
+
+            <tr>
+
+                <td>{{ d.dispatch_no }}</td>
+
+                <td>{{ d.dispatch_date }}</td>
+
+                <td>{{ d.dealer.name }}</td>
+
+                <td>{{ d.status }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

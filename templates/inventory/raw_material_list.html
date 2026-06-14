@@ -1,0 +1,95 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h3>Raw Material List</h3>
+
+        <a href="{% url 'raw_material_create' %}"
+           class="btn btn-success">
+
+            Add Raw Material
+
+        </a>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Current Stock</th>
+                <th>Minimum Stock</th>
+                <th>Status</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for material in materials %}
+
+        <tr>
+
+            <td>{{ material.name }}</td>
+
+            <td>{{ material.unit }}</td>
+
+            <td>{{ material.current_stock }}</td>
+
+            <td>{{ material.minimum_stock }}</td>
+
+            <td>
+
+                {% if material.is_active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                <a href="{% url 'raw_material_edit' material.id %}"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'raw_material_delete' material.id %}"
+                   class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="6" class="text-center">
+                No raw materials found.
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

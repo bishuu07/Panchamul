@@ -1,0 +1,177 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Material Issue Entry</h3>
+
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <hr>
+
+        <h5>Add Materials</h5>
+
+        <div class="row">
+
+            <div class="col-md-5">
+
+                <select id="material"
+                        class="form-control">
+
+                    {% for m in materials %}
+
+                    <option value="{{ m.id }}">
+
+                        {{ m.name }}
+                        (Stock: {{ m.current_stock }})
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <input type="number"
+                       step="0.01"
+                       id="qty"
+                       class="form-control">
+
+            </div>
+
+            <div class="col-md-2">
+
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="addItem()">
+
+                    Add
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <table class="table table-bordered">
+
+            <thead>
+
+            <tr>
+
+                <th>Material</th>
+                <th>Quantity</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody id="itemsTable"></tbody>
+
+        </table>
+
+        <input type="hidden"
+               name="items_json"
+               id="items_json">
+
+        <button class="btn btn-primary">
+
+            Save Issue
+
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+
+let items = [];
+
+function addItem(){
+
+    let material = document.getElementById('material');
+    let qty = document.getElementById('qty').value;
+
+    if(qty == '' || parseFloat(qty) <= 0){
+
+        alert('Enter valid quantity');
+        return;
+    }
+
+    items.push({
+
+        material: material.value,
+
+        material_name:
+            material.options[
+                material.selectedIndex
+            ].text,
+
+        quantity: qty
+    });
+
+    renderTable();
+
+    document.getElementById(
+        'qty'
+    ).value = '';
+}
+
+function renderTable(){
+
+    let html = '';
+
+    items.forEach(item => {
+
+        html += `
+        <tr>
+            <td>${item.material_name}</td>
+            <td>${item.quantity}</td>
+        </tr>
+        `;
+    });
+
+    document.getElementById(
+        'itemsTable'
+    ).innerHTML = html;
+
+    document.getElementById(
+        'items_json'
+    ).value = JSON.stringify(items);
+}
+
+document.querySelector('form').addEventListener(
+    'submit',
+    function(e){
+
+        if(items.length === 0){
+
+            alert(
+                'Please add at least one material.'
+            );
+
+            e.preventDefault();
+        }
+    }
+);
+
+</script>
+
+{% endblock %}

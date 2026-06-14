@@ -299,6 +299,7 @@
 
 <div class="sidebar">
 
+
     <div class="logo">
         Panchamul ERP
     </div>
@@ -335,6 +336,7 @@
 
     {% endif %}
 
+
     <!-- DEALER ADMIN -->
 
     {% if request.user.role == 'SUPER_ADMIN' %}
@@ -354,6 +356,7 @@
     </a>
 
     {% endif %}
+
 
     <!-- COMPANY STAFF -->
 
@@ -375,6 +378,7 @@
 
     {% endif %}
 
+
     <!-- PERMISSIONS -->
 
     {% if request.user.role == 'SUPER_ADMIN' %}
@@ -395,37 +399,103 @@
 
     {% endif %}
 
-    <!-- PRODUCT -->
 
-    {% if request.user.role == 'SUPER_ADMIN' or user_permissions.PRODUCT.can_view %}
+   <!-- SUPPLIER -->
 
-    <hr>
-
-    <div class="menu-title">
-        Products
-    </div>
-
-    <a href="#">
-        Product List
-    </a>
-
-    {% endif %}
-
-    <!-- STOCK -->
-
-    {% if request.user.role == 'SUPER_ADMIN' or user_permissions.STOCK.can_view %}
+    {% if request.user.role == 'SUPER_ADMIN' or can_product %}
 
     <hr>
 
     <div class="menu-title">
-        Stock
+        Suppliers
     </div>
 
-    <a href="#">
-        Stock List
+    <a href="{% url 'supplier_list' %}">
+        Supplier List
+    </a>
+
+    <a href="{% url 'supplier_create' %}">
+        Add Supplier
     </a>
 
     {% endif %}
+
+
+    <!-- RAW MATERIALS -->
+
+    {% if request.user.role == 'SUPER_ADMIN' or can_product %}
+
+    <hr>
+
+    <div class="menu-title">
+        Raw Materials
+    </div>
+
+    <a href="{% url 'raw_material_list' %}">
+        Raw Material List
+    </a>
+
+    <a href="{% url 'raw_material_create' %}">
+        Add Raw Material
+    </a>
+
+   <a href="{% url 'purchase_list' %}">
+    Purchase List
+    </a>
+
+    <a href="{% url 'purchase_create' %}">
+    New Purchase
+    </a>
+
+    {% endif %}
+
+    <!-- PRODUCTION -->
+
+    {% if request.user.role == 'SUPER_ADMIN' or can_stock %}
+
+    <hr>
+
+    <div class="menu-title">
+        Production
+    </div>
+
+    <a href="{% url 'issue_list' %}">
+        Material Issues
+    </a>
+
+    <a href="{% url 'issue_create' %}">
+        New Issue
+    </a>
+
+    <a href="{% url 'return_list' %}">
+        Material Returns
+    </a>
+
+    <a href="{% url 'production_list' %}">
+        Production Output
+    </a>
+
+    {% endif %}
+
+
+    <!-- FINISHED GOODS -->
+
+    {% if request.user.role == 'SUPER_ADMIN' or can_stock %}
+
+    <a href="{% url 'product_list' %}">
+    Product List
+    </a>
+
+    <a href="{% url 'product_create' %}">
+        Add Product
+    </a>
+
+    <a href="{% url 'finished_stock_list' %}">
+        Finished Stock
+    </a>
+
+    {% endif %}
+
 
     <!-- DISPATCH -->
 
@@ -437,11 +507,19 @@
         Dispatch
     </div>
 
-    <a href="#">
+    <a href="{% url 'dispatch_list' %}">
         Dispatch List
     </a>
 
+    <a href="{% url 'dispatch_create' %}">
+        New Dispatch
+    </a>
+    <a href="{% url 'dealer_stock_list' %}">
+    Dealer Stock
+    </a>
+
     {% endif %}
+
 
     <!-- SALES -->
 
@@ -454,10 +532,11 @@
     </div>
 
     <a href="#">
-        Sales Report
+        Dealer Sales
     </a>
 
     {% endif %}
+
 
     <!-- PAYMENT -->
 
@@ -470,12 +549,17 @@
     </div>
 
     <a href="#">
-        Payment List
+        Payment Collection
+    </a>
+
+    <a href="#">
+        Due Report
     </a>
 
     {% endif %}
 
-    <!-- REPORT -->
+
+    <!-- REPORTS -->
 
     {% if request.user.role == 'SUPER_ADMIN' or user_permissions.REPORT.can_view %}
 
@@ -493,9 +577,19 @@
         Monthly Report
     </a>
 
+    <a href="#">
+        Dealer Report
+    </a>
+
+    <a href="#">
+        Stock Report
+    </a>
+
     {% endif %}
 
+
 </div>
+
 <div class="content">
 
     <div class="topbar d-flex justify-content-between align-items-center">

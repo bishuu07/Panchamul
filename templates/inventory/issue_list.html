@@ -1,0 +1,105 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h3>Material Issue List</h3>
+
+        <a href="{% url 'issue_create' %}"
+           class="btn btn-primary">
+
+            New Issue
+
+        </a>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Date</th>
+
+                <th>Issued By</th>
+
+                <th>Materials</th>
+
+                <th>Remarks</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for issue in issues %}
+
+            <tr>
+
+                <td>
+                    #{{ issue.id }}
+                </td>
+
+                <td>
+                    {{ issue.issue_date }}
+                </td>
+
+                <td>
+                    {{ issue.issued_by }}
+                </td>
+
+                <td>
+
+                    {% for item in issue.items.all %}
+
+                        <div>
+
+                            {{ item.raw_material.name }}
+                            -
+                            {{ item.quantity }}
+                            {{ item.raw_material.unit }}
+
+                        </div>
+
+                    {% empty %}
+
+                        No Items
+
+                    {% endfor %}
+
+                </td>
+
+                <td>
+                    {{ issue.remarks }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="5" class="text-center">
+
+                    No Material Issues Found
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

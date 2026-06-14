@@ -1,0 +1,58 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between">
+
+        <h3>Purchase List</h3>
+
+        <a href="{% url 'purchase_create' %}"
+           class="btn btn-success">
+
+            New Purchase
+
+        </a>
+
+    </div>
+
+    <hr>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+        <tr>
+
+            <th>Invoice</th>
+            <th>Supplier</th>
+            <th>Date</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for p in purchases %}
+
+        <tr>
+
+            <td>{{ p.invoice_number }}</td>
+
+            <td>{{ p.supplier }}</td>
+
+            <td>{{ p.purchase_date }}</td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

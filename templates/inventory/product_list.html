@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Product List</h3>
+
+    <a href="{% url 'product_create' %}"
+       class="btn btn-success mb-3">
+
+        Add Product
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Stock</th>
+                
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for product in products %}
+
+            <tr>
+
+                <td>{{ product.name }}</td>
+                
+                <td>{{ product.unit }}</td>
+                <td>{{ product.current_stock }}</td>
+                
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

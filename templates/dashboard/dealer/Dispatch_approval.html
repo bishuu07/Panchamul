@@ -1,0 +1,83 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dispatch Approval</h3>
+
+    <p><b>Dealer:</b> {{ dispatch.dealer.name }}</p>
+    <p><b>Dispatch No:</b> {{ dispatch.dispatch_no }}</p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Dispatched</th>
+                    <th>Received</th>
+                    <th>Damaged</th>
+                    <th>Returned</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for item in dispatch.items.all %}
+
+                <tr>
+
+                    <td>
+                        {{ item.product.name }}
+                    </td>
+
+                    <td>
+                        {{ item.dispatched_qty }}
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="received_{{ item.id }}"
+                               value="0">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="damaged_{{ item.id }}"
+                               value="0">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="returned_{{ item.id }}"
+                               value="0">
+                    </td>
+
+                    <input type="hidden"
+                           name="items[]"
+                           value="{{ item.id }}">
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <button class="btn btn-success">
+            Submit Approval
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>New Raw Material Purchase</h3>
+
+    <hr>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <hr>
+
+        <h5>Purchase Items</h5>
+
+        <table class="table table-bordered" id="item-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Material</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            </tbody>
+
+        </table>
+
+        <button
+            type="button"
+            class="btn btn-success"
+            onclick="addRow()"
+        >
+            Add Item
+        </button>
+
+        <hr>
+
+        <input
+            type="hidden"
+            name="items_json"
+            id="items_json"
+        >
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            onclick="prepareData()"
+        >
+            Save Purchase
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+
+function addRow(){
+
+    let row = `
+    <tr>
+
+        <td>
+
+            <select class="form-control material">
+
+                {% for material in materials %}
+
+                <option value="{{ material.id }}">
+
+                    {{ material.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </td>
+
+        <td>
+
+            <input
+                type="number"
+                class="form-control quantity"
+                step="0.01"
+            >
+
+        </td>
+
+        <td>
+
+            <input
+                type="number"
+                class="form-control rate"
+                step="0.01"
+            >
+
+        </td>
+
+        <td>
+
+            <button
+                type="button"
+                class="btn btn-danger"
+                onclick="removeRow(this)"
+            >
+                Remove
+            </button>
+
+        </td>
+
+    </tr>
+    `;
+
+    document.querySelector(
+        '#item-table tbody'
+    ).insertAdjacentHTML(
+        'beforeend',
+        row
+    );
+}
+
+function removeRow(btn){
+
+    btn.closest('tr').remove();
+
+}
+
+function prepareData(){
+
+    let items = [];
+
+    document.querySelectorAll(
+        '#item-table tbody tr'
+    ).forEach(function(row){
+
+        items.push({
+
+            material:
+                row.querySelector('.material').value,
+
+            quantity:
+                row.querySelector('.quantity').value,
+
+            rate:
+                row.querySelector('.rate').value
+
+        });
+
+    });
+
+    document.getElementById(
+        'items_json'
+    ).value = JSON.stringify(items);
+
+}
+
+addRow();
+
+</script>
+
+{% endblock %}

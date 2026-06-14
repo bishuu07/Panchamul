@@ -1,0 +1,42 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Material Return List</h3>
+
+    <a href="{% url 'return_create' %}"
+       class="btn btn-success mb-3">
+
+        New Return
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Created By</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td colspan="3">
+                    No returns available.
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

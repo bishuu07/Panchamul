@@ -1,0 +1,70 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Supplier List</h3>
+
+    <a href="{% url 'supplier_create' %}"
+       class="btn btn-success mb-3">
+        Add Supplier
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for supplier in suppliers %}
+
+        <tr>
+
+            <td>{{ supplier.name }}</td>
+
+            <td>{{ supplier.phone }}</td>
+
+            <td>{{ supplier.email }}</td>
+
+            <td>
+                {% if supplier.is_active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+            </td>
+
+            <td>
+
+                <a href="{% url 'supplier_edit' supplier.id %}"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'supplier_delete' supplier.id %}"
+                   class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
