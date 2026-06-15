@@ -1,0 +1,75 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Customer List</h3>
+
+    <a href="{% url 'customer_create' %}"
+       class="btn btn-success mb-3">
+
+        New Customer
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Opening Balance</th>
+                <th>Status</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for customer in customers %}
+
+            <tr>
+
+                <td>{{ customer.name }}</td>
+
+                <td>{{ customer.phone }}</td>
+
+                <td>{{ customer.opening_balance }}</td>
+
+                <td>
+
+                    {% if customer.is_active %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <a href="{% url 'customer_edit' customer.id %}"
+                       class="btn btn-sm btn-primary">
+
+                        Edit
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

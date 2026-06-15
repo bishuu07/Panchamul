@@ -53,4 +53,34 @@ class DealerProfile(models.Model):
 
 
 
+class DealerPayment(models.Model):
 
+    dealer = models.ForeignKey(
+        Dealer,
+        on_delete=models.CASCADE
+    )
+
+    payment_date = models.DateField()
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    remarks = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.dealer.name

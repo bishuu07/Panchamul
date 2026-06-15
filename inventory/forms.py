@@ -78,7 +78,7 @@ class ProductForm(forms.ModelForm):
             # 'sku',
             'unit',
             'minimum_stock',
-            # 'selling_price',
+            
             'is_active'
         ]
 

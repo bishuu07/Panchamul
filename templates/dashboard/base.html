@@ -481,9 +481,12 @@
     <!-- FINISHED GOODS -->
 
     {% if request.user.role == 'SUPER_ADMIN' or can_stock %}
+    <div class="menu-title">
+    Finished Goods
+    </div>
 
     <a href="{% url 'product_list' %}">
-    Product List
+        Product List
     </a>
 
     <a href="{% url 'product_create' %}">
@@ -525,15 +528,31 @@
 
     {% if request.user.role == 'SUPER_ADMIN' or user_permissions.SALES.can_view %}
 
-    <hr>
+   <hr>
 
-    <div class="menu-title">
-        Sales
-    </div>
+        <div class="menu-title">
+            Sales
+        </div>
 
-    <a href="#">
-        Dealer Sales
-    </a>
+        <a href="{% url 'customer_list' %}">
+            Customer Master
+        </a>
+
+        <a href="{% url 'sale_list' %}">
+            Sales Invoice
+        </a>
+        <a href="{% url 'sale_create' %}">
+            Add sales
+        </a>
+
+        
+        <a href="#">
+            Customer Ledger
+        </a>
+
+        <a href="#">
+            Customer Outstanding Report
+        </a>
 
     {% endif %}
 

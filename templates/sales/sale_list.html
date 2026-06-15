@@ -1,0 +1,60 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Sales Invoice List</h3>
+
+    <a href="#"
+       class="btn btn-success mb-3">
+
+        New Invoice
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for sale in sales %}
+
+            <tr>
+
+                <td>{{ sale.invoice_no }}</td>
+
+                <td>{{ sale.customer.name }}</td>
+
+                <td>{{ sale.sale_date }}</td>
+
+                <td>{{ sale.total_amount }}</td>
+
+                <td>{{ sale.paid_amount }}</td>
+
+                <td>{{ sale.due_amount }}</td>
+
+                <td>{{ sale.status }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

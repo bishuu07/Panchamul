@@ -23,5 +23,9 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('dealers/', include('dealers.urls')),
     path( 'inventory/', include('inventory.urls')),
+    path(
+    'sales',
+    include('sales.urls')
+),
     
 ]

@@ -421,6 +421,7 @@ class Product(models.Model):
         decimal_places=2,
         default=0
     )
+    
 
   
 

@@ -1,0 +1,309 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+```
+<h3>Sales Invoice Entry</h3>
+
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% endif %}
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <hr>
+
+    <h5>Add Products</h5>
+
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <select
+                id="product"
+                class="form-control">
+
+                {% for p in products %}
+
+                <option
+                    value="{{ p.id }}">
+
+                    {{ p.name }}
+                    (Stock: {{ p.current_stock }})
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                id="qty"
+                class="form-control"
+                placeholder="Qty">
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                id="rate"
+                class="form-control"
+                placeholder="Rate">
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button
+                type="button"
+                class="btn btn-success"
+                onclick="addItem()">
+
+                Add
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Amount</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="itemsTable">
+
+        </tbody>
+
+        <tfoot>
+
+            <tr>
+
+                <th colspan="3"
+                    class="text-end">
+
+                    Total
+
+                </th>
+
+                <th id="grandTotal">
+
+                    0
+
+                </th>
+
+                <th></th>
+
+            </tr>
+
+        </tfoot>
+
+    </table>
+
+    <input
+        type="hidden"
+        name="items_json"
+        id="items_json">
+
+    <button
+        type="submit"
+        class="btn btn-primary">
+
+        Save Invoice
+
+    </button>
+
+</form>
+```
+
+</div>
+
+<script>
+
+let items = [];
+
+function addItem() {
+
+    let product =
+        document.getElementById(
+            'product'
+        );
+
+    let qty =
+        parseFloat(
+            document.getElementById(
+                'qty'
+            ).value
+        );
+
+    let rate =
+        parseFloat(
+            document.getElementById(
+                'rate'
+            ).value
+        );
+
+    if (!qty || qty <= 0) {
+
+        alert(
+            'Enter valid quantity'
+        );
+
+        return;
+    }
+
+    if (!rate || rate <= 0) {
+
+        alert(
+            'Enter valid rate'
+        );
+
+        return;
+    }
+
+    let amount = qty * rate;
+
+    items.push({
+
+        product:
+            product.value,
+
+        product_name:
+            product.options[
+                product.selectedIndex
+            ].text,
+
+        quantity:
+            qty,
+
+        rate:
+            rate,
+
+        amount:
+            amount
+
+    });
+
+    renderTable();
+
+    document.getElementById(
+        'qty'
+    ).value = '';
+
+    document.getElementById(
+        'rate'
+    ).value = '';
+}
+
+function removeItem(index) {
+
+    items.splice(
+        index,
+        1
+    );
+
+    renderTable();
+}
+
+function renderTable() {
+
+    let html = '';
+
+    let total = 0;
+
+    items.forEach(
+        (item, index) => {
+
+            total +=
+                parseFloat(
+                    item.amount
+                );
+
+            html += `
+            <tr>
+
+                <td>
+                    ${item.product_name}
+                </td>
+
+                <td>
+                    ${item.quantity}
+                </td>
+
+                <td>
+                    ${item.rate}
+                </td>
+
+                <td>
+                    ${item.amount.toFixed(2)}
+                </td>
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        onclick="removeItem(${index})">
+
+                        Remove
+
+                    </button>
+
+                </td>
+
+            </tr>
+            `;
+        }
+    );
+
+    document.getElementById(
+        'itemsTable'
+    ).innerHTML = html;
+
+    document.getElementById(
+        'grandTotal'
+    ).innerHTML =
+        total.toFixed(2);
+
+    document.getElementById(
+        'items_json'
+    ).value =
+        JSON.stringify(
+            items
+        );
+}
+
+</script>
+
+{% endblock %}
