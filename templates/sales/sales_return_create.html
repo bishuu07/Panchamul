@@ -1,0 +1,151 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Sales Return</h3>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <hr>
+
+        <h5>Invoice Items</h5>
+
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Sold Qty</th>
+                    <th>Returned</th>
+                    <th>Available</th>
+                    <th>Return Qty</th>
+                </tr>
+            </thead>
+
+            <tbody id="invoiceItems"></tbody>
+
+        </table>
+
+        <input type="hidden"
+               name="items_json"
+               id="items_json">
+
+        <button class="btn btn-success">
+            Save Return
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+
+let returnItems = [];
+
+const saleField =
+document.getElementById(
+    'id_sale'
+);
+
+saleField.addEventListener(
+    'change',
+    loadItems
+);
+
+function loadItems() {
+
+    let saleId = saleField.value;
+
+    fetch(
+         `/sales/sales-items/${saleId}/`
+    )
+    .then(response => response.json())
+    .then(data => {
+
+        let html = '';
+
+        data.forEach(item => {
+
+            html += `
+            <tr>
+
+                <td>${item.product}</td>
+
+                <td>${item.quantity}</td>
+
+                <td>${item.returned_qty}</td>
+
+                <td>${item.available_return}</td>
+
+                <td>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        max="${item.available_return}"
+                        onchange="
+                        updateReturn(
+                            ${item.id},
+                            this.value,
+                            ${item.rate}
+                        )">
+
+                </td>
+
+            </tr>
+            `;
+        });
+
+        document.getElementById(
+            'invoiceItems'
+        ).innerHTML = html;
+    });
+}
+
+function updateReturn(
+    saleItemId,
+    qty,
+    rate
+) {
+
+    returnItems =
+        returnItems.filter(
+            x => x.sale_item != saleItemId
+        );
+
+    if(qty > 0) {
+
+        returnItems.push({
+
+            sale_item: saleItemId,
+
+            quantity: qty,
+
+            rate: rate
+
+        });
+    }
+
+    document.getElementById(
+        'items_json'
+    ).value =
+        JSON.stringify(
+            returnItems
+        );
+}
+
+</script>
+
+{% endblock %}

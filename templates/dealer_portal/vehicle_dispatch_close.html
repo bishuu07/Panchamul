@@ -1,0 +1,365 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Close Vehicle Dispatch</h3>
+
+    <hr>
+
+    <p>
+        <strong>Dispatch No :</strong>
+        {{ dispatch.dispatch_no }}
+    </p>
+
+    <p>
+        <strong>Vehicle :</strong>
+        {{ dispatch.vehicle.vehicle_no }}
+    </p>
+
+    <p>
+        <strong>Date :</strong>
+        {{ dispatch.dispatch_date }}
+    </p>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <table class="table table-bordered table-striped">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Product</th>
+
+                    <th>Total Loaded</th>
+
+                    <th>Sold</th>
+
+                    <th>Returned</th>
+
+                    <th>Breakage</th>
+
+                    <th>Leakage</th>
+
+                    <th>Sponsor</th>
+
+                </tr>
+
+            </thead>
+
+           <tbody>
+
+{% for item in summary %}
+
+<tr>
+
+    <td>
+        <b>{{ item.product.name }}</b>
+    </td>
+
+    <td>
+        <strong>{{ item.loaded }}</strong>
+    </td>
+
+    <td>
+
+        <div id="sales_{{ item.product.id }}">
+
+            <div class="row mb-2">
+
+                <div class="col-md-5">
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        name="sale_qty_{{ item.product.id }}[]"
+                        placeholder="Qty">
+
+                </div>
+
+                <div class="col-md-5">
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        name="sale_rate_{{ item.product.id }}[]"
+                        placeholder="Rate">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            onclick="addSaleRow({{ item.product.id }})">
+
+            + Add Sale
+
+        </button>
+
+    </td>
+
+    <td>
+
+        <input
+            type="number"
+            step="0.01"
+            value="0"
+            class="form-control"
+            name="return_{{ item.product.id }}">
+
+    </td>
+
+    <td>
+
+        <input
+            type="number"
+            step="0.01"
+            value="0"
+            class="form-control"
+            name="breakage_{{ item.product.id }}">
+
+    </td>
+
+    <td>
+
+        <input
+            type="number"
+            step="0.01"
+            value="0"
+            class="form-control"
+            name="leakage_{{ item.product.id }}">
+
+    </td>
+
+    <td>
+
+        <input
+            type="number"
+            step="0.01"
+            value="0"
+            class="form-control"
+            name="sponsor_{{ item.product.id }}">
+
+    </td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+    <td colspan="7" class="text-center text-danger">
+
+        No trip data found.
+
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+        </table>
+
+        <div class="text-end">
+
+            <button
+                type="submit"
+                class="btn btn-success">
+
+                Close Dispatch
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+function addSaleRow(productId){
+
+    let div = document.getElementById(
+        "sales_" + productId
+    );
+
+    div.insertAdjacentHTML(
+
+        "beforeend",
+
+        `
+        <div class="row mb-2">
+
+            <div class="col-md-5">
+
+                <input
+                    type="number"
+                    step="0.01"
+                    class="form-control"
+                    name="sale_qty_${productId}[]"
+                    placeholder="Qty">
+
+            </div>
+
+            <div class="col-md-5">
+
+                <input
+                    type="number"
+                    step="0.01"
+                    class="form-control"
+                    name="sale_rate_${productId}[]"
+                    placeholder="Rate">
+
+            </div>
+
+        </div>
+        `
+
+    );
+
+}
+
+</script>
+
+{% endblock %}
+
+
+
+
+
+{% comment %} {% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Close Vehicle Trip</h3>
+
+    <p>
+        <b>Dispatch No:</b>
+        {{ dispatch.dispatch_no }}
+    </p>
+
+    <p>
+        <b>Vehicle:</b>
+        {{ dispatch.vehicle.vehicle_no }}
+    </p>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <table class="table table-bordered">
+
+            <thead>
+
+                <tr>
+                    <th>Product</th>
+                    <th>Dispatched</th>
+                    <th>Sold</th>
+                    <th>Returned</th>
+                    <th>Breakage</th>
+                    <th>Leakage</th>
+                    <th>Sponsor</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for item in dispatch.items.all %}
+
+                <tr>
+
+                    <td>
+                        {{ item.product.name }}
+                    </td>
+
+                    <td>
+                        {{ item.dispatch_qty }}
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="sold_{{ item.id }}"
+                               value="0"
+                               class="form-control">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="return_{{ item.id }}"
+                               value="0"
+                               class="form-control">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="breakage_{{ item.id }}"
+                               value="0"
+                               class="form-control">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="leakage_{{ item.id }}"
+                               value="0"
+                               class="form-control">
+                    </td>
+
+                    <td>
+                        <input type="number"
+                               step="0.01"
+                               name="sponsor_{{ item.id }}"
+                               value="0"
+                               class="form-control">
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <button class="btn btn-success">
+            Close Dispatch
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %} {% endcomment %}
+
+

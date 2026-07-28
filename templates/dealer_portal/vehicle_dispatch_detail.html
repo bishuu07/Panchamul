@@ -1,0 +1,177 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>
+        Dispatch {{ dispatch.dispatch_no }}
+    </h3>
+
+    <hr>
+
+    <div class="row">
+
+        <div class="col-md-4">
+            <strong>Vehicle</strong><br>
+            {{ dispatch.vehicle.vehicle_no }}
+        </div>
+
+        <div class="col-md-4">
+            <strong>Date</strong><br>
+            {{ dispatch.dispatch_date }}
+        </div>
+
+        <div class="col-md-4">
+            <strong>Status</strong><br>
+
+            {% if dispatch.status == "OPEN" %}
+                <span class="badge bg-success">
+                    OPEN
+                </span>
+            {% else %}
+                <span class="badge bg-danger">
+                    CLOSED
+                </span>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <br>
+
+    {% if dispatch.status == "OPEN" %}
+
+        <a href="{% url 'vehicle_trip_create' dispatch.id %}"
+           class="btn btn-success">
+
+            + Add Trip
+
+        </a>
+
+        <a href="{% url 'vehicle_dispatch_close' dispatch.id %}"
+           class="btn btn-danger">
+
+            Close Dispatch
+
+        </a>
+
+    {% else %}
+
+        <a href="{% url 'vehicle_dispatch_report' dispatch.id %}"
+           class="btn btn-success">
+
+            View Dispatch Report
+
+        </a>
+
+    {% endif %}
+
+    <a href="{% url 'vehicle_dispatch_list' %}"
+       class="btn btn-primary">
+
+        Back
+
+    </a>
+
+    <hr>
+
+    <h4>Trips</h4>
+
+    <table class="table table-bordered">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Trip No</th>
+
+                <th>Date</th>
+
+                <th>Total Products</th>
+
+                <th>Status</th>
+
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for trip in trips %}
+
+            <tr>
+
+                <td>
+
+                    Trip {{ trip.trip_no }}
+
+                </td>
+
+                <td>
+
+                    {{ trip.dispatch_time }}
+
+                </td>
+
+                <td>
+
+                    {{ trip.items.count }}
+
+                </td>
+
+                <td>
+
+                    {% if trip.is_closed %}
+
+                        <span class="badge bg-danger">
+                            Closed
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-success">
+                            Open
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <a href="{% url 'vehicle_trip_detail' trip.id %}"
+                       class="btn btn-info btn-sm">
+
+                        View
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+
+                    No Trips Yet
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

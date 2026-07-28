@@ -1,0 +1,55 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Customer Payments</h3>
+
+    <a href="{% url 'customer_payment_create' %}"
+       class="btn btn-success mb-3">
+
+        New Payment
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Remarks</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for p in payments %}
+
+            <tr>
+
+                <td>{{ p.payment_date }}</td>
+
+                <td>{{ p.customer.name }}</td>
+
+                <td>{{ p.amount }}</td>
+
+                <td>{{ p.remarks }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

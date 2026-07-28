@@ -1,0 +1,68 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Create Vehicle Dispatch</h3>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Vehicle
+            </label>
+
+            <select
+                name="vehicle"
+                class="form-control"
+                required
+            >
+
+                <option value="">
+                    Select Vehicle
+                </option>
+
+                {% for vehicle in vehicles %}
+
+                <option value="{{ vehicle.id }}">
+                    {{ vehicle.vehicle_no }}
+                    {% if vehicle.driver_name %}
+                        - {{ vehicle.driver_name }}
+                    {% endif %}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-success"
+        >
+            Create Dispatch
+        </button>
+
+        <a
+            href="{% url 'vehicle_dispatch_list' %}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

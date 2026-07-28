@@ -1,0 +1,88 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Vehicle List</h3>
+
+    <a href="{% url 'vehicle_create' %}"
+       class="btn btn-primary mb-3">
+
+        Add Vehicle
+
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Vehicle No</th>
+
+                <th>Driver</th>
+
+                <th>Phone</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for vehicle in vehicles %}
+
+            <tr>
+
+                <td>
+                    {{ vehicle.vehicle_no }}
+                </td>
+
+                <td>
+                    {{ vehicle.driver_name }}
+                </td>
+
+                <td>
+                    {{ vehicle.phone }}
+                </td>
+
+                <td>
+
+                    {% if vehicle.is_active %}
+
+                        Active
+
+                    {% else %}
+
+                        Inactive
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+
+                    No vehicles found.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

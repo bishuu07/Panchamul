@@ -8,7 +8,7 @@
 
     <hr>
 
-    <form method="POST">
+    <form method="POST" onsubmit="return prepareData()">
 
         {% csrf_token %}
 
@@ -57,9 +57,9 @@
 
         <button
             type="submit"
-            class="btn btn-primary"
-            onclick="prepareData()"
-        >
+            class="btn btn-primary">
+            
+        
             Save Purchase
         </button>
 
@@ -145,32 +145,69 @@ function prepareData(){
 
     let items = [];
 
+    let valid = true;
+
     document.querySelectorAll(
         '#item-table tbody tr'
     ).forEach(function(row){
 
+        let material = row.querySelector('.material').value;
+
+        let quantity = row.querySelector('.quantity').value.trim();
+
+        let rate = row.querySelector('.rate').value.trim();
+
+        // Ignore completely empty rows
+        if(quantity === "" && rate === ""){
+            return;
+        }
+
+        // One field filled but the other missing
+        if(quantity === "" || rate === ""){
+
+            alert("Please enter both Quantity and Rate.");
+
+            valid = false;
+
+            return;
+        }
+
         items.push({
 
-            material:
-                row.querySelector('.material').value,
+            material: material,
 
-            quantity:
-                row.querySelector('.quantity').value,
+            quantity: quantity,
 
-            rate:
-                row.querySelector('.rate').value
+            rate: rate
 
         });
 
     });
 
-    document.getElementById(
-        'items_json'
-    ).value = JSON.stringify(items);
+    if(!valid){
+
+        event.preventDefault();
+
+        return false;
+
+    }
+
+    if(items.length === 0){
+
+        alert("Please add at least one purchase item.");
+
+        event.preventDefault();
+
+        return false;
+
+    }
+
+    document.getElementById("items_json").value =
+        JSON.stringify(items);
+
+    return true;
 
 }
-
-addRow();
 
 </script>
 

@@ -1,0 +1,79 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dispatches</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+                <th>Dispatch No</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for dispatch in dispatches %}
+
+            <tr>
+
+                <td>
+                    {{ dispatch.dispatch_no }}
+                </td>
+
+                <td>
+                    {{ dispatch.dispatch_date }}
+                </td>
+
+                <td>
+                    {{ dispatch.status }}
+                </td>
+
+                <td>
+
+                    {% if dispatch.status == 'PENDING' %}
+
+                    <a
+                        href="{% url 'dealer_dispatch_approval' dispatch.id %}"
+                        class="btn btn-success btn-sm"
+                    >
+                        Approve
+                    </a>
+
+                    {% else %}
+
+                    Approved
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+                    No dispatches found.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

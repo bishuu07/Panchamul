@@ -1,0 +1,25 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Add Vehicle</h3>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button class="btn btn-success">
+
+            Save Vehicle
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

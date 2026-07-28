@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import(
-    raw_material_create, raw_material_edit, raw_material_list, supplier_create, supplier_delete,raw_material_delete, supplier_edit,supplier_list,purchase_list,purchase_create
+    raw_material_create, raw_material_edit, raw_material_list, supplier_create, supplier_delete,raw_material_delete, supplier_edit,supplier_list,purchase_list,purchase_create,
+    
 )
 from . import views
 
@@ -137,4 +138,6 @@ path(
     views.dispatch_detail,
     name='dispatch_detail'
 ),
+
+
 ]

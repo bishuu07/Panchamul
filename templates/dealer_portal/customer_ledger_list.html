@@ -1,0 +1,58 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Customer Ledger</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for customer in customers %}
+
+            <tr>
+
+                <td>
+                    {{ customer.name }}
+                </td>
+
+                <td>
+                    {{ customer.phone }}
+                </td>
+
+                <td>
+
+                    <a href="{% url 'dealer_customer_ledger_detail' customer.id %}"
+                       class="btn btn-primary btn-sm">
+
+                        View Ledger
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

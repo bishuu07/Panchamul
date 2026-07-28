@@ -27,14 +27,45 @@
 
         <tbody>
 
-            <tr>
-                <td colspan="3">
-                    No returns available.
-                </td>
-            </tr>
+        {% for item in returns %}
+
+        <tr>
+
+            <td>
+
+                {{ item.id }}
+
+            </td>
+
+            <td>
+
+                {{ item.return_date }}
+
+            </td>
+
+            <td>
+
+                {{ item.created_by }}
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="3">
+
+                No returns available.
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
 
         </tbody>
-
     </table>
 
 </div>

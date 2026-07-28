@@ -1,0 +1,60 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Customer Outstanding Report</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Customer</th>
+                <th>Outstanding Amount</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for row in data %}
+
+            <tr>
+
+                <td>
+                    {{ row.customer.name }}
+                </td>
+
+                <td>
+                    {{ row.balance }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+        <tfoot>
+
+            <tr>
+
+                <th>Total Outstanding</th>
+
+                <th>
+                    {{ grand_total }}
+                </th>
+
+            </tr>
+
+        </tfoot>
+
+    </table>
+
+</div>
+
+{% endblock %}

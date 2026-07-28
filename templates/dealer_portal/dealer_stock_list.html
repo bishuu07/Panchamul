@@ -1,0 +1,52 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dealer Stock</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Available Stock</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for stock in stocks %}
+
+            <tr>
+
+                <td>
+                    {{ stock.product.name }}
+                </td>
+
+                <td>
+                    {{ stock.quantity }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="2">
+                    No stock available.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h3>Customer Payments</h3>
+
+        <a href="{% url 'dealer_customer_payment_create' %}"
+           class="btn btn-primary">
+            Add Payment
+        </a>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Amount</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for payment in payments %}
+
+            <tr>
+
+                <td>
+                    {{ payment.payment_date }}
+                </td>
+
+                <td>
+                    {{ payment.customer.name }}
+                </td>
+
+                <td>
+                    {{ payment.amount }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="3">
+                    No payments found.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

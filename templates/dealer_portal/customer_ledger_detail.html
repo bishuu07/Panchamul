@@ -1,0 +1,83 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>
+
+        Ledger :
+        {{ customer.name }}
+
+    </h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Type</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for entry in ledger_entries %}
+
+            <tr>
+
+                <td>
+                    {{ entry.entry_type }}
+                </td>
+
+                <td>
+                    {{ entry.debit }}
+                </td>
+
+                <td>
+                    {{ entry.credit }}
+                </td>
+
+                <td>
+                    {{ entry.balance }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+        <tfoot>
+
+            <tr>
+
+                <th>Total</th>
+
+                <th>
+                    {{ total_debit }}
+                </th>
+
+                <th>
+                    {{ total_credit }}
+                </th>
+
+                <th>
+                    {{ balance }}
+                </th>
+
+            </tr>
+
+        </tfoot>
+
+    </table>
+
+</div>
+
+{% endblock %}

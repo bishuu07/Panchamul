@@ -1,0 +1,136 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dealer Return</h3>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Dealer</label>
+        <select id="dealer" name="dealer" class="form-control">
+            {% for d in dealers %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+        </select>
+
+        <br>
+
+        <label>Return No</label>
+        <input type="text" name="return_no" class="form-control">
+
+        <label>Return Date</label>
+        <input type="date" name="return_date" class="form-control">
+
+        <label>Remarks</label>
+        <textarea name="remarks" class="form-control"></textarea>
+
+        <hr>
+
+        <h5>Add Items</h5>
+
+        <div class="row">
+
+            <div class="col-md-5">
+                <select id="product" class="form-control">
+                    {% for p in products %}
+                    <option value="{{ p.id }}">
+                        {{ p.name }} (Stock: {{ p.current_stock }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <input type="number" id="qty" class="form-control" placeholder="Qty">
+            </div>
+
+            <div class="col-md-3">
+                <input type="number" id="rate" class="form-control" placeholder="Rate">
+            </div>
+
+            <div class="col-md-1">
+                <button type="button" class="btn btn-success" onclick="addItem()">+</button>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTable"></tbody>
+        </table>
+
+        <input type="hidden" name="items_json" id="items_json">
+
+        <button class="btn btn-primary">Save Return</button>
+
+    </form>
+
+</div>
+
+<script>
+
+let items = [];
+
+function addItem() {
+
+    let product = document.getElementById('product');
+    let qty = document.getElementById('qty').value;
+    let rate = document.getElementById('rate').value;
+
+    if(!qty || !rate) {
+        alert('Enter qty and rate');
+        return;
+    }
+
+    items.push({
+        product: product.value,
+        product_name: product.options[product.selectedIndex].text,
+        quantity: qty,
+        rate: rate,
+        amount: qty * rate
+    });
+
+    render();
+}
+
+function render() {
+
+    let html = '';
+
+    items.forEach(i => {
+
+        html += `
+        <tr>
+            <td>${i.product_name}</td>
+            <td>${i.quantity}</td>
+            <td>${i.rate}</td>
+            <td>${i.amount}</td>
+        </tr>
+        `;
+    });
+
+    document.getElementById('itemsTable').innerHTML = html;
+    document.getElementById('items_json').value = JSON.stringify(items);
+}
+
+</script>
+
+{% endblock %}

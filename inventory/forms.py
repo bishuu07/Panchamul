@@ -1,5 +1,5 @@
 from django import forms
-from .models import RawMaterial, Supplier, RawMaterialPurchase,MaterialIssue,Product,Production,Dispatch
+from .models import RawMaterial, Supplier, RawMaterialPurchase,MaterialIssue,Product,Production,Dispatch,MaterialReturn
 
 
 class RawMaterialForm(forms.ModelForm):
@@ -120,4 +120,29 @@ class DispatchForm(forms.ModelForm):
                     'type': 'date'
                 }
             )
+        }
+
+
+
+class MaterialReturnForm(forms.ModelForm):
+
+    class Meta:
+
+        model = MaterialReturn
+
+        fields = [
+            "return_date",
+            "remarks",
+        ]
+
+        widgets = {
+
+            "return_date": forms.DateInput(
+                attrs={"type": "date"}
+            ),
+
+            "remarks": forms.Textarea(
+                attrs={"rows": 3}
+            ),
+
         }

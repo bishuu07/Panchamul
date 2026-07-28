@@ -1,0 +1,122 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h3>Sponsor List</h3>
+
+        <a href="{% url 'sponsor_create' %}"
+           class="btn btn-primary">
+
+            Give Sponsor
+
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Date</th>
+
+                <th>Source</th>
+
+                <th>Vehicle</th>
+
+                <th>Customer</th>
+
+                <th>Product</th>
+
+                <th>Quantity</th>
+
+                <th>Remarks</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for s in sponsors %}
+
+            <tr>
+
+                <td>
+                    {{ s.sponsor_date }}
+                </td>
+
+                <td>
+                    <span class="badge bg-info">
+                        {{ s.source }}
+                    </span>
+                </td>
+
+                <td>
+
+                    {% if s.vehicle %}
+
+                        {{ s.vehicle.vehicle_no }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if s.customer %}
+
+                        {{ s.customer.name }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    {{ s.product.name }}
+                </td>
+
+                <td>
+                    {{ s.quantity }}
+                </td>
+
+                <td>
+                    {{ s.remarks }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="text-center">
+
+                    No Sponsor Records Found.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

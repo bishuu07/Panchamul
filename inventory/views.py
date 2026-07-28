@@ -16,16 +16,22 @@ from .models import (
     Dispatch,
     DispatchItem,
     Product,
+    MaterialReturn,
+    MaterialReturnItem,
+    
    
 )
+from decimal import Decimal, InvalidOperation
 from django.db.models import F
 
 from .forms import (
-    RawMaterialPurchaseForm,DispatchForm
+    RawMaterialPurchaseForm,DispatchForm, MaterialReturnForm
 )
 from django.http import JsonResponse
 import json
 from decimal import Decimal
+from inventory.models import DealerStock
+from dealers.models import DealerLedger
 
 
 def raw_material_list(request):
@@ -200,11 +206,9 @@ def purchase_create(request):
 
             purchase.save()
 
-            items = json.loads(
-                request.POST.get(
-                    'items_json'
-                )
-            )
+            items_json = request.POST.get("items_json", "[]")
+
+            items = json.loads(items_json)
 
             for item in items:
 
@@ -212,13 +216,21 @@ def purchase_create(request):
                     id=item['material']
                 )
 
-                qty = Decimal(
-                    str(item['quantity'])
-                )
+                qty_text = str(item.get("quantity", "")).strip()
+                rate_text = str(item.get("rate", "")).strip()
 
-                rate = Decimal(
-                    str(item['rate'])
-                )
+                if qty_text == "" or rate_text == "":
+                    continue
+
+                try:
+
+                    qty = Decimal(qty_text)
+
+                    rate = Decimal(rate_text)
+
+                except InvalidOperation:
+
+                    continue
 
                 RawMaterialPurchaseItem.objects.create(
                     purchase=purchase,
@@ -364,17 +376,105 @@ def issue_list(request):
 
 def return_list(request):
 
+    returns = MaterialReturn.objects.all().order_by("-id")
+
     return render(
+
         request,
-        'inventory/return_list.html'
+
+        "inventory/return_list.html",
+
+        {
+
+            "returns": returns,
+
+        }
+
     )
+
+
 
 
 def return_create(request):
 
+    form = MaterialReturnForm(
+        request.POST or None
+    )
+
+    materials = RawMaterial.objects.filter(
+        is_active=True
+    )
+
+    if request.method == "POST":
+
+        if form.is_valid():
+
+            material_return = form.save(
+                commit=False
+            )
+
+            material_return.created_by = request.user
+
+            material_return.save()
+
+            items = json.loads(
+
+                request.POST.get(
+                    "items_json",
+                    "[]"
+                )
+
+            )
+
+            for item in items:
+
+                qty = Decimal(
+
+                    str(
+                        item.get(
+                            "quantity"
+                        ) or "0"
+                    )
+
+                )
+
+                if qty <= 0:
+                    continue
+
+                material = RawMaterial.objects.get(
+
+                    id=item["material"]
+
+                )
+
+                MaterialReturnItem.objects.create(
+
+                    material_return=material_return,
+
+                    raw_material=material,
+
+                    quantity=qty
+
+                )
+
+            return redirect(
+                "return_list"
+            )
+
     return render(
+
         request,
-        'inventory/return_create.html'
+
+        "inventory/return_create.html",
+
+        {
+
+            "form": form,
+
+            "materials": materials,
+
+        }
+
     )
 
 @login_required
@@ -469,11 +569,19 @@ def production_create(request):
                 )
 
                 qty_produced = Decimal(
-                    str(item['quantity_produced'])
+                    str(
+                        item.get(
+                            "quantity_produced"
+                        ) or "0"
+                    )
                 )
 
                 qty_wasted = Decimal(
-                    str(item['quantity_wasted'])
+                    str(
+                        item.get(
+                            "quantity_wasted"
+                        ) or "0"
+                    )
                 )
 
                 ProductionItem.objects.create(
@@ -547,6 +655,26 @@ def dispatch_create(request):
 
         if form.is_valid():
 
+            items_json = request.POST.get(
+                'items_json'
+            )
+
+            if not items_json:
+
+                return render(
+                    request,
+                    'inventory/dispatch_create.html',
+                    {
+                        'form': form,
+                        'products': products,
+                        'error': 'Please add at least one product.'
+                    }
+                )
+
+            items = json.loads(
+                items_json
+            )
+
             dispatch = form.save(
                 commit=False
             )
@@ -555,11 +683,7 @@ def dispatch_create(request):
 
             dispatch.save()
 
-            items = json.loads(
-                request.POST.get(
-                    'items_json'
-                )
-            )
+            total_amount = Decimal('0')
 
             for item in items:
 
@@ -571,7 +695,15 @@ def dispatch_create(request):
                     str(item['quantity'])
                 )
 
-                # stock validation
+                rate = Decimal(
+                    str(item['rate'])
+                )
+
+                amount = Decimal(
+                    str(item['amount'])
+                )
+
+                # Stock validation
 
                 if product.current_stock < qty:
 
@@ -583,19 +715,33 @@ def dispatch_create(request):
                         {
                             'form': form,
                             'products': products,
-                            'error': f'Not enough stock for {product.name}'
+                            'error':
+                                f'Not enough stock for '
+                                f'{product.name}. '
+                                f'Available stock: '
+                                f'{product.current_stock}'
                         }
                     )
 
                 DispatchItem.objects.create(
                     dispatch=dispatch,
                     product=product,
-                    dispatched_qty=qty
+                    dispatched_qty=qty,
+                    rate=rate,
+                    amount=amount
                 )
+
+                total_amount += amount
+
+                # Deduct company stock
 
                 product.current_stock -= qty
 
                 product.save()
+
+            dispatch.total_amount = total_amount
+
+            dispatch.save()
 
             return redirect(
                 'dispatch_list'
@@ -690,3 +836,109 @@ def dispatch_detail(request, pk):
             'dispatch': dispatch
         }
     )
+
+
+# @login_required
+# def dispatch_approval(request, pk):
+
+#     dispatch = get_object_or_404(
+#         Dispatch,
+#         pk=pk
+#     )
+
+#     if request.method == 'POST':
+
+#         # Prevent double approval
+
+#         if dispatch.status == 'APPROVED':
+
+#             return redirect(
+#                 'dispatch_list'
+#             )
+
+#         for item in dispatch.items.all():
+
+#             received_qty = Decimal(
+#                 request.POST.get(
+#                     f'received_{item.id}',
+#                     0
+#                 )
+#             )
+
+#             damaged_qty = Decimal(
+#                 request.POST.get(
+#                     f'damaged_{item.id}',
+#                     0
+#                 )
+#             )
+
+#             returned_qty = Decimal(
+#                 request.POST.get(
+#                     f'returned_{item.id}',
+#                     0
+#                 )
+#             )
+
+#             item.received_qty = received_qty
+#             item.damaged_qty = damaged_qty
+#             item.returned_qty = returned_qty
+
+#             item.save()
+
+#             # Update Dealer Stock
+
+#             dealer_stock, created = (
+#                 DealerStock.objects.get_or_create(
+#                     dealer=dispatch.dealer,
+#                     product=item.product,
+#                     defaults={
+#                         'quantity': Decimal('0')
+#                     }
+#                 )
+#             )
+
+#             dealer_stock.quantity += received_qty
+
+#             dealer_stock.save()
+
+#         # Create Dealer Ledger Entry
+
+#         last_balance = DealerLedger.objects.filter(
+#             dealer=dispatch.dealer
+#         ).order_by(
+#             '-id'
+#         ).first()
+
+#         balance = (
+#             last_balance.balance
+#             if last_balance
+#             else Decimal('0')
+#         )
+
+#         balance += dispatch.total_amount
+
+#         DealerLedger.objects.create(
+#             dealer=dispatch.dealer,
+#             entry_type='DISPATCH',
+#             debit=dispatch.total_amount,
+#             credit=Decimal('0'),
+#             balance=balance,
+#             reference=dispatch.dispatch_no
+#         )
+
+#         dispatch.status = 'APPROVED'
+
+#         dispatch.save()
+
+#         return redirect(
+#             'dispatch_list'
+#         )
+
+#     return render(
+#         request,
+#         'inventory/dispatch_approval.html',
+#         {
+#             'dispatch': dispatch
+#         }
+#     )
+

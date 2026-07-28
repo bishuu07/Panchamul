@@ -113,10 +113,24 @@ function addItem(){
         document.getElementById('product');
 
     let qtyProduced =
-        document.getElementById('qty_produced').value;
+    document.getElementById('qty_produced').value.trim();
 
     let qtyWasted =
-        document.getElementById('qty_wasted').value;
+        document.getElementById('qty_wasted').value.trim();
+
+    if(qtyProduced==""){
+
+        alert("Enter Produced Quantity");
+
+        return;
+
+    }
+
+    if(qtyWasted==""){
+
+        qtyWasted = "0";
+
+    }
 
     items.push({
 

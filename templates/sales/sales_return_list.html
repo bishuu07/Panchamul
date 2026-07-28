@@ -1,0 +1,52 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Sales Returns</h3>
+
+    <a href="{% url 'sales_return_create' %}"
+       class="btn btn-primary mb-3">
+        New Return
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Return No</th>
+                <th>Customer</th>
+                <th>Invoice</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for r in returns %}
+
+            <tr>
+
+                <td>{{ r.return_no }}</td>
+
+                <td>{{ r.customer.name }}</td>
+
+                <td>{{ r.sale.invoice_no }}</td>
+
+                <td>{{ r.return_date }}</td>
+
+                <td>{{ r.total_amount }}</td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

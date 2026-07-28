@@ -1,0 +1,62 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dealer Payments</h3>
+
+    <a href="{% url 'dealer_payment_create' %}"
+       class="btn btn-primary mb-3">
+       New Payment
+    </a>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Dealer</th>
+                <th>Amount</th>
+                <th>Mode</th>
+                <th>Reference</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for p in payments %}
+
+            <tr>
+
+                <td>
+                    {{ p.payment_date }}
+                </td>
+
+                <td>
+                    {{ p.dealer.name }}
+                </td>
+
+                <td>
+                    {{ p.amount }}
+                </td>
+
+                <td>
+                    {{ p.payment_mode }}
+                </td>
+
+                <td>
+                    {{ p.reference_no }}
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

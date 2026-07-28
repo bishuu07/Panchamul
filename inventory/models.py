@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decimal import Decimal
 from django.contrib.auth.decorators import login_required
-from dealers.models import Dealer
+
 from django.shortcuts import render
 
 
@@ -509,7 +509,7 @@ class ProductionItem(models.Model):
 class DealerStock(models.Model):
 
     dealer = models.ForeignKey(
-        Dealer,
+        'dealers.Dealer',
         on_delete=models.CASCADE
     )
 
@@ -549,9 +549,10 @@ class Dispatch(models.Model):
     )
 
     dealer = models.ForeignKey(
-        Dealer,
+        'dealers.Dealer',
         on_delete=models.CASCADE
     )
+    
 
     dispatch_no = models.CharField(
         max_length=100,
@@ -570,6 +571,18 @@ class Dispatch(models.Model):
         choices=STATUS_CHOICES,
         default='PENDING'
     )
+    dealer_approved_by = models.ForeignKey(
+    'accounts.User',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='approved_dispatches'
+)
+
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -579,6 +592,11 @@ class Dispatch(models.Model):
 
     created_at = models.DateTimeField(
         auto_now_add=True
+    )
+    total_amount = models.DecimalField(
+    max_digits=12,
+    decimal_places=2,
+    default=0
     )
 
     def __str__(self):
@@ -603,11 +621,24 @@ class DispatchItem(models.Model):
         decimal_places=2
     )
 
+    rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
     received_qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0
     )
+
     damaged_qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,

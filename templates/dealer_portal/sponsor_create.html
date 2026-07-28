@@ -1,0 +1,73 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Give Sponsor</h3>
+
+    {% if error %}
+
+    <div class="alert alert-danger">
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+
+            <label>Customer</label>
+
+            {{ form.customer }}
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Product</label>
+
+            {{ form.product }}
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Quantity</label>
+
+            {{ form.quantity }}
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Date</label>
+
+            {{ form.sponsor_date }}
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Remarks</label>
+
+            {{ form.remarks }}
+
+        </div>
+
+        <button class="btn btn-success">
+
+            Save Sponsor
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

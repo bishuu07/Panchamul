@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'sales',
     'website',
     'dashboard',
+    'dealer_portal',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +126,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'accounts.User'
+
+
+TIME_ZONE = 'Asia/Kathmandu'
+
+USE_TZ = True

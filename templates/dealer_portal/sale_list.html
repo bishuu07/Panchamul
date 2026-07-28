@@ -1,0 +1,97 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between">
+
+        <h3>Dealer Sales</h3>
+
+        <a
+            href="{% url 'dealer_sale_create' %}"
+            class="btn btn-primary">
+
+            New Sale
+
+        </a>
+
+    </div>
+
+    <br>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Invoice</th>
+
+                <th>Date</th>
+
+                <th>Customer</th>
+
+                <th>Total</th>
+
+                <th>Paid</th>
+
+                <th>Due</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for sale in sales %}
+
+            <tr>
+
+                <td>
+                    {{ sale.invoice_no }}
+                </td>
+
+                <td>
+                    {{ sale.sale_date }}
+                </td>
+
+                <td>
+                    {{ sale.customer.name }}
+                </td>
+
+                <td>
+                    {{ sale.total_amount }}
+                </td>
+
+                <td>
+                    {{ sale.paid_amount }}
+                </td>
+
+                <td>
+                    {{ sale.due_amount }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="6">
+
+                    No Sales Found
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Vehicle Trip Detail</h3>
+
+    <hr>
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <strong>Dispatch No</strong><br>
+            {{ trip.dispatch.dispatch_no }}
+        </div>
+
+        <div class="col-md-3">
+            <strong>Trip No</strong><br>
+            {{ trip.trip_no }}
+        </div>
+
+        <div class="col-md-3">
+            <strong>Vehicle</strong><br>
+            {{ trip.dispatch.vehicle.vehicle_no }}
+        </div>
+
+        <div class="col-md-3">
+            <strong>Status</strong><br>
+
+            {% if trip.is_closed %}
+                <span class="badge bg-success">
+                    Closed
+                </span>
+            {% else %}
+                <span class="badge bg-warning">
+                    Open
+                </span>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Product</th>
+
+                <th>Loaded Qty</th>
+
+                <th>Sold</th>
+
+                <th>Returned</th>
+
+                <th>Breakage</th>
+
+                <th>Leakage</th>
+
+                <th>Sponsor</th>
+
+                <th>Sales Amount</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for item in trip.items.all %}
+
+            <tr>
+
+                <td>
+                    {{ item.product.name }}
+                </td>
+
+                <td>
+                    {{ item.dispatch_qty }}
+                </td>
+
+                <td>
+                    {{ item.sold_qty }}
+                </td>
+
+                <td>
+                    {{ item.return_qty }}
+                </td>
+
+                <td>
+                    {{ item.breakage_qty }}
+                </td>
+
+                <td>
+                    {{ item.leakage_qty }}
+                </td>
+
+                <td>
+                    {{ item.sponsor_qty }}
+                </td>
+
+                <td>
+                    Rs. {{ item.sales_amount }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="8" class="text-center">
+
+                    No Products Found
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <div class="mt-3">
+
+        <a href="{% url 'vehicle_dispatch_detail' trip.dispatch.id %}"
+           class="btn btn-secondary">
+
+            ← Back to Dispatch
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

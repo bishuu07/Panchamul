@@ -125,6 +125,11 @@ class SaleItem(models.Model):
         max_digits=12,
         decimal_places=2
     )
+    returned_qty = models.DecimalField(
+    max_digits=12,
+    decimal_places=2,
+    default=0
+    )
 
     def __str__(self):
         return self.product.name
@@ -185,6 +190,7 @@ class CustomerLedger(models.Model):
     ENTRY_TYPES = (
         ('SALE', 'Sale'),
         ('PAYMENT', 'Payment'),
+        ('SALES_RETURN', 'Sales Return'),
     )
 
     customer = models.ForeignKey(
@@ -257,3 +263,80 @@ class CustomerPayment(models.Model):
 
     def __str__(self):
         return self.customer.name
+    
+
+class SalesReturn(models.Model):
+
+    return_no = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
+    sale = models.ForeignKey(
+        Sale,
+        on_delete=models.CASCADE
+    )
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE
+    )
+
+    return_date = models.DateField()
+
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    remarks = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.return_no
+    
+
+class SalesReturnItem(models.Model):
+
+    sales_return = models.ForeignKey(
+        SalesReturn,
+        on_delete=models.CASCADE,
+        related_name='items' 
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE
+    )
+
+    quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    def __str__(self):
+        return self.product.name
+    

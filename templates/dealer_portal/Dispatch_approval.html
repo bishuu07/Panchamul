@@ -1,4 +1,4 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/dealer_base.html' %}
 
 {% block content %}
 
@@ -9,8 +9,13 @@
     <p><b>Dealer:</b> {{ dispatch.dealer.name }}</p>
     <p><b>Dispatch No:</b> {{ dispatch.dispatch_no }}</p>
 
-    <form method="POST">
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
 
+    <form method="POST">
         {% csrf_token %}
 
         <table class="table table-bordered">
@@ -31,38 +36,36 @@
 
                 <tr>
 
-                    <td>
-                        {{ item.product.name }}
-                    </td>
+                    <td>{{ item.product.name }}</td>
 
-                    <td>
-                        {{ item.dispatched_qty }}
-                    </td>
+                    <td>{{ item.dispatched_qty }}</td>
 
                     <td>
                         <input type="number"
                                step="0.01"
                                name="received_{{ item.id }}"
-                               value="0">
+                               value="{{ item.dispatched_qty }}"
+                               class="form-control">
                     </td>
 
                     <td>
                         <input type="number"
                                step="0.01"
                                name="damaged_{{ item.id }}"
-                               value="0">
+                               value="{{ item.dispatched_qty }}"
+                               class="form-control">
                     </td>
 
                     <td>
                         <input type="number"
                                step="0.01"
                                name="returned_{{ item.id }}"
-                               value="0">
+                               value="{{ item.dispatched_qty }}"
+                               class="form-control">
                     </td>
-
                     <input type="hidden"
-                           name="items[]"
-                           value="{{ item.id }}">
+                        name="items[]"
+                        value="{{ item.id }}">
 
                 </tr>
 

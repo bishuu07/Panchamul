@@ -1,0 +1,37 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Customers</h3>
+
+    <a href="{% url 'dealer_customer_create' %}" class="btn btn-primary btn-sm">
+        Add Customer
+    </a>
+
+    <hr>
+
+    <table class="table table-bordered">
+
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+        </tr>
+
+        {% for c in customers %}
+
+        <tr>
+            <td>{{ c.name }}</td>
+            <td>{{ c.phone }}</td>
+            <td>{{ c.email }}</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</div>
+
+{% endblock %}

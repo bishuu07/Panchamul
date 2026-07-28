@@ -1,0 +1,85 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Outstanding Report</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Customer</th>
+
+                <th>Total Sales</th>
+
+                <th>Total Returns</th>
+
+                <th>Total Payments</th>
+
+                <th>Outstanding</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for row in report %}
+
+            <tr>
+
+                <td>
+                    {{ row.customer.name }}
+                </td>
+
+                <td>
+                    {{ row.sales }}
+                </td>
+
+                <td>
+                    {{ row.returns }}
+                </td>
+
+                <td>
+                    {{ row.payments }}
+                </td>
+
+                <td>
+
+                    {% if row.outstanding > 0 %}
+                        <b style="color:red">
+                            {{ row.outstanding }}
+                        </b>
+                    {% else %}
+                        0
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+
+                    No data found.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

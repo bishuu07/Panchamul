@@ -1,1 +1,376 @@
-<h1> dealer admin</h1>
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<h3 class="mb-4">
+    Welcome {{ dealer.name }}
+</h3>
+
+<!-- ========================= -->
+<!-- Summary Cards -->
+<!-- ========================= -->
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Outstanding Amount</h6>
+            <h2 class="text-danger">
+                Rs. {{ current_balance }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Today's Sales</h6>
+            <h2 class="text-success">
+                Rs. {{ today_sales }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Monthly Sales</h6>
+            <h2 class="text-primary">
+                Rs. {{ month_sales }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Total Payments</h6>
+            <h2 class="text-info">
+                Rs. {{ total_payments }}
+            </h2>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<!-- ========================= -->
+<!-- Inventory -->
+<!-- ========================= -->
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Total Products</h6>
+            <h2>{{ total_products }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Stock Quantity</h6>
+            <h2>{{ total_stock_qty }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Vehicles</h6>
+            <h2>{{ total_vehicles }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Open Dispatch</h6>
+            <h2 class="text-warning">
+                {{ open_dispatches }}
+            </h2>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<!-- ========================= -->
+<!-- Operational Summary -->
+<!-- ========================= -->
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Sales Return</h6>
+            <h2>{{ total_returns }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Sponsor Qty</h6>
+            <h2>{{ sponsor_qty }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Breakage Qty</h6>
+            <h2 class="text-danger">
+                {{ breakage_qty }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Leakage Qty</h6>
+            <h2 class="text-danger">
+                {{ leakage_qty }}
+            </h2>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<div class="row">
+
+    <!-- Recent Sales -->
+
+    <div class="col-md-8">
+
+        <div class="card-box">
+
+            <h5 class="mb-3">
+                Recent Sales
+            </h5>
+
+            <table class="table table-striped table-bordered">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Due</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for sale in recent_sales %}
+
+                    <tr>
+
+                        <td>{{ sale.invoice_no }}</td>
+
+                        <td>{{ sale.customer.name }}</td>
+
+                        <td>Rs. {{ sale.total_amount }}</td>
+
+                        <td class="text-danger">
+                            Rs. {{ sale.due_amount }}
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="4" class="text-center">
+
+                            No Sales Available
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+
+    <div class="col-md-4">
+
+        <div class="card-box">
+
+            <h5 class="mb-3">
+                Quick Actions
+            </h5>
+
+            <a href="{% url 'dealer_sale_create' %}" class="btn btn-success w-100 mb-2">
+
+                + New Sale
+
+            </a>
+
+            <a href="{% url 'vehicle_dispatch_create' %}" class="btn btn-primary w-100 mb-2">
+
+                + Vehicle Dispatch
+
+            </a>
+
+            <a href="{% url 'dealer_customer_payment_create' %}" class="btn btn-warning w-100 mb-2">
+
+                + Customer Payment
+
+            </a>
+
+            <a href="{% url 'sponsor_create' %}" class="btn btn-info w-100 mb-2">
+
+                + Give Sponsor
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<br>
+
+<div class="row">
+
+    <!-- Low Stock -->
+
+    <div class="col-md-6">
+
+        <div class="card-box">
+
+            <h5 class="mb-3">
+                Low Stock Alert
+            </h5>
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Product</th>
+                        <th>Stock</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for stock in low_stock %}
+
+                    <tr>
+
+                        <td>{{ stock.product.name }}</td>
+
+                        <td class="text-danger">
+
+                            {{ stock.quantity }}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="2">
+
+                            No Low Stock Products
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Outstanding Customers -->
+
+    <div class="col-md-6">
+
+        <div class="card-box">
+
+            <h5 class="mb-3">
+                Top Outstanding Customers
+            </h5>
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Customer</th>
+                        <th>Due</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for customer in top_due_customers %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ customer.name }}
+
+                        </td>
+
+                        <td class="text-danger">
+
+                            Rs. {{ customer.total_due|default:0 }}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="2">
+
+                            No Outstanding Customers
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

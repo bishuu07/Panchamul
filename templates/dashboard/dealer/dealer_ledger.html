@@ -1,0 +1,65 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>
+        Dealer Ledger
+        - {{ dealer.name }}
+    </h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Reference</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for row in ledgers %}
+
+            <tr>
+
+                <td>
+                    {{ row.created_at|date:"d M Y" }}
+                </td>
+
+                <td>
+                    {{ row.entry_type }}
+                </td>
+
+                <td>
+                    {{ row.reference }}
+                </td>
+
+                <td>
+                    {{ row.debit }}
+                </td>
+
+                <td>
+                    {{ row.credit }}
+                </td>
+
+                <td>
+                    {{ row.balance }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

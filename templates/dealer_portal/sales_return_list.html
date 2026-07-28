@@ -1,0 +1,73 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h3>Sales Return List</h3>
+
+        <a href="{% url 'dealer_sales_return_create' %}"
+           class="btn btn-primary">
+            Create Return
+        </a>
+
+    </div>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+                <th>Return No</th>
+                <th>Invoice</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for return in returns %}
+
+            <tr>
+
+                <td>
+                    {{ return.return_no }}
+                </td>
+
+                <td>
+                    {{ return.sale.invoice_no }}
+                </td>
+
+                <td>
+                    {{ return.return_date }}
+                </td>
+
+                <td>
+                    {{ return.total_return_amount }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+                    No sales returns found.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

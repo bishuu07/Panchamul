@@ -1,0 +1,67 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+<h3>Stock Report</h3>
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>Product</th>
+
+<th>Current Stock</th>
+
+<th>Minimum Stock</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for stock in stocks %}
+
+<tr>
+
+<td>{{ stock.product.name }}</td>
+
+<td>{{ stock.quantity }}</td>
+
+<td>{{ stock.product.minimum_stock }}</td>
+
+<td>
+
+{% if stock.quantity <= stock.product.minimum_stock %}
+
+<span class="badge bg-danger">
+Low Stock
+</span>
+
+{% else %}
+
+<span class="badge bg-success">
+Available
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

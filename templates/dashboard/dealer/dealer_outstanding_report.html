@@ -1,0 +1,42 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Dealer Outstanding Report</h3>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Dealer</th>
+                <th>Outstanding</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for row in data %}
+
+            <tr>
+
+                <td>
+                    {{ row.dealer.name }}
+                </td>
+
+                <td>
+                    {{ row.balance }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

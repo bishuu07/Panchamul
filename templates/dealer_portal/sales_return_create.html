@@ -1,0 +1,149 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h3>Create Sales Return</h3>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="row">
+
+            <div class="col-md-4">
+
+                <label>Return No</label>
+
+                <input type="text"
+                       name="return_no"
+                       class="form-control"
+                       required>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <label>Return Date</label>
+
+                <input type="date"
+                       name="return_date"
+                       class="form-control"
+                       required>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <label>Invoice</label>
+
+                <select name="sale"
+                        class="form-control"
+                        required>
+
+                    <option value="">
+                        Select Invoice
+                    </option>
+
+                    {% for sale in sales %}
+
+                    <option value="{{ sale.id }}">
+
+                        {{ sale.invoice_no }}
+                        -
+                        {{ sale.customer.name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <h5>
+            Return Quantities
+        </h5>
+
+        <table class="table table-bordered">
+
+            <thead>
+
+                <tr>
+
+                    <th>Product</th>
+
+                    <th>Sale Qty</th>
+
+                    <th>Rate</th>
+
+                    <th>Return Qty</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for sale in sales %}
+
+                    {% for item in sale.items.all %}
+
+                    <tr>
+
+                        <td>
+                            {{ item.product.name }}
+                        </td>
+
+                        <td>
+                            {{ item.quantity }}
+                        </td>
+
+                        <td>
+                            {{ item.rate }}
+                        </td>
+
+                        <td>
+
+                            <input type="number"
+                                   step="0.01"
+                                   min="0"
+                                   max="{{ item.quantity }}"
+                                   name="return_qty_{{ item.id }}"
+                                   value="0"
+                                   class="form-control">
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <button class="btn btn-success">
+
+            Save Return
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

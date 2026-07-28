@@ -1,0 +1,130 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h3>Vehicle Dispatches</h3>
+
+        <a href="{% url 'vehicle_dispatch_create' %}"
+           class="btn btn-primary">
+
+            + New Dispatch
+
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Dispatch No</th>
+
+                <th>Date</th>
+
+                <th>Vehicle</th>
+
+                <th>Status</th>
+
+                <th width="220">Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for dispatch in dispatches %}
+
+            <tr>
+
+                <td>
+
+                    <strong>{{ dispatch.dispatch_no }}</strong>
+
+                </td>
+
+                <td>
+
+                    {{ dispatch.dispatch_date }}
+
+                </td>
+
+                <td>
+
+                    {{ dispatch.vehicle.vehicle_no }}
+
+                </td>
+
+                <td>
+
+                    {% if dispatch.status == "OPEN" %}
+
+                        <span class="badge bg-success">
+
+                            OPEN
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger">
+
+                            CLOSED
+
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <a href="{% url 'vehicle_dispatch_detail' dispatch.id %}"
+                       class="btn btn-primary btn-sm">
+
+                        Open
+
+                    </a>
+
+                    {% if dispatch.status == "CLOSED" %}
+
+                        <a href="{% url 'vehicle_dispatch_report' dispatch.id %}"
+                           class="btn btn-success btn-sm">
+
+                            Report
+
+                        </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="5" class="text-center">
+
+                    No Vehicle Dispatches Found
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
