@@ -261,6 +261,286 @@ def super_dashboard(request):
 #         'dashboard/dealer/dashboard.html',
 #         context
 #     )
+#dealer admin ko view 
+@login_required
+# def dealer_dashboard(request):
+
+#     try:
+#         profile = DealerProfile.objects.get(
+#             admin_user=request.user
+#         )
+
+#         dealer = profile.dealer
+
+#     except DealerProfile.DoesNotExist:
+#         return redirect('login')
+
+#     today = timezone.localdate()
+
+#     # -----------------------------------
+#     # Outstanding Amount
+#     # -----------------------------------
+
+#     current_balance = (
+#         DealerSale.objects.filter(
+#             dealer=dealer
+#         ).aggregate(
+#             total=Sum('due_amount')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Today's Sales
+#     # -----------------------------------
+
+#     dealer_today_sales = (
+#         DealerSale.objects.filter(
+#             dealer=dealer,
+#             sale_date=today
+#         ).aggregate(
+#             total=Sum("total_amount")
+#         )["total"] or Decimal("0")
+#     )
+
+#     today_sales = dealer_today_sales + vehicle_today_sales
+#     # -----------------------------------
+#     # Vehicle Sales
+#     # -----------------------------------
+
+#     vehicle_today_sales = (
+#         VehicleDispatchSale.objects.filter(
+#             dispatch__dealer=dealer,
+#             dispatch__dispatch_date=today
+#         ).aggregate(
+#             total=Sum("amount")
+#         )["total"] or Decimal("0")
+#     )
+
+#     vehicle_month_sales = (
+#         VehicleDispatchSale.objects.filter(
+#             dispatch__dealer=dealer,
+#             dispatch__dispatch_date__year=today.year,
+#             dispatch__dispatch_date__month=today.month
+#         ).aggregate(
+#             total=Sum("amount")
+#         )["total"] or Decimal("0")
+#     )
+
+#     vehicle_total_sales = (
+#         VehicleDispatchSale.objects.filter(
+#             dispatch__dealer=dealer
+#         ).aggregate(
+#             total=Sum("amount")
+#         )["total"] or Decimal("0")
+#     )
+
+#     # -----------------------------------
+#     # Monthly Sales
+#     # -----------------------------------
+
+#     dealer_month_sales = (
+#         DealerSale.objects.filter(
+#             dealer=dealer,
+#             sale_date__year=today.year,
+#             sale_date__month=today.month
+#         ).aggregate(
+#             total=Sum("total_amount")
+#         )["total"] or Decimal("0")
+#     )
+
+#     month_sales = dealer_month_sales + vehicle_month_sales
+
+#     # -----------------------------------
+#     # Total Payments
+#     # -----------------------------------
+
+#     total_payments = (
+#         DealerCustomerPayment.objects.filter(
+#             dealer=dealer
+#         ).aggregate(
+#             total=Sum('amount')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Sales Returns
+#     # -----------------------------------
+
+#     total_returns = (
+#         DealerSalesReturn.objects.filter(
+#             dealer=dealer
+#         ).aggregate(
+#             total=Sum('total_return_amount')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Products
+#     # -----------------------------------
+
+#     total_products = DealerStock.objects.filter(
+#         dealer=dealer
+#     ).count()
+
+#     # -----------------------------------
+#     # Total Stock
+#     # -----------------------------------
+
+#     total_stock_qty = (
+#         DealerStock.objects.filter(
+#             dealer=dealer
+#         ).aggregate(
+#             total=Sum('quantity')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Vehicles
+#     # -----------------------------------
+
+#     total_vehicles = DealerVehicle.objects.filter(
+#         dealer=dealer
+#     ).count()
+
+#     # -----------------------------------
+#     # Open Dispatch
+#     # -----------------------------------
+
+#     open_dispatches = VehicleDispatch.objects.filter(
+#         dealer=dealer,
+#         status='OPEN'
+#     ).count()
+
+#     # -----------------------------------
+#     # Sponsor Quantity
+#     # -----------------------------------
+
+#     sponsor_qty = (
+#         DealerSponsor.objects.filter(
+#             dealer=dealer
+#         ).aggregate(
+#             total=Sum('quantity')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Breakage Quantity
+#     # -----------------------------------
+
+#     breakage_qty = (
+#         VehicleTripItem.objects.filter(
+#             trip__dispatch__dealer=dealer
+#         ).aggregate(
+#             total=Sum('breakage_qty')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Leakage Quantity
+#     # -----------------------------------
+
+#     leakage_qty = (
+#         VehicleTripItem.objects.filter(
+#             trip__dispatch__dealer=dealer
+#         ).aggregate(
+#             total=Sum('leakage_qty')
+#         )['total']
+#         or Decimal('0')
+#     )
+
+#     # -----------------------------------
+#     # Recent Sales
+#     # -----------------------------------
+
+#     recent_sales = (
+#         DealerSale.objects.filter(
+#             dealer=dealer
+#         )
+#         .select_related('customer')
+#         .order_by('-sale_date', '-id')[:10]
+#     )
+
+#     # -----------------------------------
+#     # Low Stock
+#     # -----------------------------------
+
+#     low_stock = (
+#         DealerStock.objects.filter(
+#             dealer=dealer,
+#             quantity__lte=10
+#         )
+#         .select_related('product')
+#         .order_by('quantity')
+#     )
+
+#     # -----------------------------------
+#     # Top Outstanding Customers
+#     # -----------------------------------
+
+#     top_due_customers = (
+#         DealerCustomer.objects.filter(
+#             dealer=dealer
+#         )
+#         .annotate(
+#             total_due=Sum('sales__due_amount')
+#         )
+#         .order_by('-total_due')[:5]
+#     )
+
+#     context = {
+
+#         'dealer': dealer,
+
+#         'current_balance': current_balance,
+
+#         'today_sales': today_sales,
+
+#         'month_sales': month_sales,
+
+#         'total_payments': total_payments,
+
+#         'total_returns': total_returns,
+
+#         'total_products': total_products,
+
+#         'total_stock_qty': total_stock_qty,
+
+#         'total_vehicles': total_vehicles,
+
+#         'open_dispatches': open_dispatches,
+
+#         'sponsor_qty': sponsor_qty,
+
+#         'breakage_qty': breakage_qty,
+
+#         'leakage_qty': leakage_qty,
+
+#         'recent_sales': recent_sales,
+
+#         'low_stock': low_stock,
+
+#         'top_due_customers': top_due_customers,
+
+#         'dealer_total_sales': dealer_total_sales,
+
+#         'vehicle_total_sales': vehicle_total_sales,
+
+#         'total_sales': total_sales,
+#     }
+
+#     return render(
+#         request,
+#         'dashboard/dealer/dashboard.html',
+#         context
+#     )
+
+
 
 @login_required
 def dealer_dashboard(request):
@@ -273,7 +553,7 @@ def dealer_dashboard(request):
         dealer = profile.dealer
 
     except DealerProfile.DoesNotExist:
-        return redirect('login')
+        return redirect("login")
 
     today = timezone.localdate()
 
@@ -285,39 +565,81 @@ def dealer_dashboard(request):
         DealerSale.objects.filter(
             dealer=dealer
         ).aggregate(
-            total=Sum('due_amount')
-        )['total']
-        or Decimal('0')
+            total=Sum("due_amount")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
-    # Today's Sales
+    # Vehicle Sales
     # -----------------------------------
 
-    today_sales = (
+    vehicle_today_sales = (
+        VehicleDispatchSale.objects.filter(
+            dispatch__dealer=dealer,
+            created_at__date=today
+        ).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+    )
+
+    vehicle_month_sales = (
+        VehicleDispatchSale.objects.filter(
+            dispatch__dealer=dealer,
+            created_at__year=today.year,
+            created_at__month=today.month
+        ).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+    )
+
+    vehicle_total_sales = (
+        VehicleDispatchSale.objects.filter(
+            dispatch__dealer=dealer
+        ).aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+    )
+
+    # -----------------------------------
+    # Dealer Sales
+    # -----------------------------------
+
+    dealer_today_sales = (
         DealerSale.objects.filter(
             dealer=dealer,
             sale_date=today
         ).aggregate(
-            total=Sum('total_amount')
-        )['total']
-        or Decimal('0')
+            total=Sum("total_amount")
+        )["total"] or Decimal("0")
     )
 
-    # -----------------------------------
-    # Monthly Sales
-    # -----------------------------------
-
-    month_sales = (
+    dealer_month_sales = (
         DealerSale.objects.filter(
             dealer=dealer,
             sale_date__year=today.year,
             sale_date__month=today.month
         ).aggregate(
-            total=Sum('total_amount')
-        )['total']
-        or Decimal('0')
+            total=Sum("total_amount")
+        )["total"] or Decimal("0")
     )
+
+    dealer_total_sales = (
+        DealerSale.objects.filter(
+            dealer=dealer
+        ).aggregate(
+            total=Sum("total_amount")
+        )["total"] or Decimal("0")
+    )
+
+    # -----------------------------------
+    # Combined Sales
+    # -----------------------------------
+
+    today_sales = dealer_today_sales + vehicle_today_sales
+
+    month_sales = dealer_month_sales + vehicle_month_sales
+
+    total_sales = dealer_total_sales + vehicle_total_sales
 
     # -----------------------------------
     # Total Payments
@@ -327,9 +649,8 @@ def dealer_dashboard(request):
         DealerCustomerPayment.objects.filter(
             dealer=dealer
         ).aggregate(
-            total=Sum('amount')
-        )['total']
-        or Decimal('0')
+            total=Sum("amount")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
@@ -340,9 +661,8 @@ def dealer_dashboard(request):
         DealerSalesReturn.objects.filter(
             dealer=dealer
         ).aggregate(
-            total=Sum('total_return_amount')
-        )['total']
-        or Decimal('0')
+            total=Sum("total_return_amount")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
@@ -354,16 +674,15 @@ def dealer_dashboard(request):
     ).count()
 
     # -----------------------------------
-    # Total Stock
+    # Total Stock Quantity
     # -----------------------------------
 
     total_stock_qty = (
         DealerStock.objects.filter(
             dealer=dealer
         ).aggregate(
-            total=Sum('quantity')
-        )['total']
-        or Decimal('0')
+            total=Sum("quantity")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
@@ -380,46 +699,43 @@ def dealer_dashboard(request):
 
     open_dispatches = VehicleDispatch.objects.filter(
         dealer=dealer,
-        status='OPEN'
+        status="OPEN"
     ).count()
 
     # -----------------------------------
-    # Sponsor Quantity
+    # Sponsor Qty
     # -----------------------------------
 
     sponsor_qty = (
         DealerSponsor.objects.filter(
             dealer=dealer
         ).aggregate(
-            total=Sum('quantity')
-        )['total']
-        or Decimal('0')
+            total=Sum("quantity")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
-    # Breakage Quantity
+    # Breakage Qty
     # -----------------------------------
 
     breakage_qty = (
         VehicleTripItem.objects.filter(
             trip__dispatch__dealer=dealer
         ).aggregate(
-            total=Sum('breakage_qty')
-        )['total']
-        or Decimal('0')
+            total=Sum("breakage_qty")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
-    # Leakage Quantity
+    # Leakage Qty
     # -----------------------------------
 
     leakage_qty = (
         VehicleTripItem.objects.filter(
             trip__dispatch__dealer=dealer
         ).aggregate(
-            total=Sum('leakage_qty')
-        )['total']
-        or Decimal('0')
+            total=Sum("leakage_qty")
+        )["total"] or Decimal("0")
     )
 
     # -----------------------------------
@@ -430,8 +746,8 @@ def dealer_dashboard(request):
         DealerSale.objects.filter(
             dealer=dealer
         )
-        .select_related('customer')
-        .order_by('-sale_date', '-id')[:10]
+        .select_related("customer")
+        .order_by("-sale_date", "-id")[:10]
     )
 
     # -----------------------------------
@@ -443,8 +759,8 @@ def dealer_dashboard(request):
             dealer=dealer,
             quantity__lte=10
         )
-        .select_related('product')
-        .order_by('quantity')
+        .select_related("product")
+        .order_by("quantity")
     )
 
     # -----------------------------------
@@ -456,52 +772,58 @@ def dealer_dashboard(request):
             dealer=dealer
         )
         .annotate(
-            total_due=Sum('sales__due_amount')
+            total_due=Sum("sales__due_amount")
         )
-        .order_by('-total_due')[:5]
+        .order_by("-total_due")[:5]
     )
 
     context = {
 
-        'dealer': dealer,
+        "dealer": dealer,
 
-        'current_balance': current_balance,
+        "current_balance": current_balance,
 
-        'today_sales': today_sales,
+        "today_sales": today_sales,
 
-        'month_sales': month_sales,
+        "month_sales": month_sales,
 
-        'total_payments': total_payments,
+        "total_sales": total_sales,
 
-        'total_returns': total_returns,
+        "dealer_total_sales": dealer_total_sales,
 
-        'total_products': total_products,
+        "vehicle_total_sales": vehicle_total_sales,
 
-        'total_stock_qty': total_stock_qty,
+        "total_payments": total_payments,
 
-        'total_vehicles': total_vehicles,
+        "total_returns": total_returns,
 
-        'open_dispatches': open_dispatches,
+        "total_products": total_products,
 
-        'sponsor_qty': sponsor_qty,
+        "total_stock_qty": total_stock_qty,
 
-        'breakage_qty': breakage_qty,
+        "total_vehicles": total_vehicles,
 
-        'leakage_qty': leakage_qty,
+        "open_dispatches": open_dispatches,
 
-        'recent_sales': recent_sales,
+        "sponsor_qty": sponsor_qty,
 
-        'low_stock': low_stock,
+        "breakage_qty": breakage_qty,
 
-        'top_due_customers': top_due_customers,
+        "leakage_qty": leakage_qty,
+
+        "recent_sales": recent_sales,
+
+        "low_stock": low_stock,
+
+        "top_due_customers": top_due_customers,
+
     }
 
     return render(
         request,
-        'dashboard/dealer/dashboard.html',
+        "dashboard/dealer/dashboard.html",
         context
     )
-
 
 
 @login_required

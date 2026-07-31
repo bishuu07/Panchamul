@@ -7,45 +7,237 @@
 </h3>
 
 <!-- ========================= -->
-<!-- Summary Cards -->
+<!-- Financial Summary -->
 <!-- ========================= -->
 
-<div class="row">
+<div class="row g-3">
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Outstanding Amount</h6>
+    <div class="col-lg-3 col-md-6">
+        <div class="card-box text-center h-100">
+            <h6 class="text-muted">Outstanding Amount</h6>
             <h2 class="text-danger">
                 Rs. {{ current_balance }}
             </h2>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Today's Sales</h6>
+    <div class="col-lg-3 col-md-6">
+        <div class="card-box text-center h-100">
+            <h6 class="text-muted">Today's Sales</h6>
             <h2 class="text-success">
                 Rs. {{ today_sales }}
             </h2>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Monthly Sales</h6>
+    <div class="col-lg-3 col-md-6">
+        <div class="card-box text-center h-100">
+            <h6 class="text-muted">Monthly Sales</h6>
             <h2 class="text-primary">
                 Rs. {{ month_sales }}
             </h2>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Total Payments</h6>
+    <div class="col-lg-3 col-md-6">
+        <div class="card-box text-center h-100">
+            <h6 class="text-muted">Total Payments</h6>
             <h2 class="text-info">
                 Rs. {{ total_payments }}
             </h2>
         </div>
+    </div>
+
+</div>
+
+<br>
+
+<!-- ========================= -->
+<!-- Sales Summary -->
+<!-- ========================= -->
+
+<div class="row g-3">
+
+    <div class="col-lg-4">
+
+        <div class="card-box text-center h-100">
+
+            <h6 class="text-muted">
+                Dealer Counter Sales
+            </h6>
+
+            <h2 class="text-primary">
+
+                Rs. {{ dealer_total_sales }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card-box text-center h-100">
+
+            <h6 class="text-muted">
+                Vehicle Sales
+            </h6>
+
+            <h2 class="text-warning">
+
+                Rs. {{ vehicle_total_sales }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card-box text-center h-100 border border-success">
+
+            <h6 class="text-muted">
+                Total Sales
+            </h6>
+
+            <h2 class="text-success fw-bold">
+
+                Rs. {{ total_sales }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+</div>
+
+<br>
+
+<!-- ========================= -->
+<!-- Inventory -->
+<!-- ========================= -->
+
+<div class="row g-3">
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Total Products</h6>
+
+            <h2>{{ total_products }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Stock Quantity</h6>
+
+            <h2>{{ total_stock_qty }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Vehicles</h6>
+
+            <h2>{{ total_vehicles }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Open Dispatch</h6>
+
+            <h2 class="text-warning">
+
+                {{ open_dispatches }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+</div>
+
+<br>
+
+<!-- ========================= -->
+<!-- Operational Summary -->
+<!-- ========================= -->
+
+<div class="row g-3">
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Sales Return</h6>
+
+            <h2>{{ total_returns }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Sponsor Qty</h6>
+
+            <h2>{{ sponsor_qty }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Breakage Qty</h6>
+
+            <h2 class="text-danger">
+
+                {{ breakage_qty }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card-box text-center h-100">
+
+            <h6>Leakage Qty</h6>
+
+            <h2 class="text-danger">
+
+                {{ leakage_qty }}
+
+            </h2>
+
+        </div>
+
     </div>
 
 </div>

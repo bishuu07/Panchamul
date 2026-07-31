@@ -2,6 +2,122 @@
 
 {% block content %}
 
+<style>
+    :root {
+        --ink: #0B2E3C;
+        --deep-water: #0E4A63;
+        --teal: #1B8FA3;
+        --ripple: #63C6D9;
+        --gold: #C79A46;
+        --mist: #F1F6F7;
+        --paper: #FCFDFC;
+    }
+
+    .dash-eyebrow {
+        font-family: 'Manrope', sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--gold);
+        margin: 0 0 2px;
+    }
+
+    h2.mb-4 {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: 0.01em;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e0e7e8;
+    }
+
+    .card-box {
+        background: var(--paper);
+        border: 1px solid #e5edee;
+        border-radius: 12px;
+        padding: 20px 16px;
+        box-shadow: 0 8px 20px -12px rgba(11, 46, 60, 0.18);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px -14px rgba(11, 46, 60, 0.3);
+    }
+
+    .card-box h6 {
+        font-family: 'Manrope', sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b8891;
+        margin-bottom: 8px;
+    }
+
+    .card-box h2 {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 30px;
+        font-weight: 600;
+        color: var(--deep-water);
+        margin: 0;
+    }
+
+    .card-box h3 {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--teal);
+        margin: 0;
+    }
+
+    .card-box.mt-4 {
+        padding: 22px 24px 10px;
+    }
+
+    .card-box.mt-4 h4 {
+        font-family: 'Fraunces', 'Georgia', serif;
+        color: var(--ink);
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .table thead th {
+        font-family: 'Manrope', sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b8891;
+        background: var(--mist);
+        border-bottom: 2px solid #dce7e8;
+    }
+
+    .table td {
+        font-family: 'Manrope', sans-serif;
+        font-size: 14px;
+        color: var(--ink);
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(99, 198, 217, 0.08);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--teal), var(--deep-water));
+        border: none;
+        font-family: 'Manrope', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        box-shadow: 0 6px 14px -8px rgba(14, 74, 99, 0.6);
+    }
+
+    .btn-primary:hover {
+        filter: brightness(1.08);
+    }
+</style>
+
+<p class="dash-eyebrow">Panchamul ERP &middot; Rajbhandari &amp; Sons Beverage Company</p>
+
 <h2 class="mb-4">
     Super Admin Dashboard
 </h2>
