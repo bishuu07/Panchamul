@@ -1,3 +1,5 @@
+#super admin le herni dealer ko dashboard
+
 {% extends 'dashboard/base.html' %}
 
 {% block content %}
@@ -255,23 +257,39 @@
 
 <div class="card-box">
 
-    <h4>Ledger History</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-    <table class="table table-bordered">
+        <h4>Ledger History</h4>
+
+        <div>
+
+            <a href="{% url 'super_dealer_statement' dealer.id %}"
+               class="btn btn-success">
+
+                <i class="fas fa-file-invoice"></i>
+                Dealer Statement
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <table class="table table-bordered table-striped">
 
         <thead>
 
             <tr>
 
-                <th>Date</th>
+                <th width="18%">Date</th>
 
-                <th>Reference</th>
+                <th width="30%">Reference</th>
 
-                <th>Debit</th>
+                <th width="15%">Debit</th>
 
-                <th>Credit</th>
+                <th width="15%">Credit</th>
 
-                <th>Balance</th>
+                <th width="22%">Balance</th>
 
             </tr>
 
@@ -283,15 +301,35 @@
 
             <tr>
 
-                <td>{{ row.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
 
-                <td>{{ row.reference }}</td>
+                    {{ row.created_at|date:"Y-m-d H:i" }}
 
-                <td>{{ row.debit }}</td>
+                </td>
 
-                <td>{{ row.credit }}</td>
+                <td>
 
-                <td>{{ row.balance }}</td>
+                    {{ row.reference|default:"-" }}
+
+                </td>
+
+                <td>
+
+                    Rs. {{ row.debit }}
+
+                </td>
+
+                <td>
+
+                    Rs. {{ row.credit }}
+
+                </td>
+
+                <td>
+
+                    Rs. {{ row.balance }}
+
+                </td>
 
             </tr>
 
@@ -299,7 +337,7 @@
 
             <tr>
 
-                <td colspan="5">
+                <td colspan="5" class="text-center">
 
                     No Ledger Found
 
@@ -317,7 +355,8 @@
 
 <br>
 
-<a href="{% url 'super_dashboard' %}" class="btn btn-secondary">
+<a href="{% url 'super_dealer_statement' dealer.id %}"
+   class="btn btn-secondary">
 
     Back
 

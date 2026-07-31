@@ -1,0 +1,81 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+<h3>Dealer Statement</h3>
+
+<hr>
+
+<table class="table table-bordered">
+
+<tr>
+<th>Dealer</th>
+<td>{{ dealer.name }}</td>
+</tr>
+
+<tr>
+<th>Phone</th>
+<td>{{ dealer.phone }}</td>
+</tr>
+
+<tr>
+<th>Address</th>
+<td>{{ dealer.address }}</td>
+</tr>
+
+</table>
+
+<hr>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="row">
+
+<div class="col-md-4">
+
+<label>From Date</label>
+
+<input
+type="date"
+name="from_date"
+class="form-control"
+required>
+
+</div>
+
+<div class="col-md-4">
+
+<label>To Date</label>
+
+<input
+type="date"
+name="to_date"
+class="form-control"
+required>
+
+</div>
+
+<div class="col-md-4">
+
+<label>&nbsp;</label>
+
+<button
+class="btn btn-primary w-100">
+
+Generate Statement
+
+</button>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

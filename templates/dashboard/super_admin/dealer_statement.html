@@ -1,0 +1,238 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+<div class="d-flex justify-content-between">
+
+<div>
+
+<h2>Dealer Statement</h2>
+
+<h4>{{ dealer.name }}</h4>
+
+<p>
+
+From
+
+<b>{{ from_date }}</b>
+
+To
+
+<b>{{ to_date }}</b>
+
+</p>
+
+</div>
+
+<div>
+
+<button
+onclick="window.print()"
+class="btn btn-success">
+
+Print
+
+</button>
+
+</div>
+
+</div>
+
+<hr>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th width="25%">
+
+Dealer
+
+</th>
+
+<td>
+
+{{ dealer.name }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Phone
+
+</th>
+
+<td>
+
+{{ dealer.phone }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Address
+
+</th>
+
+<td>
+
+{{ dealer.address }}
+
+</td>
+
+</tr>
+
+</table>
+
+<hr>
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>Date</th>
+
+<th>Reference</th>
+
+<th>Debit</th>
+
+<th>Credit</th>
+
+<th>Balance</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td colspan="4">
+
+<b>Opening Balance</b>
+
+</td>
+
+<td>
+
+<b>
+
+Rs. {{ opening_balance }}
+
+</b>
+
+</td>
+
+</tr>
+
+{% for row in statement %}
+
+<tr>
+
+<td>
+
+{{ row.date|date:"Y-m-d H:i" }}
+
+</td>
+
+<td>
+
+{{ row.reference }}
+
+</td>
+
+<td>
+
+Rs. {{ row.debit }}
+
+</td>
+
+<td>
+
+Rs. {{ row.credit }}
+
+</td>
+
+<td>
+
+Rs. {{ row.balance }}
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5">
+
+No Transactions Found
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<th colspan="2">
+
+TOTAL
+
+</th>
+
+<th>
+
+Rs. {{ total_debit }}
+
+</th>
+
+<th>
+
+Rs. {{ total_credit }}
+
+</th>
+
+<th>
+
+Rs. {{ closing_balance }}
+
+</th>
+
+</tr>
+
+</tfoot>
+
+</table>
+
+<br>
+
+<a href="{% url 'super_dealer_dashboard' dealer.id %}"
+   class="btn btn-secondary">
+
+    ← Back to Dealer Dashboard
+
+</a>
+
+</div>
+
+{% endblock %}

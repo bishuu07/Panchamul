@@ -657,3 +657,151 @@ def super_dealer_dashboard(request, pk):
         context
 
     )
+
+
+@login_required
+def dealer_statement_form(request):
+
+    if request.user.role != "SUPER_ADMIN":
+        return redirect("login")
+
+    dealers = Dealer.objects.filter(
+        is_active=True
+    ).order_by("name")
+
+    return render(
+
+        request,
+
+        "dashboard/dealers/dealer_statement_form.html",
+
+        {
+
+            "dealers": dealers
+
+        }
+
+    )
+
+
+@login_required
+def super_dealer_statement(request, pk):
+
+    if request.user.role != "SUPER_ADMIN":
+        return redirect("login")
+
+    dealer = get_object_or_404(
+        Dealer,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        from_date = request.POST.get("from_date")
+        to_date = request.POST.get("to_date")
+
+        return redirect(
+            f"/dashboard/super/dealer/{dealer.id}/statement/report/?from_date={from_date}&to_date={to_date}"
+        )
+
+    return render(
+        request,
+        "dashboard/super_admin/dealer_statement_form.html",
+        {
+            "dealer": dealer
+        }
+    )
+
+
+@login_required
+def super_dealer_statement_report(request, pk):
+
+    if request.user.role != "SUPER_ADMIN":
+        return redirect("login")
+
+    dealer = get_object_or_404(
+        Dealer,
+        pk=pk
+    )
+
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
+
+    opening = DealerLedger.objects.filter(
+        dealer=dealer,
+        created_at__date__lt=from_date
+    )
+
+    opening_balance = (
+        opening.aggregate(
+            debit=Sum("debit"),
+            credit=Sum("credit")
+        )["debit"] or Decimal("0")
+    ) - (
+        opening.aggregate(
+            debit=Sum("debit"),
+            credit=Sum("credit")
+        )["credit"] or Decimal("0")
+    )
+
+    ledgers = DealerLedger.objects.filter(
+        dealer=dealer,
+        created_at__date__range=[from_date, to_date]
+    ).order_by("created_at")
+
+    running_balance = opening_balance
+
+    statement = []
+
+    total_debit = Decimal("0")
+    total_credit = Decimal("0")
+
+    for row in ledgers:
+
+        running_balance += row.debit
+        running_balance -= row.credit
+
+        total_debit += row.debit
+        total_credit += row.credit
+
+        statement.append({
+
+            "date": row.created_at,
+
+            "reference": row.reference,
+
+            "debit": row.debit,
+
+            "credit": row.credit,
+
+            "balance": running_balance,
+
+        })
+
+    return render(
+
+        request,
+
+        "dashboard/super_admin/dealer_statement.html",
+
+        {
+
+            "dealer": dealer,
+
+            "statement": statement,
+
+            "opening_balance": opening_balance,
+
+            "closing_balance": running_balance,
+
+            "total_debit": total_debit,
+
+            "total_credit": total_credit,
+
+            "from_date": from_date,
+
+            "to_date": to_date,
+
+        }
+
+    )
