@@ -1,0 +1,326 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2>{{ dealer.name }} Dashboard</h2>
+
+<hr>
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Outstanding</h5>
+            <h3>Rs. {{ outstanding }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Dealer Sales</h5>
+            <h3>Rs. {{ dealer_sales }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Vehicle Sales</h5>
+            <h3>Rs. {{ vehicle_sales }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Total Sales</h5>
+            <h3>Rs. {{ total_sales }}</h3>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Current Stock Value</h5>
+            <h3>Rs. {{ stock_value }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Total Dispatches</h5>
+            <h3>{{ dispatches.count }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h5>Stock Products</h5>
+            <h3>{{ stocks.count }}</h3>
+        </div>
+    </div>
+
+</div>
+
+<hr>
+
+<div class="row">
+
+    <div class="col-md-6">
+
+        <div class="card-box">
+
+            <h4>Dealer Information</h4>
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Name</th>
+                    <td>{{ dealer.name }}</td>
+                </tr>
+
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ dealer.phone }}</td>
+                </tr>
+
+                <tr>
+                    <th>Email</th>
+                    <td>{{ dealer.email }}</td>
+                </tr>
+
+                <tr>
+                    <th>Address</th>
+                    <td>{{ dealer.address }}</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="card-box">
+
+            <h4>Quick Summary</h4>
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Total Dispatches</th>
+                    <td>{{ dispatches.count }}</td>
+                </tr>
+
+                <tr>
+                    <th>Total Products in Stock</th>
+                    <td>{{ stocks.count }}</td>
+                </tr>
+
+                <tr>
+                    <th>Outstanding</th>
+                    <td>Rs. {{ outstanding }}</td>
+                </tr>
+
+                <tr>
+                    <th>Total Sales</th>
+                    <td>Rs. {{ total_sales }}</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<hr>
+
+<div class="card-box">
+
+    <h4>Current Stock</h4>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Product</th>
+
+                <th>Quantity</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for stock in stocks %}
+
+            <tr>
+
+                <td>{{ stock.product.name }}</td>
+
+                <td>{{ stock.quantity }}</td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="2">
+
+                    No Stock Available
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<hr>
+
+<div class="card-box">
+
+    <h4>Vehicle Dispatch History</h4>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Dispatch No</th>
+
+                <th>Date</th>
+
+                <th>Vehicle</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for dispatch in dispatches %}
+
+            <tr>
+
+                <td>{{ dispatch.dispatch_no }}</td>
+
+                <td>{{ dispatch.dispatch_date }}</td>
+
+                <td>{{ dispatch.vehicle.vehicle_no }}</td>
+
+                <td>{{ dispatch.status }}</td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+
+                    No Dispatch Found
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<hr>
+
+<div class="card-box">
+
+    <h4>Ledger History</h4>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Date</th>
+
+                <th>Reference</th>
+
+                <th>Debit</th>
+
+                <th>Credit</th>
+
+                <th>Balance</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for row in ledgers %}
+
+            <tr>
+
+                <td>{{ row.created_at|date:"Y-m-d H:i" }}</td>
+
+                <td>{{ row.reference }}</td>
+
+                <td>{{ row.debit }}</td>
+
+                <td>{{ row.credit }}</td>
+
+                <td>{{ row.balance }}</td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5">
+
+                    No Ledger Found
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<br>
+
+<a href="{% url 'super_dashboard' %}" class="btn btn-secondary">
+
+    Back
+
+</a>
+
+{% endblock %}

@@ -8,13 +8,16 @@ from dealers.models import DealerPayment
 from django.db.models import Sum
 from inventory.models import DealerStock
 from decimal import Decimal
+from accounts.models import User
 from dealers.models import (
     DealerProfile,
     DealerLedger,
     DealerPayment,
-    DealerReturn,
     Dealer,
+    
 )
+
+from dealer_portal.models import(DealerVehicle)
 from dealer_portal.models import (
     DealerSale,
     DealerSalesReturn,
@@ -25,7 +28,17 @@ from dealer_portal.models import (
     DealerSponsor,
     DealerCustomer,
 )
+
+from inventory.models import (
+    Supplier,
+    RawMaterial,
+    Production,
+    RawMaterialPurchase,
+    DealerStock,
+)
+
 from django.utils import timezone
+
 
 
 
@@ -33,51 +46,158 @@ from django.utils import timezone
 @login_required
 def super_dashboard(request):
 
-    if request.user.role != 'SUPER_ADMIN':
-        return redirect('login')
+    if request.user.role != "SUPER_ADMIN":
+        return redirect("login")
 
-    total_outstanding = DealerLedger.objects.aggregate(
-        total=Sum('balance')
-    )['total'] or 0
+    # -------------------------
+    # Totals
+    # -------------------------
 
-    total_sales = Sale.objects.aggregate(
-        total=Sum('total_amount')
-    )['total'] or 0
+    total_sales = (
+        Sale.objects.aggregate(
+            total=Sum("total_amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # vehicle_sales = (
+    #     VehicleDispatchSale.objects.aggregate(
+    #         total=Sum("amount")
+    #     )["total"]
+    #     or Decimal("0")
+    # )
+
+    dealer_outstanding = (
+        DealerLedger.objects.aggregate(
+            total=Sum("balance")
+        )["total"]
+        or Decimal("0")
+    )
+
+    total_payments = (
+        DealerLedger.objects.aggregate(
+            total=Sum("credit")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # -------------------------
+    # Dealer Summary
+    # -------------------------
+
+    dealer_summary = []
+
+    for dealer in Dealer.objects.all():
+
+        # Outstanding
+        outstanding = (
+            DealerLedger.objects.filter(
+                dealer=dealer
+            ).aggregate(
+                total=Sum("balance")
+            )["total"]
+            or Decimal("0")
+        )
+
+        # Dealer Stock Value
+        stock_value = Decimal("0")
+
+        for stock in DealerStock.objects.filter(
+            dealer=dealer
+        ).select_related("product"):
+
+            rate = getattr(stock.product, "selling_price", Decimal("0"))
+
+            stock_value += stock.quantity * rate
+
+        dealer_summary.append({
+
+            "dealer": dealer,
+
+            "sales": Decimal("0"),   # can improve later
+
+            "vehicle_sales": Decimal("0"),  # can improve later
+
+            "outstanding": outstanding,
+
+            "stock": stock_value,
+
+        })
 
     context = {
 
-        'total_dealers':
+        # Dealers
+
+        "total_dealers":
             Dealer.objects.count(),
 
-        'total_dealer_admins':
+        "total_company_staff":
             User.objects.filter(
-                role='DEALER_ADMIN'
+                role="COMPANY_STAFF"
             ).count(),
 
-        'total_staff':
+        "total_dealer_staff":
             User.objects.filter(
-                role='COMPANY_STAFF'
+                role="DEALER_STAFF"
             ).count(),
 
-        'total_products':
+        "total_vehicles":
+            DealerVehicle.objects.count(),
+
+        # Master Data
+
+        "total_products":
             Product.objects.count(),
 
-        'total_customers':
+        "total_customers":
             Customer.objects.count(),
 
-        'total_sales':
+        "total_suppliers":
+            Supplier.objects.count(),
+
+        "total_employees":
+            User.objects.count(),
+
+        # Business
+
+        "company_sales":
             total_sales,
 
-        'dealer_outstanding':
-            total_outstanding,
+        # "vehicle_sales":
+        #     vehicle_sales,
+
+        "dealer_outstanding":
+            dealer_outstanding,
+
+        "total_payments":
+            total_payments,
+
+        # Inventory
+
+        "total_raw_materials":
+            RawMaterial.objects.count(),
+
+        "total_finished_products":
+            Product.objects.count(),
+
+        "total_production":
+            Production.objects.count(),
+
+        "total_purchases":
+            RawMaterialPurchase.objects.count(),
+
+        # Dealer Table
+
+        "dealer_summary":
+            dealer_summary,
+
     }
 
     return render(
         request,
-        'dashboard/super_admin/dashboard.html',
-        context
+        "dashboard/super_admin/dashboard.html",
+        context,
     )
-
 # @login_required
 # def dealer_dashboard(request):
 
@@ -412,3 +532,128 @@ def dealer_staff_dashboard(request):
         'dashboard/dealer_staff/dashboard.html'
     )
 
+from decimal import Decimal
+from django.db.models import Sum
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+from dealers.models import Dealer, DealerLedger
+from dealer_portal.models import VehicleDispatch, VehicleDispatchSale
+from sales.models import Sale
+
+
+
+@login_required
+def super_dealer_dashboard(request, pk):
+
+    if request.user.role != "SUPER_ADMIN":
+        return redirect("login")
+
+    dealer = get_object_or_404(
+        Dealer,
+        pk=pk
+    )
+
+    # ---------------------------------
+    # Dealer Stock
+    # ---------------------------------
+
+    stocks = DealerStock.objects.filter(
+        dealer=dealer
+    ).select_related("product")
+
+    stock_value = Decimal("0")
+
+    for stock in stocks:
+
+        rate = getattr(
+            stock.product,
+            "selling_price",
+            Decimal("0")
+        )
+
+        stock_value += stock.quantity * rate
+
+    # ---------------------------------
+    # Dealer Ledger
+    # ---------------------------------
+
+    ledgers = DealerLedger.objects.filter(
+        dealer=dealer
+    ).order_by("-created_at")
+
+    debit = ledgers.aggregate(
+        total=Sum("debit")
+    )["total"] or Decimal("0")
+
+    credit = ledgers.aggregate(
+        total=Sum("credit")
+    )["total"] or Decimal("0")
+
+    outstanding = debit - credit
+
+    # ---------------------------------
+    # Dealer Counter Sales
+    # ---------------------------------
+
+    dealer_sales_total = DealerSale.objects.filter(
+        dealer=dealer
+    ).aggregate(
+        total=Sum("total_amount")
+    )["total"] or Decimal("0")
+
+    # ---------------------------------
+    # Vehicle Sales
+    # ---------------------------------
+
+    vehicle_sales_total = VehicleDispatchSale.objects.filter(
+        dispatch__dealer=dealer
+    ).aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal("0")
+
+    # ---------------------------------
+    # Total Sales
+    # ---------------------------------
+
+    total_sales = dealer_sales_total + vehicle_sales_total
+
+    # ---------------------------------
+    # Vehicle Dispatches
+    # ---------------------------------
+
+    dispatches = VehicleDispatch.objects.filter(
+        dealer=dealer
+    ).order_by("-dispatch_date")
+
+    context = {
+
+        "dealer": dealer,
+
+        "stocks": stocks,
+
+        "stock_value": stock_value,
+
+        "dispatches": dispatches,
+
+        "ledgers": ledgers,
+
+        "dealer_sales": dealer_sales_total,
+
+        "vehicle_sales": vehicle_sales_total,
+
+        "total_sales": total_sales,
+
+        "outstanding": outstanding,
+
+    }
+
+    return render(
+
+        request,
+
+        "dashboard/super_admin/dealer_dashboard.html",
+
+        context
+
+    )

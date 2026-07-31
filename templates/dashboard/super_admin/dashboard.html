@@ -2,50 +2,220 @@
 
 {% block content %}
 
-<h2>Super Admin Dashboard</h2>
+<h2 class="mb-4">
+    Super Admin Dashboard
+</h2>
 
-
+<!-- FIRST ROW -->
 
 <div class="row">
 
     <div class="col-md-3">
-        <div class="card-box">
-            <h4>Total Dealers</h4>
+        <div class="card-box text-center">
+            <h6>Total Dealers</h6>
             <h2>{{ total_dealers }}</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card-box">
-            <h4>Total Products</h4>
-            <h2>{{ total_products }}</h2>
+        <div class="card-box text-center">
+            <h6>Company Staff</h6>
+            <h2>{{ total_company_staff }}</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card-box">
-            <h4>Total Customers</h4>
-            <h2>{{ total_customers }}</h2>
+        <div class="card-box text-center">
+            <h6>Dealer Staff</h6>
+            <h2>{{ total_dealer_staff }}</h2>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card-box">
-            <h4>Total Sales</h4>
-            <h2>{{ total_sales }}</h2>
+        <div class="card-box text-center">
+            <h6>Total Vehicles</h6>
+            <h2>{{ total_vehicles }}</h2>
         </div>
     </div>
 
 </div>
 
-<div class="row">
+<!-- SECOND ROW -->
 
-    <div class="col-md-6">
-        <div class="card-box">
-            <h4>Dealer Outstanding</h4>
-            <h2>{{ dealer_outstanding }}</h2>
+<div class="row mt-3">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Total Products</h6>
+            <h2>{{ total_products }}</h2>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Customers</h6>
+            <h2>{{ total_customers }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Suppliers</h6>
+            <h2>{{ total_suppliers }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Employees</h6>
+            <h2>{{ total_employees }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<!-- THIRD ROW -->
+
+<div class="row mt-3">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Company Sales</h6>
+            <h3>Rs. {{ company_sales }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Vehicle Sales</h6>
+            <h3>Rs. {{ vehicle_sales }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Outstanding</h6>
+            <h3>Rs. {{ dealer_outstanding }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Payments Received</h6>
+            <h3>Rs. {{ total_payments }}</h3>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOURTH ROW -->
+
+<div class="row mt-3">
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Raw Materials</h6>
+            <h2>{{ total_raw_materials }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Finished Products</h6>
+            <h2>{{ total_finished_products }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Manufacturing Entries</h6>
+            <h2>{{ total_production }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <h6>Purchases</h6>
+            <h2>{{ total_purchases }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<!-- DEALER SUMMARY -->
+
+<div class="card-box mt-4">
+
+    <h4>Dealer Summary</h4>
+
+    <table class="table table-bordered table-hover">
+
+        <thead>
+
+            <tr>
+
+                <th>Dealer</th>
+
+                <th>Sales</th>
+
+                <th>Vehicle Sales</th>
+
+                <th>Outstanding</th>
+
+                <th>Stock Value</th>
+
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for row in dealer_summary %}
+
+            <tr>
+
+                <td>{{ row.dealer.name }}</td>
+
+                <td>Rs. {{ row.sales }}</td>
+
+                <td>Rs. {{ row.vehicle_sales }}</td>
+
+                <td>Rs. {{ row.outstanding }}</td>
+
+                <td>Rs. {{ row.stock }}</td>
+
+                <td>
+
+                    <a href="{% url 'super_dealer_dashboard' row.dealer.id %}"
+                       class="btn btn-primary btn-sm">
+
+                        View
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="6" class="text-center">
+
+                    No Dealers Available
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
 
 </div>
 

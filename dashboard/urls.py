@@ -5,6 +5,7 @@ from .views import (
     staff_dashboard,
     dealer_staff_dashboard
 )
+from . import views
 
 urlpatterns = [
 
@@ -31,5 +32,9 @@ urlpatterns = [
         dealer_staff_dashboard,
         name='dealer_staff_dashboard'
     ),
-
+    path(
+        "super/dealer/<int:pk>/",
+        views.super_dealer_dashboard,
+        name="super_dealer_dashboard",
+    )
 ]
