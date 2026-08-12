@@ -2,18 +2,152 @@
 
 {% block content %}
 
-<h2>Add Dealer</h2>
+<style>
+    :root {
+        --ink: #0B2E3C;
+        --deep-water: #0E4A63;
+        --teal: #1B8FA3;
+        --gold: #C79A46;
+        --mist: #F1F6F7;
+        --paper: #FCFDFC;
+    }
 
-<form method="POST">
+    .center-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 75vh;
+        width: 100%;
+    }
 
-    {% csrf_token %}
+    .card-box {
+        background: var(--paper);
+        border: 1px solid #e5edee;
+        border-radius: 12px;
+        padding: 28px 30px 26px;
+        width: 100%;
+        max-width: 640px;
+        box-shadow: 0 8px 20px -12px rgba(11, 46, 60, 0.18);
+        font-family: 'Manrope', Arial, sans-serif;
+    }
 
-    {{ form.as_p }}
+    .card-box h2 {
+        font-family: 'Manrope', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--ink);
+        margin: 0 0 4px;
+    }
 
-    <button class="btn btn-primary">
-        Save Dealer
-    </button>
+    .card-box hr {
+        border: none;
+        border-top: 1px solid #e0e7e8;
+        margin: 14px 0 22px;
+    }
 
-</form>
+    .card-box form p {
+        margin-bottom: 16px;
+    }
+
+    .card-box form label {
+        display: block;
+        font-family: 'Manrope', Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--deep-water);
+        margin-bottom: 6px;
+        letter-spacing: 0.01em;
+    }
+
+    .card-box form input,
+    .card-box form select,
+    .card-box form textarea {
+        width: 100%;
+        padding: 11px 13px;
+        font-family: 'Manrope', Arial, sans-serif;
+        font-size: 15px;
+        color: var(--ink);
+        border: 1.5px solid #dbe4e5;
+        border-radius: 8px;
+        background: var(--mist);
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .card-box form input::placeholder,
+    .card-box form textarea::placeholder {
+        color: #93a7ac;
+    }
+
+    .card-box form input:focus,
+    .card-box form select:focus,
+    .card-box form textarea:focus {
+        border-color: var(--teal);
+        background: var(--paper);
+        box-shadow: 0 0 0 3px rgba(27, 143, 163, 0.15);
+    }
+
+    .card-box form .helptext {
+        display: block;
+        font-size: 12px;
+        color: #7a9199;
+        margin-top: 4px;
+    }
+
+    .card-box form ul.errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 6px;
+        color: #c0392b;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .card-box .btn-primary {
+        margin-top: 6px;
+        padding: 12px 22px;
+        font-family: 'Manrope', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #fff;
+        background: linear-gradient(135deg, var(--teal), var(--deep-water));
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 8px 18px -10px rgba(14, 74, 99, 0.7);
+        transition: filter 0.12s ease, transform 0.12s ease;
+    }
+
+    .card-box .btn-primary:hover {
+        filter: brightness(1.06);
+    }
+
+    .card-box .btn-primary:active {
+        transform: translateY(1px);
+    }
+</style>
+
+<div class="center-wrap">
+<div class="card-box">
+
+    <h2>Add Dealer</h2>
+
+    <hr>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button class="btn btn-primary">
+            Save Dealer
+        </button>
+
+    </form>
+
+</div>
+</div>
 
 {% endblock %}

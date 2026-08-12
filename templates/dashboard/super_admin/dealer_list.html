@@ -2,90 +2,212 @@
 
 {% block content %}
 
-<h2>Dealer List</h2>
+<style>
+    :root {
+        --ink: #0B2E3C;
+        --deep-water: #0E4A63;
+        --teal: #1B8FA3;
+        --gold: #C79A46;
+        --mist: #F1F6F7;
+        --paper: #FCFDFC;
+        --green: #2F9E5B;
+        --amber: #C9840C;
+        --red: #C43D3D;
+    }
 
-<a
-    href="{% url 'dealer_create' %}"
-    class="btn btn-success mb-3"
->
-    Add Dealer
-</a>
+    .card-box {
+        background: var(--paper);
+        border: 1px solid #e5edee;
+        border-radius: 12px;
+        padding: 26px 28px 20px;
+        box-shadow: 0 8px 20px -12px rgba(11, 46, 60, 0.18);
+        font-family: 'Manrope', Arial, sans-serif;
+    }
 
-<table class="table table-bordered">
+    .card-box h2 {
+        font-family: 'Manrope', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--ink);
+        margin: 0 0 18px;
+    }
 
-    <thead>
+    .card-box .btn {
+        font-family: 'Manrope', Arial, sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        border: none;
+        border-radius: 7px;
+    }
 
-        <tr>
+    .card-box .btn-success {
+        background: linear-gradient(135deg, var(--teal), var(--deep-water));
+        box-shadow: 0 8px 18px -10px rgba(14, 74, 99, 0.7);
+    }
 
-            <th>Name</th>
+    .card-box .btn-success:hover {
+        filter: brightness(1.06);
+    }
 
-            <th>Phone</th>
+    .card-box .btn-sm {
+        font-size: 12.5px;
+        padding: 6px 12px;
+        margin-right: 4px;
+    }
 
-            <th>Email</th>
+    .card-box .btn-warning {
+        background: var(--gold);
+        color: #fff;
+    }
 
-            <th>Status</th>
+    .card-box .btn-warning:hover {
+        filter: brightness(1.08);
+        color: #fff;
+    }
 
-        </tr>
+    .card-box .btn-danger {
+        background: var(--red);
+        color: #fff;
+    }
 
-    </thead>
+    .card-box .btn-danger:hover {
+        filter: brightness(1.08);
+        color: #fff;
+    }
 
-    <tbody>
+    .card-box table {
+        font-family: 'Manrope', Arial, sans-serif;
+        margin-top: 4px;
+    }
 
-{% for dealer in dealers %}
+    .card-box table thead th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #6b8891;
+        background: var(--mist);
+        border-bottom: 2px solid #dce7e8;
+        white-space: nowrap;
+    }
 
-<tr>
+    .card-box table td {
+        font-size: 14px;
+        color: var(--ink);
+        vertical-align: middle;
+    }
 
-    <td>{{ dealer.name }}</td>
+    .card-box table tbody tr:hover {
+        background-color: rgba(99, 198, 217, 0.08);
+    }
 
-    <td>{{ dealer.phone }}</td>
+    .status-pill {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
 
-    <td>{{ dealer.email }}</td>
+    .status-pill.active {
+        background: rgba(47, 158, 91, 0.12);
+        color: var(--green);
+    }
 
-    <td>
+    .status-pill.inactive {
+        background: rgba(196, 61, 61, 0.1);
+        color: var(--red);
+    }
+</style>
 
-        {% if dealer.is_active %}
-            Active
-        {% else %}
-            Inactive
-        {% endif %}
+<div class="card-box">
 
-    </td>
+    <h2>Dealer List</h2>
 
-    <td>
-
-        <a
-            href="{% url 'dealer_edit' dealer.id %}"
-            class="btn btn-warning btn-sm"
-        >
-            Edit
-        </a>
-         <a
-        href="{% url 'dealer_delete' dealer.id %}"
-        class="btn btn-danger btn-sm"
-        onclick="return confirm('Deactivate this dealer?')"
+    <a
+        href="{% url 'dealer_create' %}"
+        class="btn btn-success mb-3"
     >
-        Delete
+        Add Dealer
     </a>
 
-        <a
-            href="{% url 'dealer_toggle_status' dealer.id %}"
-            class="btn btn-danger btn-sm"
-        >
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+
+                <th>Phone</th>
+
+                <th>Email</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+    {% for dealer in dealers %}
+
+    <tr>
+
+        <td>{{ dealer.name }}</td>
+
+        <td>{{ dealer.phone }}</td>
+
+        <td>{{ dealer.email }}</td>
+
+        <td>
+
             {% if dealer.is_active %}
-                Deactivate
+                <span class="status-pill active">Active</span>
             {% else %}
-                Activate
+                <span class="status-pill inactive">Inactive</span>
             {% endif %}
+
+        </td>
+
+        <td>
+
+            <a
+                href="{% url 'dealer_edit' dealer.id %}"
+                class="btn btn-warning btn-sm"
+            >
+                Edit
+            </a>
+             <a
+            href="{% url 'dealer_delete' dealer.id %}"
+            class="btn btn-danger btn-sm"
+            onclick="return confirm('Deactivate this dealer?')"
+        >
+            Delete
         </a>
 
-    </td>
+            <a
+                href="{% url 'dealer_toggle_status' dealer.id %}"
+                class="btn btn-danger btn-sm"
+            >
+                {% if dealer.is_active %}
+                    Deactivate
+                {% else %}
+                    Activate
+                {% endif %}
+            </a>
 
-</tr>
+        </td>
 
-{% endfor %}
+    </tr>
 
-</tbody>
+    {% endfor %}
 
-</table>
+    </tbody>
+
+    </table>
+
+</div>
 
 {% endblock %}

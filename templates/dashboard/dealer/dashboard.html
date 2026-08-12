@@ -2,426 +2,773 @@
 
 {% block content %}
 
-<h3 class="mb-4">
-    Welcome {{ dealer.name }}
-</h3>
+<style>
 
-<!-- ========================= -->
-<!-- Financial Summary -->
-<!-- ========================= -->
+    .dashboard-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        height: 100%;
+    }
+
+    .dashboard-card .card-box {
+        height: 100%;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .dashboard-card:hover .card-box {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+    }
+
+    .dashboard-card:hover {
+        color: inherit;
+    }
+
+    .dashboard-card-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-card-value {
+        font-size: 25px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .dashboard-card-link {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+</style>
+
+
+<!-- ===================================================== -->
+<!-- HEADER -->
+<!-- ===================================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h3 class="mb-1">
+            Welcome {{ dealer.name }}
+        </h3>
+
+        <p class="text-muted mb-0">
+            Dealer Dashboard
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- FINANCIAL SUMMARY -->
+<!-- ===================================================== -->
 
 <div class="row g-3">
 
-    <div class="col-lg-3 col-md-6">
-        <div class="card-box text-center h-100">
-            <h6 class="text-muted">Outstanding Amount</h6>
-            <h2 class="text-danger">
-                Rs. {{ current_balance }}
-            </h2>
-        </div>
+
+    <!-- Outstanding -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'dealer_customer_ledger_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+                    Outstanding Amount
+                </div>
+
+                <div class="dashboard-card-value text-danger">
+
+                    Rs. {{ current_balance }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Customer Ledger →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6">
-        <div class="card-box text-center h-100">
-            <h6 class="text-muted">Today's Sales</h6>
-            <h2 class="text-success">
-                Rs. {{ today_sales }}
-            </h2>
-        </div>
+
+    <!-- Today's Sales -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'dealer_sale_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+                    Today's Sales
+                </div>
+
+                <div class="dashboard-card-value text-success">
+
+                    Rs. {{ today_sales }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Sales →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6">
-        <div class="card-box text-center h-100">
-            <h6 class="text-muted">Monthly Sales</h6>
-            <h2 class="text-primary">
-                Rs. {{ month_sales }}
-            </h2>
-        </div>
+
+    <!-- Monthly Sales -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'dealer_sale_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+                    Monthly Sales
+                </div>
+
+                <div class="dashboard-card-value text-primary">
+
+                    Rs. {{ month_sales }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Sales →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
-    <div class="col-lg-3 col-md-6">
-        <div class="card-box text-center h-100">
-            <h6 class="text-muted">Total Payments</h6>
-            <h2 class="text-info">
-                Rs. {{ total_payments }}
-            </h2>
-        </div>
+
+    <!-- Payments -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'dealer_customer_payment_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+                    Total Payments
+                </div>
+
+                <div class="dashboard-card-value text-info">
+
+                    Rs. {{ total_payments }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Payments →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
 </div>
 
+
 <br>
 
-<!-- ========================= -->
-<!-- Sales Summary -->
-<!-- ========================= -->
+
+<!-- ===================================================== -->
+<!-- SALES SUMMARY -->
+<!-- ===================================================== -->
+
+<h5 class="section-title">
+    Sales Summary
+</h5>
 
 <div class="row g-3">
 
-    <div class="col-lg-4">
 
-        <div class="card-box text-center h-100">
+    <!-- Dealer Sales -->
+    <div class="col-lg-4 col-md-6">
 
-            <h6 class="text-muted">
-                Dealer Counter Sales
-            </h6>
+        <a href="{% url 'dealer_sale_list' %}"
+           class="dashboard-card">
 
-            <h2 class="text-primary">
+            <div class="card-box text-center">
 
-                Rs. {{ dealer_total_sales }}
+                <div class="dashboard-card-title text-muted">
 
-            </h2>
+                    Dealer Counter Sales
 
-        </div>
+                </div>
 
-    </div>
+                <div class="dashboard-card-value text-primary">
 
-    <div class="col-lg-4">
+                    Rs. {{ dealer_total_sales }}
 
-        <div class="card-box text-center h-100">
+                </div>
 
-            <h6 class="text-muted">
-                Vehicle Sales
-            </h6>
+                <div class="dashboard-card-link">
 
-            <h2 class="text-warning">
+                    View Dealer Sales →
 
-                Rs. {{ vehicle_total_sales }}
+                </div>
 
-            </h2>
+            </div>
 
-        </div>
+        </a>
 
     </div>
 
-    <div class="col-lg-4">
 
-        <div class="card-box text-center h-100 border border-success">
+    <!-- Vehicle Sales -->
+    <div class="col-lg-4 col-md-6">
 
-            <h6 class="text-muted">
-                Total Sales
-            </h6>
+        <a href="{% url 'dealer_sales_report' %}"
+           class="dashboard-card">
 
-            <h2 class="text-success fw-bold">
+            <div class="card-box text-center">
 
-                Rs. {{ total_sales }}
+                <div class="dashboard-card-title text-muted">
 
-            </h2>
+                    Vehicle Sales
 
-        </div>
+                </div>
+
+                <div class="dashboard-card-value text-warning">
+
+                    Rs. {{ vehicle_total_sales }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Sales Report →
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- Total Sales -->
+    <div class="col-lg-4 col-md-12">
+
+        <a href="{% url 'dealer_sales_report' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center border border-success">
+
+                <div class="dashboard-card-title text-muted">
+
+                    Total Sales
+
+                </div>
+
+                <div class="dashboard-card-value text-success">
+
+                    Rs. {{ total_sales }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    Dealer + Vehicle Sales →
+
+                </div>
+
+            </div>
+
+        </a>
 
     </div>
 
 </div>
 
+
 <br>
 
-<!-- ========================= -->
-<!-- Inventory -->
-<!-- ========================= -->
+
+<!-- ===================================================== -->
+<!-- INVENTORY SUMMARY -->
+<!-- ===================================================== -->
+
+<h5 class="section-title">
+    Inventory & Vehicles
+</h5>
 
 <div class="row g-3">
 
-    <div class="col-lg-3 col-md-6">
 
-        <div class="card-box text-center h-100">
+    <!-- Products -->
+    <div class="col-xl-3 col-md-6">
 
-            <h6>Total Products</h6>
+        <a href="{% url 'dealer_stock_list' %}"
+           class="dashboard-card">
 
-            <h2>{{ total_products }}</h2>
+            <div class="card-box text-center">
 
-        </div>
+                <div class="dashboard-card-title text-muted">
 
-    </div>
+                    Total Products
 
-    <div class="col-lg-3 col-md-6">
+                </div>
 
-        <div class="card-box text-center h-100">
+                <div class="dashboard-card-value">
 
-            <h6>Stock Quantity</h6>
+                    {{ total_products }}
 
-            <h2>{{ total_stock_qty }}</h2>
+                </div>
 
-        </div>
+                <div class="dashboard-card-link">
 
-    </div>
+                    View Stock →
 
-    <div class="col-lg-3 col-md-6">
+                </div>
 
-        <div class="card-box text-center h-100">
+            </div>
 
-            <h6>Vehicles</h6>
-
-            <h2>{{ total_vehicles }}</h2>
-
-        </div>
+        </a>
 
     </div>
 
-    <div class="col-lg-3 col-md-6">
 
-        <div class="card-box text-center h-100">
+    <!-- Stock Quantity -->
+    <div class="col-xl-3 col-md-6">
 
-            <h6>Open Dispatch</h6>
+        <a href="{% url 'dealer_stock_list' %}"
+           class="dashboard-card">
 
-            <h2 class="text-warning">
+            <div class="card-box text-center">
 
-                {{ open_dispatches }}
+                <div class="dashboard-card-title text-muted">
 
-            </h2>
+                    Stock Quantity
 
-        </div>
+                </div>
+
+                <div class="dashboard-card-value">
+
+                    {{ total_stock_qty }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Inventory →
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- Vehicles -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'vehicle_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+
+                    Vehicles
+
+                </div>
+
+                <div class="dashboard-card-value">
+
+                    {{ total_vehicles }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Vehicles →
+
+                </div>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- Open Dispatch -->
+    <div class="col-xl-3 col-md-6">
+
+        <a href="{% url 'vehicle_dispatch_list' %}"
+           class="dashboard-card">
+
+            <div class="card-box text-center">
+
+                <div class="dashboard-card-title text-muted">
+
+                    Open Dispatch
+
+                </div>
+
+                <div class="dashboard-card-value text-warning">
+
+                    {{ open_dispatches }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Dispatches →
+
+                </div>
+
+            </div>
+
+        </a>
 
     </div>
 
 </div>
 
+
 <br>
 
-<!-- ========================= -->
-<!-- Operational Summary -->
-<!-- ========================= -->
+
+<!-- ===================================================== -->
+<!-- OPERATIONAL SUMMARY -->
+<!-- ===================================================== -->
+
+<h5 class="section-title">
+    Operational Summary
+</h5>
 
 <div class="row g-3">
 
-    <div class="col-lg-3 col-md-6">
 
-        <div class="card-box text-center h-100">
+    <!-- Sales Returns -->
+    <div class="col-xl-3 col-md-6">
 
-            <h6>Sales Return</h6>
+        <a href="{% url 'dealer_sales_return_list' %}"
+           class="dashboard-card">
 
-            <h2>{{ total_returns }}</h2>
+            <div class="card-box text-center">
 
-        </div>
+                <div class="dashboard-card-title text-muted">
 
-    </div>
+                    Sales Return
 
-    <div class="col-lg-3 col-md-6">
+                </div>
 
-        <div class="card-box text-center h-100">
+                <div class="dashboard-card-value">
 
-            <h6>Sponsor Qty</h6>
+                    {{ total_returns }}
 
-            <h2>{{ sponsor_qty }}</h2>
+                </div>
 
-        </div>
+                <div class="dashboard-card-link">
 
-    </div>
+                    View Returns →
 
-    <div class="col-lg-3 col-md-6">
+                </div>
 
-        <div class="card-box text-center h-100">
+            </div>
 
-            <h6>Breakage Qty</h6>
-
-            <h2 class="text-danger">
-
-                {{ breakage_qty }}
-
-            </h2>
-
-        </div>
+        </a>
 
     </div>
 
-    <div class="col-lg-3 col-md-6">
 
-        <div class="card-box text-center h-100">
+    <!-- Sponsor -->
+    <div class="col-xl-3 col-md-6">
 
-            <h6>Leakage Qty</h6>
+        <a href="{% url 'sponsor_list' %}"
+           class="dashboard-card">
 
-            <h2 class="text-danger">
+            <div class="card-box text-center">
 
-                {{ leakage_qty }}
+                <div class="dashboard-card-title text-muted">
 
-            </h2>
+                    Sponsor Qty
 
-        </div>
+                </div>
+
+                <div class="dashboard-card-value">
+
+                    {{ sponsor_qty }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Sponsors →
+
+                </div>
+
+            </div>
+
+        </a>
 
     </div>
 
-</div>
 
-<br>
+    <!-- Breakage -->
+    <div class="col-xl-3 col-md-6">
 
-<!-- ========================= -->
-<!-- Inventory -->
-<!-- ========================= -->
+        <a href="{% url 'vehicle_dispatch_list' %}"
+           class="dashboard-card">
 
-<div class="row">
+            <div class="card-box text-center">
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Total Products</h6>
-            <h2>{{ total_products }}</h2>
-        </div>
+                <div class="dashboard-card-title text-muted">
+
+                    Breakage Qty
+
+                </div>
+
+                <div class="dashboard-card-value text-danger">
+
+                    {{ breakage_qty }}
+
+                </div>
+
+                <div class="dashboard-card-link">
+
+                    View Dispatches →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Stock Quantity</h6>
-            <h2>{{ total_stock_qty }}</h2>
-        </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Vehicles</h6>
-            <h2>{{ total_vehicles }}</h2>
-        </div>
-    </div>
+    <!-- Leakage -->
+    <div class="col-xl-3 col-md-6">
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Open Dispatch</h6>
-            <h2 class="text-warning">
-                {{ open_dispatches }}
-            </h2>
-        </div>
-    </div>
+        <a href="{% url 'vehicle_dispatch_list' %}"
+           class="dashboard-card">
 
-</div>
+            <div class="card-box text-center">
 
-<br>
+                <div class="dashboard-card-title text-muted">
 
-<!-- ========================= -->
-<!-- Operational Summary -->
-<!-- ========================= -->
+                    Leakage Qty
 
-<div class="row">
+                </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Sales Return</h6>
-            <h2>{{ total_returns }}</h2>
-        </div>
-    </div>
+                <div class="dashboard-card-value text-danger">
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Sponsor Qty</h6>
-            <h2>{{ sponsor_qty }}</h2>
-        </div>
-    </div>
+                    {{ leakage_qty }}
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Breakage Qty</h6>
-            <h2 class="text-danger">
-                {{ breakage_qty }}
-            </h2>
-        </div>
-    </div>
+                </div>
 
-    <div class="col-md-3">
-        <div class="card-box text-center">
-            <h6>Leakage Qty</h6>
-            <h2 class="text-danger">
-                {{ leakage_qty }}
-            </h2>
-        </div>
+                <div class="dashboard-card-link">
+
+                    View Dispatches →
+
+                </div>
+
+            </div>
+
+        </a>
+
     </div>
 
 </div>
 
+
 <br>
 
-<div class="row">
+
+<!-- ===================================================== -->
+<!-- RECENT SALES + QUICK ACTIONS -->
+<!-- ===================================================== -->
+
+<div class="row g-3">
+
 
     <!-- Recent Sales -->
 
-    <div class="col-md-8">
+    <div class="col-lg-8">
 
         <div class="card-box">
 
-            <h5 class="mb-3">
-                Recent Sales
-            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
 
-            <table class="table table-striped table-bordered">
+                <h5 class="mb-0">
+                    Recent Dealer Sales
+                </h5>
 
-                <thead class="table-light">
+                <a href="{% url 'dealer_sale_list' %}"
+                   class="btn btn-sm btn-outline-primary">
 
-                    <tr>
+                    View All
 
-                        <th>Invoice</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Due</th>
+                </a>
 
-                    </tr>
+            </div>
 
-                </thead>
 
-                <tbody>
+            <div class="table-responsive">
+
+                <table class="table table-striped table-bordered mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>Invoice</th>
+
+                            <th>Customer</th>
+
+                            <th>Total</th>
+
+                            <th>Due</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
 
                     {% for sale in recent_sales %}
 
-                    <tr>
+                        <tr>
 
-                        <td>{{ sale.invoice_no }}</td>
+                            <td>
 
-                        <td>{{ sale.customer.name }}</td>
+                                {{ sale.invoice_no }}
 
-                        <td>Rs. {{ sale.total_amount }}</td>
+                            </td>
 
-                        <td class="text-danger">
-                            Rs. {{ sale.due_amount }}
-                        </td>
 
-                    </tr>
+                            <td>
+
+                                {{ sale.customer.name }}
+
+                            </td>
+
+
+                            <td>
+
+                                Rs. {{ sale.total_amount }}
+
+                            </td>
+
+
+                            <td class="text-danger">
+
+                                Rs. {{ sale.due_amount }}
+
+                            </td>
+
+                        </tr>
 
                     {% empty %}
 
-                    <tr>
+                        <tr>
 
-                        <td colspan="4" class="text-center">
+                            <td colspan="4"
+                                class="text-center">
 
-                            No Sales Available
+                                No Sales Available
 
-                        </td>
+                            </td>
 
-                    </tr>
+                        </tr>
 
                     {% endfor %}
 
-                </tbody>
+                    </tbody>
 
-            </table>
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
+
     <!-- Quick Actions -->
 
-    <div class="col-md-4">
+    <div class="col-lg-4">
 
         <div class="card-box">
 
             <h5 class="mb-3">
+
                 Quick Actions
+
             </h5>
 
-            <a href="{% url 'dealer_sale_create' %}" class="btn btn-success w-100 mb-2">
+
+            <a href="{% url 'dealer_sale_create' %}"
+               class="btn btn-success w-100 mb-2">
 
                 + New Sale
 
             </a>
 
-            <a href="{% url 'vehicle_dispatch_create' %}" class="btn btn-primary w-100 mb-2">
+
+            <a href="{% url 'vehicle_dispatch_create' %}"
+               class="btn btn-primary w-100 mb-2">
 
                 + Vehicle Dispatch
 
             </a>
 
-            <a href="{% url 'dealer_customer_payment_create' %}" class="btn btn-warning w-100 mb-2">
+
+            <a href="{% url 'dealer_customer_payment_create' %}"
+               class="btn btn-warning w-100 mb-2">
 
                 + Customer Payment
 
             </a>
 
-            <a href="{% url 'sponsor_create' %}" class="btn btn-info w-100 mb-2">
+
+            <a href="{% url 'sponsor_create' %}"
+               class="btn btn-info w-100 mb-2">
 
                 + Give Sponsor
 
@@ -433,131 +780,189 @@
 
 </div>
 
+
 <br>
 
-<div class="row">
+
+<!-- ===================================================== -->
+<!-- LOW STOCK + OUTSTANDING CUSTOMERS -->
+<!-- ===================================================== -->
+
+<div class="row g-3">
+
 
     <!-- Low Stock -->
 
-    <div class="col-md-6">
+    <div class="col-lg-6">
 
         <div class="card-box">
 
-            <h5 class="mb-3">
-                Low Stock Alert
-            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
 
-            <table class="table table-bordered">
+                <h5 class="mb-0">
 
-                <thead>
+                    Low Stock Alert
 
-                    <tr>
+                </h5>
 
-                        <th>Product</th>
-                        <th>Stock</th>
 
-                    </tr>
+                <a href="{% url 'dealer_stock_list' %}"
+                   class="btn btn-sm btn-outline-danger">
 
-                </thead>
+                    View Stock
 
-                <tbody>
+                </a>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Product</th>
+
+                            <th>Stock</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
 
                     {% for stock in low_stock %}
 
-                    <tr>
+                        <tr>
 
-                        <td>{{ stock.product.name }}</td>
+                            <td>
 
-                        <td class="text-danger">
+                                {{ stock.product.name }}
 
-                            {{ stock.quantity }}
+                            </td>
 
-                        </td>
 
-                    </tr>
+                            <td class="text-danger">
+
+                                {{ stock.quantity }}
+
+                            </td>
+
+                        </tr>
 
                     {% empty %}
 
-                    <tr>
+                        <tr>
 
-                        <td colspan="2">
+                            <td colspan="2"
+                                class="text-center">
 
-                            No Low Stock Products
+                                No Low Stock Products
 
-                        </td>
+                            </td>
 
-                    </tr>
+                        </tr>
 
                     {% endfor %}
 
-                </tbody>
+                    </tbody>
 
-            </table>
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
+
     <!-- Outstanding Customers -->
 
-    <div class="col-md-6">
+    <div class="col-lg-6">
 
         <div class="card-box">
 
-            <h5 class="mb-3">
-                Top Outstanding Customers
-            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
 
-            <table class="table table-bordered">
+                <h5 class="mb-0">
 
-                <thead>
+                    Top Outstanding Customers
 
-                    <tr>
+                </h5>
 
-                        <th>Customer</th>
-                        <th>Due</th>
 
-                    </tr>
+                <a href="{% url 'dealer_customer_ledger_list' %}"
+                   class="btn btn-sm btn-outline-danger">
 
-                </thead>
+                    View Ledger
 
-                <tbody>
+                </a>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Customer</th>
+
+                            <th>Due</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
 
                     {% for customer in top_due_customers %}
 
-                    <tr>
+                        <tr>
 
-                        <td>
+                            <td>
 
-                            {{ customer.name }}
+                                {{ customer.name }}
 
-                        </td>
+                            </td>
 
-                        <td class="text-danger">
 
-                            Rs. {{ customer.total_due|default:0 }}
+                            <td class="text-danger">
 
-                        </td>
+                                Rs. {{ customer.total_due|default:0 }}
 
-                    </tr>
+                            </td>
+
+                        </tr>
 
                     {% empty %}
 
-                    <tr>
+                        <tr>
 
-                        <td colspan="2">
+                            <td colspan="2"
+                                class="text-center">
 
-                            No Outstanding Customers
+                                No Outstanding Customers
 
-                        </td>
+                            </td>
 
-                    </tr>
+                        </tr>
 
                     {% endfor %}
 
-                </tbody>
+                    </tbody>
 
-            </table>
+                </table>
+
+            </div>
 
         </div>
 

@@ -2,6 +2,87 @@
 
 {% block content %}
 
+<style>
+    :root {
+        --ink: #0B2E3C;
+        --deep-water: #0E4A63;
+        --teal: #1B8FA3;
+        --gold: #C79A46;
+        --mist: #F1F6F7;
+        --paper: #FCFDFC;
+    }
+
+    .card-box {
+        background: var(--paper);
+        border: 1px solid #e5edee;
+        border-radius: 12px;
+        padding: 26px 28px 20px;
+        box-shadow: 0 8px 20px -12px rgba(11, 46, 60, 0.18);
+        font-family: 'Manrope', Arial, sans-serif;
+    }
+
+    .card-box h2 {
+        font-family: 'Manrope', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--ink);
+        margin: 0;
+    }
+
+    .card-box .d-flex.justify-content-between {
+        align-items: center;
+    }
+
+    .card-box hr {
+        border: none;
+        border-top: 1px solid #e0e7e8;
+        margin: 16px 0 20px;
+    }
+
+    .card-box .btn {
+        font-family: 'Manrope', Arial, sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        border: none;
+        border-radius: 7px;
+    }
+
+    .card-box .btn-success {
+        background: linear-gradient(135deg, var(--teal), var(--deep-water));
+        box-shadow: 0 8px 18px -10px rgba(14, 74, 99, 0.7);
+        padding: 9px 16px;
+    }
+
+    .card-box .btn-success:hover {
+        filter: brightness(1.06);
+    }
+
+    .card-box table {
+        font-family: 'Manrope', Arial, sans-serif;
+        margin-top: 4px;
+    }
+
+    .card-box table thead th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #6b8891;
+        background: var(--mist);
+        border-bottom: 2px solid #dce7e8;
+        white-space: nowrap;
+    }
+
+    .card-box table td {
+        font-size: 14px;
+        color: var(--ink);
+        vertical-align: middle;
+    }
+
+    .card-box table tbody tr:hover {
+        background-color: rgba(99, 198, 217, 0.08);
+    }
+</style>
+
 <div class="card-box">
 
     <div class="d-flex justify-content-between">
