@@ -276,6 +276,17 @@ class VehicleDispatch(models.Model):
 
     dispatch_date = models.DateField()
 
+    dispatch_time = models.TimeField(
+        blank=True,
+        null=True
+    )
+
+    driver_name = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True
+    )
+
     return_date = models.DateField(
         blank=True,
         null=True

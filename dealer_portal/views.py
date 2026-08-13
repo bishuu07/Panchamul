@@ -1183,29 +1183,87 @@ def vehicle_dispatch_list(request):
 @login_required
 def vehicle_dispatch_create(request):
 
-    profile = DealerProfile.objects.get(
+    # -----------------------------------
+    # Dealer Profile
+    # -----------------------------------
+
+    profile = get_object_or_404(
+        DealerProfile,
         admin_user=request.user
     )
 
+    dealer = profile.dealer
+
+    # -----------------------------------
+    # Active Vehicles
+    # -----------------------------------
+
     vehicles = DealerVehicle.objects.filter(
-        dealer=profile.dealer,
+        dealer=dealer,
         is_active=True
-    )
+    ).order_by("vehicle_no")
+
+    # -----------------------------------
+    # POST
+    # -----------------------------------
 
     if request.method == "POST":
 
         vehicle_id = request.POST.get("vehicle")
+        driver_name = request.POST.get("driver_name", "").strip()
 
-        vehicle = DealerVehicle.objects.get(
+        # -------------------------------
+        # Validate Vehicle
+        # -------------------------------
+
+        if not vehicle_id:
+            return render(
+                request,
+                "dealer_portal/vehicle_dispatch_create.html",
+                {
+                    "vehicles": vehicles,
+                    "error": "Please select a vehicle."
+                }
+            )
+
+        vehicle = get_object_or_404(
+            DealerVehicle,
             id=vehicle_id,
-            dealer=profile.dealer
+            dealer=dealer,
+            is_active=True
         )
 
-        # Check if today's dispatch already exists
+        # -------------------------------
+        # Driver Name
+        # -------------------------------
+
+        if not driver_name:
+
+            # If no driver was manually entered,
+            # use the driver's name stored against vehicle.
+
+            driver_name = (
+                getattr(vehicle, "driver_name", "")
+                or ""
+            ).strip()
+
+        # -------------------------------
+        # Current Date & Time
+        # -------------------------------
+
+        now = timezone.localtime()
+
+        dispatch_date = now.date()
+        dispatch_time = now.time()
+
+        # -------------------------------
+        # Check Existing Open Dispatch
+        # -------------------------------
+
         dispatch = VehicleDispatch.objects.filter(
-            dealer=profile.dealer,
+            dealer=dealer,
             vehicle=vehicle,
-            dispatch_date=date.today(),
+            dispatch_date=dispatch_date,
             status="OPEN"
         ).first()
 
@@ -1216,11 +1274,41 @@ def vehicle_dispatch_create(request):
                 dispatch.id
             )
 
+        # -------------------------------
+        # Generate Dispatch Number
+        # -------------------------------
+
+        last_dispatch = (
+            VehicleDispatch.objects
+            .order_by("-id")
+            .first()
+        )
+
+        if last_dispatch:
+            dispatch_number = last_dispatch.id + 1
+        else:
+            dispatch_number = 1
+
+        dispatch_no = f"VD-{dispatch_number}"
+
+        # -------------------------------
+        # Create Dispatch
+        # -------------------------------
+
         dispatch = VehicleDispatch.objects.create(
-            dealer=profile.dealer,
+
+            dealer=dealer,
+
             vehicle=vehicle,
-            dispatch_no=f"VD-{VehicleDispatch.objects.count()+1}",
-            dispatch_date=date.today(),
+
+            dispatch_no=dispatch_no,
+
+            dispatch_date=dispatch_date,
+
+            dispatch_time=dispatch_time,
+
+            driver_name=driver_name,
+
             status="OPEN"
         )
 
@@ -1229,6 +1317,10 @@ def vehicle_dispatch_create(request):
             dispatch.id
         )
 
+    # -----------------------------------
+    # GET
+    # -----------------------------------
+
     return render(
         request,
         "dealer_portal/vehicle_dispatch_create.html",
@@ -1236,7 +1328,6 @@ def vehicle_dispatch_create(request):
             "vehicles": vehicles
         }
     )
-
 
 # @login_required
 # def vehicle_dispatch_close(request, pk):

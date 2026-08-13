@@ -4,17 +4,27 @@
 
 <div class="card-box">
 
-    <h3>Create Vehicle Dispatch</h3>
+    <h3 class="mb-4">
+        Create Vehicle Dispatch
+    </h3>
 
     {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
-    </div>
+
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+
     {% endif %}
+
 
     <form method="POST">
 
         {% csrf_token %}
+
+
+        <!-- ============================= -->
+        <!-- Vehicle -->
+        <!-- ============================= -->
 
         <div class="mb-3">
 
@@ -24,6 +34,7 @@
 
             <select
                 name="vehicle"
+                id="vehicle"
                 class="form-control"
                 required
             >
@@ -34,12 +45,20 @@
 
                 {% for vehicle in vehicles %}
 
-                <option value="{{ vehicle.id }}">
-                    {{ vehicle.vehicle_no }}
-                    {% if vehicle.driver_name %}
-                        - {{ vehicle.driver_name }}
-                    {% endif %}
-                </option>
+                    <option
+                        value="{{ vehicle.id }}"
+                        data-driver="{{ vehicle.driver_name|default:'' }}"
+                    >
+
+                        {{ vehicle.vehicle_no }}
+
+                        {% if vehicle.driver_name %}
+
+                            - {{ vehicle.driver_name }}
+
+                        {% endif %}
+
+                    </option>
 
                 {% endfor %}
 
@@ -47,12 +66,90 @@
 
         </div>
 
+
+        <!-- ============================= -->
+        <!-- Driver Name -->
+        <!-- ============================= -->
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Driver Name
+            </label>
+
+            <input
+                type="text"
+                name="driver_name"
+                id="driver_name"
+                class="form-control"
+                placeholder="Enter driver name"
+                maxlength="150"
+                required
+            >
+
+            <small class="text-muted">
+                Driver name can be changed for this dispatch if required.
+            </small>
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- Dispatch Date -->
+        <!-- ============================= -->
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Dispatch Date
+            </label>
+
+            <input
+                type="text"
+                class="form-control"
+                value="{% now 'Y-m-d' %}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- Dispatch Time -->
+        <!-- ============================= -->
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Dispatch Time
+            </label>
+
+            <input
+                type="text"
+                class="form-control"
+                value="{% now 'H:i' %}"
+                readonly
+            >
+
+            <small class="text-muted">
+                The actual dispatch time will be saved automatically
+                when the dispatch is created.
+            </small>
+
+        </div>
+
+
+        <!-- ============================= -->
+        <!-- Buttons -->
+        <!-- ============================= -->
+
         <button
             type="submit"
             class="btn btn-success"
         >
             Create Dispatch
         </button>
+
 
         <a
             href="{% url 'vehicle_dispatch_list' %}"
@@ -64,5 +161,43 @@
     </form>
 
 </div>
+
+
+<!-- ============================= -->
+<!-- Auto Driver Name -->
+<!-- ============================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const vehicleSelect = document.getElementById("vehicle");
+    const driverInput = document.getElementById("driver_name");
+
+    vehicleSelect.addEventListener("change", function () {
+
+        const selectedOption =
+            vehicleSelect.options[
+                vehicleSelect.selectedIndex
+            ];
+
+        const driver =
+            selectedOption.getAttribute("data-driver");
+
+        if (driver) {
+
+            driverInput.value = driver;
+
+        } else {
+
+            driverInput.value = "";
+
+        }
+
+    });
+
+});
+
+</script>
 
 {% endblock %}
