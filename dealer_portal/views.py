@@ -352,131 +352,423 @@ def dealer_pending_dispatch_list(request):
         {'dispatches': dispatches}
     )
 
+# @login_required
+# def dealer_dispatch_approve(request, pk):
+
+#     profile = DealerProfile.objects.get(admin_user=request.user)
+#     dealer = profile.dealer
+
+#     dispatch = get_object_or_404(
+#         Dispatch,
+#         pk=pk,
+#         dealer=dealer,
+#         status='PENDING'
+#     )
+
+#     if request.method == 'POST':
+
+#         # Mark approved
+#         dispatch.status = 'APPROVED'
+#         dispatch.dealer_approved_by = request.user
+#         dispatch.approved_at = timezone.now()
+#         dispatch.save()
+
+#         # CREATE DEALER STOCK
+#         for item in dispatch.items.all():
+
+#             DealerStock.objects.create(
+#                 dealer=dealer,
+#                 product=item.product,
+#                 quantity=item.dispatched_qty
+#             )
+
+#         return redirect('dealer_pending_dispatch_list')
+
+#     return render(
+#         request,
+#         'dealer_portal/dispatch_approval.html',
+#         {'dispatch': dispatch}
+#     )
+
+
 @login_required
 def dealer_dispatch_approve(request, pk):
 
-    profile = DealerProfile.objects.get(admin_user=request.user)
+    profile = get_object_or_404(
+        DealerProfile,
+        admin_user=request.user
+    )
+
     dealer = profile.dealer
 
     dispatch = get_object_or_404(
         Dispatch,
         pk=pk,
-        dealer=dealer,
-        status='PENDING'
+        dealer=dealer
     )
+
+    # Do not allow already approved dispatch to come through
+    # the approval page.
+    if dispatch.status != 'PENDING':
+
+        return redirect(
+            'dealer_dispatch_edit',
+            dispatch.id
+        )
+
+    items = dispatch.items.select_related(
+        'product'
+    ).all()
 
     if request.method == 'POST':
 
-        # Mark approved
+        total_dispatched = Decimal('0')
+        total_received = Decimal('0')
+        total_damaged = Decimal('0')
+        total_returned = Decimal('0')
+
+        errors = []
+
+        for item in items:
+
+            received_qty = Decimal(
+                request.POST.get(
+                    f'received_{item.id}',
+                    '0'
+                ) or '0'
+            )
+
+            damaged_qty = Decimal(
+                request.POST.get(
+                    f'damaged_{item.id}',
+                    '0'
+                ) or '0'
+            )
+
+            returned_qty = Decimal(
+                request.POST.get(
+                    f'returned_{item.id}',
+                    '0'
+                ) or '0'
+            )
+
+            # Prevent negative quantities
+            if (
+                received_qty < 0
+                or damaged_qty < 0
+                or returned_qty < 0
+            ):
+                errors.append(
+                    f'{item.product.name}: quantities cannot be negative.'
+                )
+                continue
+
+            item_total = (
+                received_qty
+                + damaged_qty
+                + returned_qty
+            )
+
+            # IMPORTANT:
+            # received + damaged + returned
+            # must exactly equal dispatched quantity.
+            if item_total != item.dispatched_qty:
+
+                errors.append(
+                    f'{item.product.name}: '
+                    f'Dispatched {item.dispatched_qty}, '
+                    f'but Received + Damaged + Returned = '
+                    f'{item_total}.'
+                )
+
+                continue
+
+            total_dispatched += item.dispatched_qty
+            total_received += received_qty
+            total_damaged += damaged_qty
+            total_returned += returned_qty
+
+            item.received_qty = received_qty
+            item.damaged_qty = damaged_qty
+            item.returned_qty = returned_qty
+
+            item.save(
+                update_fields=[
+                    'received_qty',
+                    'damaged_qty',
+                    'returned_qty'
+                ]
+            )
+
+        # If validation failed, do not approve.
+        if errors:
+
+            return render(
+                request,
+                'dealer_portal/dispatch_approval.html',
+                {
+                    'dispatch': dispatch,
+                    'items': items,
+                    'errors': errors,
+                }
+            )
+
+        # Safety check
+        if total_dispatched <= 0:
+
+            return render(
+                request,
+                'dealer_portal/dispatch_approval.html',
+                {
+                    'dispatch': dispatch,
+                    'items': items,
+                    'errors': [
+                        'Dispatch has no valid quantity.'
+                    ],
+                }
+            )
+
+        # Since every item must completely match,
+        # the dispatch is APPROVED.
         dispatch.status = 'APPROVED'
         dispatch.dealer_approved_by = request.user
         dispatch.approved_at = timezone.now()
-        dispatch.save()
 
-        # CREATE DEALER STOCK
-        for item in dispatch.items.all():
+        dispatch.save(
+            update_fields=[
+                'status',
+                'dealer_approved_by',
+                'approved_at'
+            ]
+        )
 
-            DealerStock.objects.create(
-                dealer=dealer,
-                product=item.product,
-                quantity=item.dispatched_qty
-            )
-
-        return redirect('dealer_pending_dispatch_list')
+        return redirect(
+            'dealer_dispatch_list'
+        )
 
     return render(
         request,
         'dealer_portal/dispatch_approval.html',
-        {'dispatch': dispatch}
+        {
+            'dispatch': dispatch,
+            'items': items,
+        }
     )
 
 
 @login_required
-def dealer_dispatch_approve(request, pk):
+def dealer_dispatch_edit(request, pk):
 
-    profile = DealerProfile.objects.get(
+    profile = get_object_or_404(
+        DealerProfile,
         admin_user=request.user
     )
 
-    print("========== DEBUG ==========")
-    print("USER:", request.user)
-    print("DEALER FROM PROFILE:", profile.dealer.id)
-    print("DISPATCH PK:", pk)
-
-    dispatch_check = Dispatch.objects.filter(
-        pk=pk
-    ).first()
-
-    print("DISPATCH EXISTS:", dispatch_check)
-
-    if dispatch_check:
-        print("DISPATCH DEALER:", dispatch_check.dealer.id)
+    dealer = profile.dealer
 
     dispatch = get_object_or_404(
         Dispatch,
         pk=pk,
-        dealer=profile.dealer
+        dealer=dealer
+    )
+
+    # Only approved/partial dispatches can be edited.
+    if dispatch.status not in ['APPROVED', 'PARTIAL']:
+
+        return redirect(
+            'dealer_dispatch_approval',
+            dispatch.id
+        )
+
+    items = list(
+        dispatch.items.select_related(
+            'product'
+        ).all()
     )
 
     if request.method == 'POST':
 
-        item_ids = request.POST.getlist('items[]')
+        errors = []
 
-        total_dispatched = Decimal('0')
-        total_received = Decimal('0')
+        # Store old received quantities first.
+        old_received = {}
 
-        for item_id in item_ids:
+        for item in items:
 
-            item = DispatchItem.objects.get(id=item_id)
+            old_received[item.id] = (
+                item.received_qty or Decimal('0')
+            )
 
-            received_qty = Decimal(request.POST.get(f'received_{item_id}', 0) or 0)
-            damaged_qty = Decimal(request.POST.get(f'damaged_{item_id}', 0) or 0)
-            returned_qty = Decimal(request.POST.get(f'returned_{item_id}', 0) or 0)
+        # -----------------------------------
+        # Validate everything FIRST
+        # -----------------------------------
 
-            total_entered = received_qty + damaged_qty + returned_qty
+        new_values = {}
 
-            if total_entered > item.dispatched_qty:
-                return render(request, 'dealer_portal/dispatch_approval.html', {
-                    'dispatch': dispatch,
-                    'error': f'Total quantity for {item.product.name} exceeds dispatched qty'
-                })
+        for item in items:
 
-            # update item
-            item.received_qty = received_qty
-            item.damaged_qty = damaged_qty
-            item.returned_qty = returned_qty
-            item.save()
+            received_qty = Decimal(
+                request.POST.get(
+                    f'received_{item.id}',
+                    '0'
+                ) or '0'
+            )
 
-            total_dispatched += item.dispatched_qty
-            total_received += received_qty
+            damaged_qty = Decimal(
+                request.POST.get(
+                    f'damaged_{item.id}',
+                    '0'
+                ) or '0'
+            )
 
-            # ================================
-            # ✅ SAFE STOCK UPDATE (FIX HERE)
-            # ================================
-            if received_qty > 0:
+            returned_qty = Decimal(
+                request.POST.get(
+                    f'returned_{item.id}',
+                    '0'
+                ) or '0'
+            )
 
-                stock, created = DealerStock.objects.get_or_create(
-                    dealer=dispatch.dealer,
-                    product=item.product,
-                    defaults={'quantity': Decimal('0')}
+            if (
+                received_qty < 0
+                or damaged_qty < 0
+                or returned_qty < 0
+            ):
+
+                errors.append(
+                    f'{item.product.name}: '
+                    'quantities cannot be negative.'
                 )
 
-                stock.quantity = (stock.quantity or Decimal('0')) + received_qty
-                stock.save()
+                continue
 
-        # dispatch status
-        if total_received == total_dispatched:
-            dispatch.status = 'APPROVED'
-        else:
-            dispatch.status = 'PARTIAL'
+            total = (
+                received_qty
+                + damaged_qty
+                + returned_qty
+            )
 
-        dispatch.save()
+            if total != item.dispatched_qty:
 
-        return redirect('dealer_dispatch_list')
+                errors.append(
+                    f'{item.product.name}: '
+                    f'Dispatched {item.dispatched_qty}, '
+                    f'but Received + Damaged + Returned = '
+                    f'{total}.'
+                )
 
-    return render(request, 'dealer_portal/dispatch_approval.html', {
-        'dispatch': dispatch
-    })
+                continue
+
+            new_values[item.id] = {
+                'received': received_qty,
+                'damaged': damaged_qty,
+                'returned': returned_qty,
+            }
+
+        # Don't modify database if anything is invalid.
+        if errors:
+
+            return render(
+                request,
+                'dealer_portal/dispatch_approval.html',
+                {
+                    'dispatch': dispatch,
+                    'items': items,
+                    'errors': errors,
+                    'edit_mode': True,
+                }
+            )
+
+        # -----------------------------------
+        # Update stock + dispatch items
+        # -----------------------------------
+
+        for item in items:
+
+            values = new_values[item.id]
+
+            new_received = values['received']
+
+            old_qty = old_received[item.id]
+
+            # Difference in received stock
+            stock_difference = (
+                new_received - old_qty
+            )
+
+            if stock_difference != 0:
+
+                stock, created = DealerStock.objects.get_or_create(
+                    dealer=dealer,
+                    product=item.product,
+                    defaults={
+                        'quantity': Decimal('0')
+                    }
+                )
+
+                current_stock = (
+                    stock.quantity
+                    or Decimal('0')
+                )
+
+                new_stock = (
+                    current_stock
+                    + stock_difference
+                )
+
+                # Never allow negative stock
+                if new_stock < 0:
+
+                    errors.append(
+                        f'{item.product.name}: '
+                        'stock cannot become negative.'
+                    )
+
+                    continue
+
+                stock.quantity = new_stock
+                stock.save(
+                    update_fields=['quantity']
+                )
+
+            # Update dispatch item
+            item.received_qty = values['received']
+            item.damaged_qty = values['damaged']
+            item.returned_qty = values['returned']
+
+            item.save(
+                update_fields=[
+                    'received_qty',
+                    'damaged_qty',
+                    'returned_qty'
+                ]
+            )
+
+        if errors:
+
+            return render(
+                request,
+                'dealer_portal/dispatch_approval.html',
+                {
+                    'dispatch': dispatch,
+                    'items': items,
+                    'errors': errors,
+                    'edit_mode': True,
+                }
+            )
+
+        return redirect(
+            'dealer_dispatch_list'
+        )
+
+    return render(
+        request,
+        'dealer_portal/dispatch_approval.html',
+        {
+            'dispatch': dispatch,
+            'items': items,
+            'edit_mode': True,
+        }
+    )
 
 @login_required
 def dealer_dispatch_list(request):

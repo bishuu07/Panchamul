@@ -4,16 +4,24 @@
 
 <div class="card-box">
 
-    <h3>Dispatches</h3>
 
-    <table class="table table-bordered">
+<div class="d-flex justify-content-between align-items-center mb-3">
 
-        <thead>
+    <h3 class="mb-0">Dispatches</h3>
+
+</div>
+
+<div class="table-responsive">
+
+    <table class="table table-bordered table-hover align-middle">
+
+        <thead class="table-light">
 
             <tr>
                 <th>Dispatch No</th>
                 <th>Date</th>
                 <th>Status</th>
+                <th>Total Amount</th>
                 <th>Action</th>
             </tr>
 
@@ -26,31 +34,72 @@
             <tr>
 
                 <td>
-                    {{ dispatch.dispatch_no }}
+                    <strong>{{ dispatch.dispatch_no }}</strong>
                 </td>
 
                 <td>
-                    {{ dispatch.dispatch_date }}
-                </td>
-
-                <td>
-                    {{ dispatch.status }}
+                    {{ dispatch.dispatch_date|date:"Y-m-d" }}
                 </td>
 
                 <td>
 
                     {% if dispatch.status == 'PENDING' %}
 
-                    <a
-                        href="{% url 'dealer_dispatch_approval' dispatch.id %}"
-                        class="btn btn-success btn-sm"
-                    >
-                        Approve
-                    </a>
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+
+                    {% elif dispatch.status == 'APPROVED' %}
+
+                        <span class="badge bg-success">
+                            Approved
+                        </span>
+
+                    {% elif dispatch.status == 'PARTIAL' %}
+
+                        <span class="badge bg-info text-dark">
+                            Partially Received
+                        </span>
 
                     {% else %}
 
-                    Approved
+                        <span class="badge bg-secondary">
+                            {{ dispatch.status }}
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    Rs. {{ dispatch.total_amount|default:0 }}
+                </td>
+
+                <td>
+
+                    {% if dispatch.status == 'PENDING' %}
+
+                        <a
+                            href="{% url 'dealer_dispatch_approval' dispatch.id %}"
+                            class="btn btn-success btn-sm"
+                        >
+                            Approve / Receive
+                        </a>
+
+                    {% elif dispatch.status == 'APPROVED' or dispatch.status == 'PARTIAL' %}
+
+                        <a
+                            href="{% url 'dealer_dispatch_edit' dispatch.id %}"
+                            class="btn btn-primary btn-sm"
+                        >
+                            Edit
+                        </a>
+
+                    {% else %}
+
+                        <span class="text-muted">
+                            No Action
+                        </span>
 
                     {% endif %}
 
@@ -62,8 +111,10 @@
 
             <tr>
 
-                <td colspan="4">
+                <td colspan="5" class="text-center text-muted">
+
                     No dispatches found.
+
                 </td>
 
             </tr>
@@ -73,6 +124,9 @@
         </tbody>
 
     </table>
+
+</div>
+
 
 </div>
 

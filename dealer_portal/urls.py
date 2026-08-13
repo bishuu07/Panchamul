@@ -37,6 +37,12 @@ path(
     dealer_dispatch_approve,
     name='dealer_dispatch_approval'
 ),
+
+path(
+    'dispatch/edit/<int:pk>/',
+    dealer_dispatch_edit,
+    name='dealer_dispatch_edit'
+),
     path(
     'dispatches/',
     dealer_dispatch_list,
