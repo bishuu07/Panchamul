@@ -85,16 +85,26 @@ class DealerSaleItem(models.Model):
         decimal_places=2
     )
 
+    # FREE quantity given to customer
+    bonus_quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
     rate = models.DecimalField(
         max_digits=12,
         decimal_places=2
     )
 
+    # Only normal quantity is charged
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2
     )
 
+    def __str__(self):
+        return self.product.name
 
 class DealerCustomerPayment(models.Model):
 
@@ -125,7 +135,7 @@ class DealerCustomerLedger(models.Model):
     )
 
     entry_type = models.CharField(
-        max_length=20
+        max_length=30
     )
 
     debit = models.DecimalField(
@@ -140,12 +150,27 @@ class DealerCustomerLedger(models.Model):
         default=0
     )
 
+    bonus_quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        default=0
+    )
+
     balance = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0
     )
 
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"{self.customer.name} - "
+            f"{self.entry_type}"
+        )
 
 class DealerSalesReturn(models.Model):
 
@@ -360,6 +385,12 @@ class VehicleTripItem(models.Model):
         default=0
     )
 
+    bonus_qty = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
     return_qty = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -390,6 +421,9 @@ class VehicleTripItem(models.Model):
         default=0
     )
 
+    def __str__(self):
+        return self.product.name
+
 
 
 class VehicleDispatchSale(models.Model):
@@ -400,14 +434,28 @@ class VehicleDispatchSale(models.Model):
         related_name="sales"
     )
 
+    customer = models.ForeignKey(
+        DealerCustomer,
+        on_delete=models.CASCADE,
+        related_name="vehicle_sales"
+    )
+
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE
     )
 
+    # Charged quantity
     quantity = models.DecimalField(
         max_digits=12,
         decimal_places=2
+    )
+
+    # Free quantity
+    bonus_quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
     )
 
     rate = models.DecimalField(
@@ -415,6 +463,8 @@ class VehicleDispatchSale(models.Model):
         decimal_places=2
     )
 
+    # quantity * rate
+    # bonus is NOT included
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2
@@ -425,7 +475,11 @@ class VehicleDispatchSale(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product.name} ({self.quantity})"
+        return (
+            f"{self.product.name} - "
+            f"{self.customer.name} "
+            f"({self.quantity})"
+        )
 
 
 

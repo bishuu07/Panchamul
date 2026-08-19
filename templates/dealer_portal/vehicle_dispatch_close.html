@@ -4,245 +4,339 @@
 
 <div class="card-box">
 
-    <h3>Close Vehicle Dispatch</h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <hr>
+        <div>
 
-    <p>
-        <strong>Dispatch No :</strong>
-        {{ dispatch.dispatch_no }}
-    </p>
+            <h3 class="mb-1">
+                Close Vehicle Dispatch
+            </h3>
 
-    <p>
-        <strong>Vehicle :</strong>
-        {{ dispatch.vehicle.vehicle_no }}
-    </p>
+            <div class="text-muted">
 
-    <p>
-        <strong>Date :</strong>
-        {{ dispatch.dispatch_date }}
-    </p>
-
-    {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
-    </div>
-    {% endif %}
-
-    <form method="POST">
-
-        {% csrf_token %}
-
-        <table class="table table-bordered table-striped">
-
-            <thead class="table-dark">
-
-                <tr>
-
-                    <th>Product</th>
-
-                    <th>Total Loaded</th>
-
-                    <th>Sold</th>
-
-                    <th>Returned</th>
-
-                    <th>Breakage</th>
-
-                    <th>Leakage</th>
-
-                    <th>Sponsor</th>
-
-                </tr>
-
-            </thead>
-
-           <tbody>
-
-{% for item in summary %}
-
-<tr>
-
-    <td>
-        <b>{{ item.product.name }}</b>
-    </td>
-
-    <td>
-        <strong>{{ item.loaded }}</strong>
-    </td>
-
-    <td>
-
-        <div id="sales_{{ item.product.id }}">
-
-            <div class="row mb-2">
-
-                <div class="col-md-5">
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        class="form-control"
-                        name="sale_qty_{{ item.product.id }}[]"
-                        placeholder="Qty">
-
-                </div>
-
-                <div class="col-md-5">
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        class="form-control"
-                        name="sale_rate_{{ item.product.id }}[]"
-                        placeholder="Rate">
-
-                </div>
+                Dispatch:
+                <strong>
+                    {{ dispatch.dispatch_no }}
+                </strong>
 
             </div>
 
         </div>
 
-        <button
-            type="button"
-            class="btn btn-sm btn-primary"
-            onclick="addSaleRow({{ item.product.id }})">
+        <div>
 
-            + Add Sale
+            {% if dispatch.status == "OPEN" %}
 
-        </button>
+                <span class="badge bg-success">
+                    OPEN
+                </span>
 
-    </td>
+            {% else %}
 
-    <td>
+                <span class="badge bg-danger">
+                    CLOSED
+                </span>
 
-        <input
-            type="number"
-            step="0.01"
-            value="0"
-            class="form-control"
-            name="return_{{ item.product.id }}">
-
-    </td>
-
-    <td>
-
-        <input
-            type="number"
-            step="0.01"
-            value="0"
-            class="form-control"
-            name="breakage_{{ item.product.id }}">
-
-    </td>
-
-    <td>
-
-        <input
-            type="number"
-            step="0.01"
-            value="0"
-            class="form-control"
-            name="leakage_{{ item.product.id }}">
-
-    </td>
-
-    <td>
-
-        <input
-            type="number"
-            step="0.01"
-            value="0"
-            class="form-control"
-            name="sponsor_{{ item.product.id }}">
-
-    </td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-    <td colspan="7" class="text-center text-danger">
-
-        No trip data found.
-
-    </td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-        </table>
-
-        <div class="text-end">
-
-            <button
-                type="submit"
-                class="btn btn-success">
-
-                Close Dispatch
-
-            </button>
+            {% endif %}
 
         </div>
 
-    </form>
+    </div>
+
+
+    {% if error %}
+
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================= -->
+    <!-- DISPATCH INFORMATION -->
+    <!-- ================================= -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <strong>Vehicle</strong>
+
+            <br>
+
+            {{ dispatch.vehicle.vehicle_no }}
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <strong>Date</strong>
+
+            <br>
+
+            {{ dispatch.dispatch_date }}
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <strong>Total Trips</strong>
+
+            <br>
+
+            {{ trips|length }}
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- OPEN TRIP WARNING -->
+    <!-- ================================= -->
+
+    {% if open_trips %}
+
+        <div class="alert alert-warning">
+
+            <strong>
+                Dispatch cannot be closed yet.
+            </strong>
+
+            <br>
+
+            The following trips are still open:
+
+            <ul class="mb-0 mt-2">
+
+                {% for trip in open_trips %}
+
+                    <li>
+
+                        Trip {{ trip.trip_no }}
+
+                        <a
+                            href="{% url 'vehicle_trip_detail' trip.id %}"
+                            class="btn btn-sm btn-primary ms-2"
+                        >
+                            View Trip
+                        </a>
+
+                    </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================= -->
+    <!-- DISPATCH SUMMARY -->
+    <!-- ================================= -->
+
+    {% if summary %}
+
+        <h5 class="mb-3">
+            Dispatch Reconciliation
+        </h5>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>
+                            Product
+                        </th>
+
+                        <th>
+                            Loaded
+                        </th>
+
+                        <th>
+                            Sold
+                        </th>
+
+                        <th>
+                            Bonus
+                        </th>
+
+                        <th>
+                            Returned
+                        </th>
+
+                        <th>
+                            Breakage
+                        </th>
+
+                        <th>
+                            Leakage
+                        </th>
+
+                        <th>
+                            Sponsor
+                        </th>
+
+                        <th>
+                            Accounted
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for row in summary %}
+
+                        <tr>
+
+                            <td>
+
+                                <strong>
+                                    {{ row.product.name }}
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+                                {{ row.loaded }}
+                            </td>
+
+
+                            <td>
+                                {{ row.sold }}
+                            </td>
+
+
+                            <td>
+
+                                <span class="text-primary">
+                                    {{ row.bonus }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+                                {{ row.returned }}
+                            </td>
+
+
+                            <td>
+                                {{ row.breakage }}
+                            </td>
+
+
+                            <td>
+                                {{ row.leakage }}
+                            </td>
+
+
+                            <td>
+                                {{ row.sponsor }}
+                            </td>
+
+
+                            <td>
+
+                                <strong>
+                                    {{ row.accounted }}
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+
+                                {% if row.matched %}
+
+                                    <span class="badge bg-success">
+                                        MATCHED
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-danger">
+                                        MISMATCH
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================= -->
+    <!-- BUTTONS -->
+    <!-- ================================= -->
+
+    <div class="text-end mt-4">
+
+        <a
+            href="{% url 'vehicle_dispatch_detail' dispatch.id %}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+
+        {% if not open_trips and dispatch.status == "OPEN" %}
+
+            <form
+                method="POST"
+                style="display:inline;"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                    onclick="
+                        return confirm(
+                            'Are you sure you want to close this dispatch?'
+                        );
+                    "
+                >
+
+                    Close Dispatch
+
+                </button>
+
+            </form>
+
+        {% endif %}
+
+    </div>
 
 </div>
 
-
-<script>
-
-function addSaleRow(productId){
-
-    let div = document.getElementById(
-        "sales_" + productId
-    );
-
-    div.insertAdjacentHTML(
-
-        "beforeend",
-
-        `
-        <div class="row mb-2">
-
-            <div class="col-md-5">
-
-                <input
-                    type="number"
-                    step="0.01"
-                    class="form-control"
-                    name="sale_qty_${productId}[]"
-                    placeholder="Qty">
-
-            </div>
-
-            <div class="col-md-5">
-
-                <input
-                    type="number"
-                    step="0.01"
-                    class="form-control"
-                    name="sale_rate_${productId}[]"
-                    placeholder="Rate">
-
-            </div>
-
-        </div>
-        `
-
-    );
-
-}
-
-</script>
-
 {% endblock %}
-
-
-
-
-

@@ -1,0 +1,374 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="mb-1">
+                Close Vehicle Trip
+            </h3>
+
+            <div class="text-muted">
+                Dispatch:
+                <strong>{{ trip.dispatch.dispatch_no }}</strong>
+                |
+                Trip:
+                <strong>{{ trip.trip_no }}</strong>
+            </div>
+        </div>
+
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {% for item in trip.items.all %}
+
+        <div class="card mb-4">
+
+            <div class="card-header bg-light">
+
+                <div class="d-flex justify-content-between">
+
+                    <strong>
+                        {{ item.product.name }}
+                    </strong>
+
+                    <span>
+                        Loaded:
+                        <strong>{{ item.dispatch_qty }}</strong>
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                <h6 class="mb-3">
+                    Sales
+                </h6>
+
+                <div
+                    id="sales_{{ item.id }}"
+                    class="sales-container"
+                >
+
+                    <div class="row mb-2 sale-row">
+
+                        <div class="col-md-3">
+
+                            <select
+                                name="sale_customer_{{ item.id }}[]"
+                                class="form-control"
+                            >
+
+                                <option value="">
+                                    Select Customer
+                                </option>
+
+                                {% for customer in customers %}
+
+                                    <option value="{{ customer.id }}">
+                                        {{ customer.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="sale_qty_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Sale Qty"
+                            >
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value="0"
+                                name="sale_bonus_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Bonus"
+                            >
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="sale_rate_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Rate"
+                            >
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="removeSaleRow(this)"
+                            >
+                                Remove
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-primary mb-4"
+                    onclick="addSaleRow({{ item.id }})"
+                >
+                    + Add Customer Sale
+                </button>
+
+                <hr>
+
+                <h6 class="mb-3">
+                    Stock Reconciliation
+                </h6>
+
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Returned
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="return_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Breakage
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="breakage_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Leakage
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="leakage_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Sponsor
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="sponsor_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+            <div class="alert alert-warning">
+                No trip items found.
+            </div>
+
+        {% endfor %}
+
+        <div class="text-end">
+
+            <a
+                href="{% url 'vehicle_dispatch_detail' trip.dispatch.id %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-success"
+            >
+                Close Trip
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+function addSaleRow(itemId) {
+
+    const container =
+        document.getElementById(
+            "sales_" + itemId
+        );
+
+    const row = document.createElement("div");
+
+    row.className = "row mb-2 sale-row";
+
+    row.innerHTML = `
+
+        <div class="col-md-3">
+
+            <select
+                name="sale_customer_${itemId}[]"
+                class="form-control"
+            >
+
+                <option value="">
+                    Select Customer
+                </option>
+
+                {% for customer in customers %}
+
+                    <option value="{{ customer.id }}">
+                        {{ customer.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="sale_qty_${itemId}[]"
+                class="form-control"
+                placeholder="Sale Qty"
+            >
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                value="0"
+                name="sale_bonus_${itemId}[]"
+                class="form-control"
+                placeholder="Bonus"
+            >
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="sale_rate_${itemId}[]"
+                class="form-control"
+                placeholder="Rate"
+            >
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                onclick="removeSaleRow(this)"
+            >
+                Remove
+            </button>
+
+        </div>
+    `;
+
+    container.appendChild(row);
+}
+
+
+function removeSaleRow(button) {
+
+    const row =
+        button.closest(".sale-row");
+
+    row.remove();
+
+}
+
+</script>
+
+{% endblock %}

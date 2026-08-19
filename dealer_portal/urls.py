@@ -192,5 +192,10 @@ path(
     views.vehicle_trip_detail,
     name="vehicle_trip_detail",
 ),
+path(
+    "vehicle-trip/<int:trip_id>/close/",
+    views.vehicle_trip_close,
+    name="vehicle_trip_close"
+),
 
 ]

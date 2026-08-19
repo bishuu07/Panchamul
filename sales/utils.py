@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from .models import DealerCustomerLedger
+from .models import CustomerLedger
 
 
 def add_customer_ledger(
@@ -9,10 +9,15 @@ def add_customer_ledger(
     debit=Decimal("0"),
     credit=Decimal("0"),
     bonus_quantity=Decimal("0"),
+    reference=None,
+    remarks=None
 ):
+
     last_entry = (
-        DealerCustomerLedger.objects
-        .filter(customer=customer)
+        CustomerLedger.objects
+        .filter(
+            customer=customer
+        )
         .order_by("-id")
         .first()
     )
@@ -29,13 +34,15 @@ def add_customer_ledger(
         - credit
     )
 
-    entry = DealerCustomerLedger.objects.create(
+    entry = CustomerLedger.objects.create(
         customer=customer,
         entry_type=entry_type,
         debit=debit,
         credit=credit,
         bonus_quantity=bonus_quantity,
         balance=balance,
+        reference=reference,
+        remarks=remarks
     )
 
     return entry.balance

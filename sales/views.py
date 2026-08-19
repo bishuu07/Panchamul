@@ -13,6 +13,7 @@ from django.db.models import Sum
 from django.http import JsonResponse
 
 from inventory.models import Product
+from sales.utils import add_customer_ledger
 
 from django.contrib.auth.decorators import login_required
 from .models import (
@@ -110,76 +111,90 @@ def sale_list(request):
             'sales': sales
         }
     )
+from django.db import transaction
+@login_required
+@transaction.atomic
+
+
+
+
+
+
 
 @login_required
+@transaction.atomic
+@login_required
+@transaction.atomic
 def sale_create(request):
 
     form = SaleForm(
         request.POST or None
     )
 
-    products = Product.objects.filter(
-        is_active=True
-    ).order_by(
-        'name'
+    products = (
+        Product.objects
+        .filter(is_active=True)
+        .order_by("name")
     )
 
-    if request.method == 'POST':
+    if request.method == "POST":
 
         if form.is_valid():
 
             items_json = request.POST.get(
-                'items_json',
-                ''
+                "items_json",
+                ""
             )
 
             if not items_json:
 
                 return render(
                     request,
-                    'sales/sale_create.html',
+                    "sales/sale_create.html",
                     {
-                        'form': form,
-                        'products': products,
-                        'error': 'Add at least one product.'
+                        "form": form,
+                        "products": products,
+                        "error":
+                            "Add at least one product."
                     }
                 )
 
-            items = json.loads(
-                items_json
-            )
+            try:
 
-            total_amount = Decimal('0')
-
-            # Stock Validation
-
-            for item in items:
-
-                product = Product.objects.get(
-                    id=item['product']
+                items = json.loads(
+                    items_json
                 )
 
-                qty = Decimal(
-                    str(item['quantity'])
+            except json.JSONDecodeError:
+
+                return render(
+                    request,
+                    "sales/sale_create.html",
+                    {
+                        "form": form,
+                        "products": products,
+                        "error":
+                            "Invalid product data."
+                    }
                 )
 
-                if qty > product.current_stock:
+            if not items:
 
-                    return render(
-                        request,
-                        'sales/sale_create.html',
-                        {
-                            'form': form,
-                            'products': products,
-                            'error':
-                            f'Insufficient stock for '
-                            f'{product.name}. '
-                            f'Available stock: '
-                            f'{product.current_stock}'
-                        }
-                    )
+                return render(
+                    request,
+                    "sales/sale_create.html",
+                    {
+                        "form": form,
+                        "products": products,
+                        "error":
+                            "Add at least one product."
+                    }
+                )
 
-            # Create Sale
+
+            # ==========================================
+            # SALE / INVOICE DATA
+            # ==========================================
 
             sale = form.save(
                 commit=False
@@ -187,113 +202,419 @@ def sale_create(request):
 
             sale.created_by = request.user
 
-            sale.save()
 
-            # Create Items
+            # Make sure invoice/reference exists
+
+            invoice_no = (
+                sale.invoice_no
+                or ""
+            ).strip()
+
+
+            if not invoice_no:
+
+                return render(
+                    request,
+                    "sales/sale_create.html",
+                    {
+                        "form": form,
+                        "products": products,
+                        "error":
+                            "Invoice number is required."
+                    }
+                )
+
+
+            # ==========================================
+            # VALIDATE PRODUCTS + STOCK FIRST
+            # ==========================================
+
+            total_amount = Decimal("0")
+
+            total_bonus = Decimal("0")
+
+
+            validated_items = []
+
 
             for item in items:
 
-                product = Product.objects.get(
-                    id=item['product']
+                product_id = item.get(
+                    "product"
                 )
 
                 qty = Decimal(
-                    str(item['quantity'])
+                    str(
+                        item.get(
+                            "quantity",
+                            0
+                        )
+                    )
+                )
+
+                bonus_qty = Decimal(
+                    str(
+                        item.get(
+                            "bonus_quantity",
+                            0
+                        )
+                    )
                 )
 
                 rate = Decimal(
-                    str(item['rate'])
+                    str(
+                        item.get(
+                            "rate",
+                            0
+                        )
+                    )
                 )
 
-                amount = qty * rate
+
+                # --------------------------------------
+                # Validate quantities
+                # --------------------------------------
+
+                if qty < 0:
+
+                    return render(
+                        request,
+                        "sales/sale_create.html",
+                        {
+                            "form": form,
+                            "products": products,
+                            "error":
+                                "Sale quantity cannot be negative."
+                        }
+                    )
+
+
+                if bonus_qty < 0:
+
+                    return render(
+                        request,
+                        "sales/sale_create.html",
+                        {
+                            "form": form,
+                            "products": products,
+                            "error":
+                                "Bonus quantity cannot be negative."
+                        }
+                    )
+
+
+                if rate < 0:
+
+                    return render(
+                        request,
+                        "sales/sale_create.html",
+                        {
+                            "form": form,
+                            "products": products,
+                            "error":
+                                "Rate cannot be negative."
+                        }
+                    )
+
+
+                if qty <= 0 and bonus_qty <= 0:
+
+                    continue
+
+
+                product = get_object_or_404(
+                    Product,
+                    id=product_id,
+                    is_active=True
+                )
+
+
+                # ======================================
+                # IMPORTANT:
+                # SALE + BONUS BOTH CONSUME STOCK
+                # ======================================
+
+                total_required = (
+                    qty +
+                    bonus_qty
+                )
+
+
+                if product.current_stock < total_required:
+
+                    return render(
+                        request,
+                        "sales/sale_create.html",
+                        {
+                            "form": form,
+                            "products": products,
+                            "error": (
+                                f"Insufficient stock "
+                                f"for {product.name}. "
+                                f"Available: "
+                                f"{product.current_stock}, "
+                                f"Required: "
+                                f"{total_required}"
+                            )
+                        }
+                    )
+
+
+                # ======================================
+                # MONEY:
+                # BONUS IS FREE
+                # ======================================
+
+                amount = (
+                    qty *
+                    rate
+                )
+
 
                 total_amount += amount
 
-                SaleItem.objects.create(
-                    sale=sale,
-                    product=product,
-                    quantity=qty,
-                    rate=rate,
-                    amount=amount
+                total_bonus += bonus_qty
+
+
+                validated_items.append(
+                    {
+                        "product": product,
+                        "quantity": qty,
+                        "bonus_quantity": bonus_qty,
+                        "rate": rate,
+                        "amount": amount,
+                        "total_required": total_required
+                    }
                 )
 
-                # Deduct Stock
 
-                product.current_stock -= qty
+            if not validated_items:
 
-                product.save()
+                return render(
+                    request,
+                    "sales/sale_create.html",
+                    {
+                        "form": form,
+                        "products": products,
+                        "error":
+                            "Add at least one valid product."
+                    }
+                )
 
-            sale.total_amount = total_amount
+
+            # ==========================================
+            # SAVE SALE
+            # ==========================================
+
+            sale.save()
+
+
+            # ==========================================
+            # CREATE SALE ITEMS
+            # ==========================================
+
+            for item in validated_items:
+
+                product = item["product"]
+
+                qty = item["quantity"]
+
+                bonus_qty = item["bonus_quantity"]
+
+                rate = item["rate"]
+
+                amount = item["amount"]
+
+                total_required = item["total_required"]
+
+
+                SaleItem.objects.create(
+
+                    sale=sale,
+
+                    product=product,
+
+                    quantity=qty,
+
+                    bonus_quantity=bonus_qty,
+
+                    rate=rate,
+
+                    amount=amount
+
+                )
+
+
+                # ======================================
+                # DEDUCT SALE + BONUS
+                # ======================================
+
+                product.current_stock -= (
+                    total_required
+                )
+
+                product.save(
+                    update_fields=[
+                        "current_stock"
+                    ]
+                )
+
+
+            # ==========================================
+            # SALE TOTALS
+            # ==========================================
+
+            sale.total_amount = (
+                total_amount
+            )
 
             sale.due_amount = (
                 total_amount -
                 sale.paid_amount
             )
 
+
             if sale.due_amount <= 0:
 
-                sale.status = 'PAID'
+                sale.status = "PAID"
 
             elif sale.paid_amount > 0:
 
-                sale.status = 'PARTIAL'
+                sale.status = "PARTIAL"
 
             else:
 
-                sale.status = 'UNPAID'
+                sale.status = "UNPAID"
+
 
             sale.save()
 
-            # Customer Ledger
 
-            last_balance = CustomerLedger.objects.filter(
-                customer=sale.customer
-            ).order_by(
-                '-id'
-            ).first()
+            # ==========================================
+            # CUSTOMER LEDGER - SALE
+            # ==========================================
 
-            balance = (
-                last_balance.balance
-                if last_balance
-                else Decimal('0')
+            last_entry = (
+                CustomerLedger.objects
+                .filter(
+                    customer=sale.customer
+                )
+                .order_by("-id")
+                .first()
             )
 
-            balance += total_amount
+
+            previous_balance = (
+
+                last_entry.balance
+
+                if last_entry
+
+                else Decimal("0")
+
+            )
+
+
+            sale_balance = (
+                previous_balance +
+                total_amount
+            )
+
 
             CustomerLedger.objects.create(
+
                 customer=sale.customer,
-                entry_type='SALE',
+
+                entry_type="SALE",
+
                 debit=total_amount,
-                credit=Decimal('0'),
-                balance=balance,
-                reference=sale.invoice_no
+
+                credit=Decimal("0"),
+
+                bonus_quantity=total_bonus,
+
+                balance=sale_balance,
+
+                # IMPORTANT
+                reference=invoice_no,
+
+                remarks="Company Sale"
+
             )
+
+
+            # ==========================================
+            # CUSTOMER LEDGER - PAYMENT
+            # ==========================================
 
             if sale.paid_amount > 0:
 
-                balance -= sale.paid_amount
-
-                CustomerLedger.objects.create(
-                    customer=sale.customer,
-                    entry_type='PAYMENT',
-                    debit=Decimal('0'),
-                    credit=sale.paid_amount,
-                    balance=balance,
-                    reference=sale.invoice_no
+                payment_balance = (
+                    sale_balance -
+                    sale.paid_amount
                 )
 
+
+                CustomerLedger.objects.create(
+
+                    customer=sale.customer,
+
+                    entry_type="PAYMENT",
+
+                    debit=Decimal("0"),
+
+                    credit=sale.paid_amount,
+
+                    bonus_quantity=Decimal("0"),
+
+                    balance=payment_balance,
+
+                    # IMPORTANT
+                    reference=invoice_no,
+
+                    remarks="Company Sale Payment"
+
+                )
+
+
+                sale.due_amount = (
+                    payment_balance
+                )
+
+                sale.save(
+                    update_fields=[
+                        "due_amount"
+                    ]
+                )
+
+
+            else:
+
+                sale.due_amount = (
+                    sale_balance
+                )
+
+                sale.save(
+                    update_fields=[
+                        "due_amount"
+                    ]
+                )
+
+
             return redirect(
-                'sale_list'
+                "sale_list"
             )
+
 
     return render(
         request,
-        'sales/sale_create.html',
+        "sales/sale_create.html",
         {
-            'form': form,
-            'products': products
+            "form": form,
+            "products": products
         }
     )
+
 
 
 @login_required
@@ -410,22 +731,59 @@ def customer_ledger_list(request):
 @login_required
 def customer_ledger_detail(request, customer_id):
 
-    customer = Customer.objects.get(
+    customer = get_object_or_404(
+        Customer,
         id=customer_id
     )
 
-    ledgers = CustomerLedger.objects.filter(
-        customer=customer
-    ).order_by(
-        'id'
+    ledgers = (
+        CustomerLedger.objects
+        .filter(customer=customer)
+        .order_by("id")
+    )
+
+    total_debit = sum(
+        (
+            row.debit
+            for row in ledgers
+        ),
+        Decimal("0")
+    )
+
+    total_credit = sum(
+        (
+            row.credit
+            for row in ledgers
+        ),
+        Decimal("0")
+    )
+
+    total_bonus = sum(
+        (
+            row.bonus_quantity
+            for row in ledgers
+        ),
+        Decimal("0")
+    )
+
+    last_entry = ledgers.last()
+
+    balance = (
+        last_entry.balance
+        if last_entry
+        else Decimal("0")
     )
 
     return render(
         request,
-        'sales/customer_ledger_detail.html',
+        "sales/customer_ledger_detail.html",
         {
-            'customer': customer,
-            'ledgers': ledgers
+            "customer": customer,
+            "ledgers": ledgers,
+            "total_debit": total_debit,
+            "total_credit": total_credit,
+            "total_bonus": total_bonus,
+            "balance": balance,
         }
     )
 

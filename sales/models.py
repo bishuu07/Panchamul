@@ -111,9 +111,17 @@ class SaleItem(models.Model):
         on_delete=models.CASCADE
     )
 
+    # Charged quantity
     quantity = models.DecimalField(
         max_digits=12,
         decimal_places=2
+    )
+
+    # Free quantity
+    bonus_quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
     )
 
     rate = models.DecimalField(
@@ -125,10 +133,11 @@ class SaleItem(models.Model):
         max_digits=12,
         decimal_places=2
     )
+
     returned_qty = models.DecimalField(
-    max_digits=12,
-    decimal_places=2,
-    default=0
+        max_digits=12,
+        decimal_places=2,
+        default=0
     )
 
     def __str__(self):
@@ -164,6 +173,12 @@ class CustomerLedger(models.Model):
         default=0
     )
 
+    bonus_quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        default=0
+    )
+
     balance = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -185,51 +200,57 @@ class CustomerLedger(models.Model):
         auto_now_add=True
     )
 
-class CustomerLedger(models.Model):
+    def __str__(self):
+        return (
+            f"{self.customer.name} - "
+            f"{self.entry_type}"
+        )
 
-    ENTRY_TYPES = (
-        ('SALE', 'Sale'),
-        ('PAYMENT', 'Payment'),
-        ('SALES_RETURN', 'Sales Return'),
-    )
+# class CustomerLedger(models.Model):
 
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE
-    )
+#     ENTRY_TYPES = (
+#         ('SALE', 'Sale'),
+#         ('PAYMENT', 'Payment'),
+#         ('SALES_RETURN', 'Sales Return'),
+#     )
 
-    entry_type = models.CharField(
-        max_length=20,
-        choices=ENTRY_TYPES
-    )
+#     customer = models.ForeignKey(
+#         Customer,
+#         on_delete=models.CASCADE
+#     )
 
-    debit = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
+#     entry_type = models.CharField(
+#         max_length=20,
+#         choices=ENTRY_TYPES
+#     )
 
-    credit = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
+#     debit = models.DecimalField(
+#         max_digits=12,
+#         decimal_places=2,
+#         default=0
+#     )
 
-    balance = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
+#     credit = models.DecimalField(
+#         max_digits=12,
+#         decimal_places=2,
+#         default=0
+#     )
 
-    reference = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
+#     balance = models.DecimalField(
+#         max_digits=12,
+#         decimal_places=2,
+#         default=0
+#     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
+#     reference = models.CharField(
+#         max_length=100,
+#         blank=True,
+#         null=True
+#     )
+
+#     created_at = models.DateTimeField(
+#         auto_now_add=True
+#     )
 
 
 class CustomerPayment(models.Model):
