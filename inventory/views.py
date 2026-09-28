@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import RawMaterial,Supplier
 from .forms import MaterialIssueForm, RawMaterialForm,SupplierForm, ProductForm,ProductionForm
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from .models import (
     RawMaterial,
     RawMaterialPurchase,
@@ -267,6 +268,7 @@ def purchase_list(request):
         }
     )
 
+@login_required
 def issue_create(request):
 
     form = MaterialIssueForm(
@@ -277,82 +279,198 @@ def issue_create(request):
         is_active=True
     )
 
-    if request.method == 'POST':
+    if request.method == "POST":
 
         if form.is_valid():
 
             items_json = request.POST.get(
-                'items_json',
-                '[]'
+                "items_json",
+                "[]"
             )
 
             if not items_json:
 
                 return render(
                     request,
-                    'inventory/issue_create.html',
+                    "inventory/issue_create.html",
                     {
-                        'form': form,
-                        'materials': materials,
-                        'error':
-                            'Please add at least one material.'
+                        "form": form,
+                        "materials": materials,
+                        "error":
+                            "Please add at least one material."
                     }
                 )
 
-            items = json.loads(
-                items_json
-            )
+            try:
 
-            issue = form.save(
-                commit=False
-            )
-
-            issue.created_by = request.user
-
-            issue.save()
-
-            for item in items:
-
-                material = RawMaterial.objects.get(
-                    id=item['material']
+                items = json.loads(
+                    items_json
                 )
 
-                qty = Decimal(
-                item['quantity']
+            except json.JSONDecodeError:
+
+                return render(
+                    request,
+                    "inventory/issue_create.html",
+                    {
+                        "form": form,
+                        "materials": materials,
+                        "error":
+                            "Invalid material data."
+                    }
                 )
 
-                if material.current_stock < qty:
+            if not items:
 
-                    return render(
-                        request,
-                        'inventory/issue_create.html',
-                        {
-                            'form': form,
-                            'materials': materials,
-                            'error':
-                                f'Not enough stock for {material.name}'
-                        }
+                return render(
+                    request,
+                    "inventory/issue_create.html",
+                    {
+                        "form": form,
+                        "materials": materials,
+                        "error":
+                            "Please add at least one material."
+                    }
+                )
+
+            # ==================================================
+            # SAVE EVERYTHING AS ONE TRANSACTION
+            # ==================================================
+
+            try:
+
+                with transaction.atomic():
+
+                    # ------------------------------------------
+                    # CREATE ISSUE
+                    # ------------------------------------------
+
+                    issue = form.save(
+                        commit=False
                     )
 
-                MaterialIssueItem.objects.create(
-                    issue=issue,
-                    raw_material=material,
-                    quantity=qty
+                    issue.created_by = request.user
+
+                    issue.save()
+
+                    # ------------------------------------------
+                    # PROCESS MATERIALS
+                    # ------------------------------------------
+
+                    for item in items:
+
+                        material_id = item.get(
+                            "material"
+                        )
+
+                        quantity_text = item.get(
+                            "quantity"
+                        )
+
+                        if not material_id:
+
+                            raise ValueError(
+                                "Invalid material selected."
+                            )
+
+                        try:
+
+                            qty = Decimal(
+                                quantity_text
+                            )
+
+                        except (
+                            InvalidOperation,
+                            TypeError
+                        ):
+
+                            raise ValueError(
+                                "Invalid quantity."
+                            )
+
+                        if qty <= 0:
+
+                            raise ValueError(
+                                "Quantity must be greater than zero."
+                            )
+
+                        # --------------------------------------
+                        # GET MATERIAL
+                        # --------------------------------------
+
+                        material = RawMaterial.objects.get(
+                            id=material_id,
+                            is_active=True
+                        )
+
+                        # --------------------------------------
+                        # STOCK CHECK
+                        # --------------------------------------
+
+                        if material.current_stock < qty:
+
+                            raise ValueError(
+                                f"Not enough stock for "
+                                f"{material.name}. "
+                                f"Available: "
+                                f"{material.current_stock}, "
+                                f"Requested: {qty}"
+                            )
+
+                        # --------------------------------------
+                        # CREATE ISSUE ITEM
+                        #
+                        # IMPORTANT:
+                        # This must NOT deduct stock itself.
+                        # --------------------------------------
+
+                        MaterialIssueItem.objects.create(
+                            issue=issue,
+                            raw_material=material,
+                            quantity=qty
+                        )
+
+                        # --------------------------------------
+                        # DEDUCT STOCK
+                        #
+                        # THIS IS THE ONLY PLACE WHERE
+                        # STOCK IS DEDUCTED.
+                        # --------------------------------------
+
+                        material.current_stock -= qty
+
+                        material.save(
+                            update_fields=[
+                                "current_stock"
+                            ]
+                        )
+
+                # ==============================================
+                # SUCCESS
+                # ==============================================
+
+                return redirect(
+                    "issue_list"
                 )
 
-                material.current_stock -= qty
-                material.save()
+            except ValueError as e:
 
-            return redirect(
-                'issue_list'
-            )
+                return render(
+                    request,
+                    "inventory/issue_create.html",
+                    {
+                        "form": form,
+                        "materials": materials,
+                        "error": str(e)
+                    }
+                )
 
     return render(
         request,
-        'inventory/issue_create.html',
+        "inventory/issue_create.html",
         {
-            'form': form,
-            'materials': materials
+            "form": form,
+            "materials": materials
         }
     )
 

@@ -1,0 +1,128 @@
+{% extends "dashboard/dealer_base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>Dealer Expenses</h2>
+        <p class="text-muted mb-0">
+            Manage your dealer expenses
+        </p>
+    </div>
+
+    <div>
+
+        <a href="{% url 'dealer_expense_report' %}"
+           class="btn btn-secondary">
+            Expense Report
+        </a>
+
+        <a href="{% url 'dealer_expense_create' %}"
+           class="btn btn-primary">
+            + Add Expense
+        </a>
+
+    </div>
+
+</div>
+
+
+<div class="card-box">
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for expense in expenses %}
+
+                <tr>
+
+                    <td>{{ forloop.counter }}</td>
+
+                    <td>
+                        {{ expense.expense_date|date:"Y-m-d" }}
+                    </td>
+
+                    <td>
+                        {{ expense.get_category_display }}
+                    </td>
+
+                    <td>
+                        {% if expense.description %}
+                            {{ expense.description }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <strong>
+                            Rs. {{ expense.amount|floatformat:2 }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {% if expense.created_by %}
+                            {{ expense.created_by.username }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'dealer_expense_edit' expense.id %}"
+                           class="btn btn-sm btn-warning">
+                            Edit
+                        </a>
+
+                        <a href="{% url 'dealer_expense_delete' expense.id %}"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="7"
+                        class="text-center text-muted py-4">
+
+                        No dealer expenses found.
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

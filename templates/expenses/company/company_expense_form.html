@@ -1,0 +1,77 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-7">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                <h4 class="mb-0">
+                    {% if expense %}
+                        Edit Company Expense
+                    {% else %}
+                        Add Company Expense
+                    {% endif %}
+                </h4>
+            </div>
+
+            <div class="card-body">
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+                                <div class="text-danger small">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Save Expense
+                        </button>
+
+                        <a href="{% url 'company_expense_list' %}"
+                           class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

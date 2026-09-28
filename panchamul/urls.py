@@ -31,5 +31,9 @@ urlpatterns = [
     'dealer-portal/',
     include('dealer_portal.urls')
     ),
+    path(
+    "expenses/",
+    include("expenses.urls")
+),
       
 ]

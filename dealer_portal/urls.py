@@ -97,11 +97,11 @@ path(
     name='dealer_customer_ledger_detail'
 ),
 
-# path(
-#     'outstanding-report/',
-#     dealer_outstanding_report,
-#     name='dealer_outstanding_report'
-# ),
+path(
+    'outstanding-report/',
+    dealer_outstanding_report,
+    name='dealer_outstanding_report'
+),
 
 path(
     'vehicles/',

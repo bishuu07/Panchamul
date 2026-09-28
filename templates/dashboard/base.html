@@ -381,6 +381,27 @@
 
     {% endif %}
 
+    {% if request.user.role == 'SUPER_ADMIN' or user_permissions.REPORT.can_view %}
+    <hr>
+
+        <div class="menu-title">
+            Expenses
+        </div>
+
+        <a href="{% url 'company_expense_list' %}">
+            Expense List
+        </a>
+
+        <a href="{% url 'company_expense_create' %}">
+            Add Expense
+        </a>
+
+        <a href="{% url 'company_expense_report' %}">
+            Expense Report
+        </a>
+
+    {% endif %}
+
 
     <!-- REPORTS -->
 

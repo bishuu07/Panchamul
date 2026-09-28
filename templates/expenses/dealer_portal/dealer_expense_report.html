@@ -1,0 +1,99 @@
+{% extends "dashboard/dealer_base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>Dealer Expense Report</h2>
+        <p class="text-muted mb-0">
+            Expense summary for your dealer
+        </p>
+    </div>
+
+    <a href="{% url 'dealer_expense_list' %}"
+       class="btn btn-secondary">
+        Expense List
+    </a>
+
+</div>
+
+
+<div class="row mb-4">
+
+    <div class="col-md-4">
+
+        <div class="card-box">
+
+            <h6 class="text-muted">
+                Total Expenses
+            </h6>
+
+            <h3>
+                Rs. {{ total_expense|floatformat:2 }}
+            </h3>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card-box">
+
+    <h5 class="mb-3">
+        Category Summary
+    </h5>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>Category</th>
+                    <th>Total Amount</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for row in category_totals %}
+
+                <tr>
+
+                    <td>
+                        {{ row.category }}
+                    </td>
+
+                    <td>
+                        <strong>
+                            Rs. {{ row.total|floatformat:2 }}
+                        </strong>
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="2"
+                        class="text-center text-muted">
+                        No expense data found.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

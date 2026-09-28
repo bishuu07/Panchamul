@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'website',
     'dashboard',
     'dealer_portal',
+    'expenses',
 ]
 
 MIDDLEWARE = [

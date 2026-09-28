@@ -38,6 +38,1003 @@
     {% if error %}
 
         <div class="alert alert-danger">
+
+            <i class="bi bi-exclamation-triangle"></i>
+
+            {{ error }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ===================================================== -->
+    <!-- PAYMENT SPLIT INFORMATION -->
+    <!-- ===================================================== -->
+
+    <div class="alert alert-info">
+
+        <strong>Payment Split:</strong>
+
+        You can add the same customer multiple times if they use
+        different payment methods.
+
+        <div class="mt-2">
+
+            <strong>Example:</strong>
+
+            XYZ Customer:
+
+            <span class="badge bg-success">
+                2 Qty Cash
+            </span>
+
+            <span class="badge bg-warning text-dark">
+                3 Qty Credit
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FORM -->
+    <!-- ===================================================== -->
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+
+        {% for item in trip.items.all %}
+
+        <!-- ================================================= -->
+        <!-- PRODUCT CARD -->
+        <!-- ================================================= -->
+
+        <div class="card mb-4">
+
+            <!-- PRODUCT HEADER -->
+
+            <div class="card-header bg-light">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <strong>
+                        {{ item.product.name }}
+                    </strong>
+
+                    <span>
+                        Loaded:
+                        <strong>
+                            {{ item.dispatch_qty }}
+                        </strong>
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+                <!-- ========================================= -->
+                <!-- SALES -->
+                <!-- ========================================= -->
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h6 class="mb-0">
+                        Customer Sales
+                    </h6>
+
+                    <small class="text-muted">
+                        Same customer can be added multiple times
+                        for payment splitting.
+                    </small>
+
+                </div>
+
+
+                <div
+                    id="sales_{{ item.id }}"
+                    class="sales-container"
+                >
+
+
+                    <!-- ===================================== -->
+                    <!-- FIRST SALE ROW -->
+                    <!-- ===================================== -->
+
+                    <div class="row mb-2 sale-row align-items-center">
+
+
+                        <!-- CUSTOMER -->
+
+                        <div class="col-md-3">
+
+                            <label class="form-label">
+                                Customer
+                            </label>
+
+                            <select
+                                name="sale_customer_{{ item.id }}[]"
+                                class="form-control"
+                            >
+
+                                <option value="">
+                                    Select Customer
+                                </option>
+
+                                {% for customer in customers %}
+
+                                    <option value="{{ customer.id }}">
+                                        {{ customer.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- QUANTITY -->
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Sale Qty
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="sale_qty_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Qty"
+                            >
+
+                        </div>
+
+
+                        <!-- BONUS -->
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Bonus
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value="0"
+                                name="sale_bonus_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Bonus"
+                            >
+
+                        </div>
+
+
+                        <!-- RATE -->
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Rate
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="sale_rate_{{ item.id }}[]"
+                                class="form-control"
+                                placeholder="Rate"
+                            >
+
+                        </div>
+
+
+                        <!-- PAYMENT -->
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Payment
+                            </label>
+
+                            <select
+                                name="sale_payment_mode_{{ item.id }}[]"
+                                class="form-control"
+                            >
+
+                                <option value="CASH">
+                                    Cash
+                                </option>
+
+                                <option value="FONEPAY">
+                                    Fonepay
+                                </option>
+
+                                <option value="CREDIT">
+                                    Credit
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- REMOVE -->
+
+                        <div class="col-md-1">
+
+                            <label class="form-label d-block">
+                                &nbsp;
+                            </label>
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="removeSaleRow(this)"
+                            >
+                                X
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADD SALE -->
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-primary mb-4"
+                    onclick="addSaleRow({{ item.id }})"
+                >
+                    + Add Customer Sale / Payment Split
+                </button>
+
+
+                <hr>
+
+
+                <!-- ========================================= -->
+                <!-- STOCK RECONCILIATION -->
+                <!-- ========================================= -->
+
+                <h6 class="mb-3">
+                    Stock Reconciliation
+                </h6>
+
+
+                <div class="row">
+
+
+                    <!-- RETURNED -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Returned
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="return_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                    <!-- BREAKAGE -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Breakage
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="breakage_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                    <!-- LEAKAGE -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Leakage
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="leakage_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                    <!-- SPONSOR -->
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Sponsor
+                        </label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value="0"
+                            name="sponsor_{{ item.id }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% empty %}
+
+            <div class="alert alert-warning">
+                No trip items found.
+            </div>
+
+        {% endfor %}
+
+
+        <!-- ================================================= -->
+        <!-- TRIP EXPENSES -->
+        <!-- ================================================= -->
+
+        <hr class="my-4">
+
+
+        <div class="card border-warning mb-4">
+
+            <div class="card-header bg-warning-subtle">
+
+                <h5 class="mb-0">
+                    Trip Expenses
+                </h5>
+
+                <small class="text-muted">
+                    Enter expenses paid from the trip's cash.
+                </small>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div id="trip-expenses">
+
+                    <!-- FIRST EXPENSE ROW -->
+
+                    <div class="row mb-2 trip-expense-row">
+
+
+                        <!-- CATEGORY -->
+
+                        <div class="col-md-3">
+
+                            <label class="form-label">
+                                Category
+                            </label>
+
+                            <select
+                                name="expense_category[]"
+                                class="form-control"
+                            >
+
+                                <option value="FUEL">
+                                    Fuel
+                                </option>
+
+                                <option value="FOOD">
+                                    Food / Snacks
+                                </option>
+
+                                <option value="PARKING">
+                                    Parking
+                                </option>
+
+                                <option value="DRIVER">
+                                    Driver Expense
+                                </option>
+
+                                <option value="LOADING">
+                                    Loading / Unloading
+                                </option>
+
+                                <option value="REPAIR">
+                                    Emergency Repair
+                                </option>
+
+                                <option value="TOLL">
+                                    Toll / Road Expense
+                                </option>
+
+                                <option value="OTHER">
+                                    Other
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- DESCRIPTION -->
+
+                        <div class="col-md-4">
+
+                            <label class="form-label">
+                                Description
+                            </label>
+
+                            <input
+                                type="text"
+                                name="expense_description[]"
+                                class="form-control"
+                                placeholder="Example: Driver fuel"
+                            >
+
+                        </div>
+
+
+                        <!-- AMOUNT -->
+
+                        <div class="col-md-3">
+
+                            <label class="form-label">
+                                Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="expense_amount[]"
+                                class="form-control expense-amount"
+                                step="0.01"
+                                min="0"
+                                value="0"
+                                oninput="calculateTripExpenses()"
+                            >
+
+                        </div>
+
+
+                        <!-- REMOVE -->
+
+                        <div class="col-md-2">
+
+                            <label class="form-label d-block">
+                                &nbsp;
+                            </label>
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="removeTripExpense(this)"
+                            >
+                                X
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADD EXPENSE -->
+
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    onclick="addTripExpense()"
+                >
+                    + Add Expense
+                </button>
+
+
+                <!-- EXPENSE TOTAL -->
+
+                <div class="text-end mt-3">
+
+                    <strong>
+                        Total Trip Expenses:
+                    </strong>
+
+                    Rs.
+
+                    <span id="trip-expense-total">
+                        0.00
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- ACTION BUTTONS -->
+        <!-- ================================================= -->
+
+        <div class="text-end">
+
+            <a
+                href="{% url 'vehicle_dispatch_detail' trip.dispatch.id %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-success"
+            >
+                Close Trip
+            </button>
+
+        </div>
+
+
+    </form>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+function addSaleRow(itemId) {
+
+    const container =
+        document.getElementById(
+            "sales_" + itemId
+        );
+
+
+    const row =
+        document.createElement("div");
+
+
+    row.className =
+        "row mb-2 sale-row align-items-center";
+
+
+    row.innerHTML = `
+
+        <!-- CUSTOMER -->
+
+        <div class="col-md-3">
+
+            <select
+                name="sale_customer_${itemId}[]"
+                class="form-control"
+            >
+
+                <option value="">
+                    Select Customer
+                </option>
+
+                {% for customer in customers %}
+
+                    <option value="{{ customer.id }}">
+                        {{ customer.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+
+        <!-- QUANTITY -->
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="sale_qty_${itemId}[]"
+                class="form-control"
+                placeholder="Sale Qty"
+            >
+
+        </div>
+
+
+        <!-- BONUS -->
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                value="0"
+                name="sale_bonus_${itemId}[]"
+                class="form-control"
+                placeholder="Bonus"
+            >
+
+        </div>
+
+
+        <!-- RATE -->
+
+        <div class="col-md-2">
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="sale_rate_${itemId}[]"
+                class="form-control"
+                placeholder="Rate"
+            >
+
+        </div>
+
+
+        <!-- PAYMENT -->
+
+        <div class="col-md-2">
+
+            <select
+                name="sale_payment_mode_${itemId}[]"
+                class="form-control"
+            >
+
+                <option value="CASH">
+                    Cash
+                </option>
+
+                <option value="FONEPAY">
+                    Fonepay
+                </option>
+
+                <option value="CREDIT">
+                    Credit
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- REMOVE -->
+
+        <div class="col-md-1">
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm mt-1"
+                onclick="removeSaleRow(this)"
+            >
+                X
+            </button>
+
+        </div>
+
+    `;
+
+
+    container.appendChild(row);
+
+}
+
+
+function removeSaleRow(button) {
+
+    const row =
+        button.closest(".sale-row");
+
+
+    if (row) {
+
+        row.remove();
+
+    }
+
+}
+
+
+/* =========================================================
+   TRIP EXPENSE FUNCTIONS
+   ========================================================= */
+
+
+function addTripExpense() {
+
+    const container =
+        document.getElementById(
+            "trip-expenses"
+        );
+
+
+    const row =
+        document.createElement("div");
+
+
+    row.className =
+        "row mb-2 trip-expense-row";
+
+
+    row.innerHTML = `
+
+        <!-- CATEGORY -->
+
+        <div class="col-md-3">
+
+            <select
+                name="expense_category[]"
+                class="form-control"
+            >
+
+                <option value="FUEL">
+                    Fuel
+                </option>
+
+                <option value="FOOD">
+                    Food / Snacks
+                </option>
+
+                <option value="PARKING">
+                    Parking
+                </option>
+
+                <option value="DRIVER">
+                    Driver Expense
+                </option>
+
+                <option value="LOADING">
+                    Loading / Unloading
+                </option>
+
+                <option value="REPAIR">
+                    Emergency Repair
+                </option>
+
+                <option value="TOLL">
+                    Toll / Road Expense
+                </option>
+
+                <option value="OTHER">
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="col-md-4">
+
+            <input
+                type="text"
+                name="expense_description[]"
+                class="form-control"
+                placeholder="Description"
+            >
+
+        </div>
+
+
+        <!-- AMOUNT -->
+
+        <div class="col-md-3">
+
+            <input
+                type="number"
+                name="expense_amount[]"
+                class="form-control expense-amount"
+                step="0.01"
+                min="0"
+                value="0"
+                oninput="calculateTripExpenses()"
+            >
+
+        </div>
+
+
+        <!-- REMOVE -->
+
+        <div class="col-md-2">
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                onclick="removeTripExpense(this)"
+            >
+                X
+            </button>
+
+        </div>
+
+    `;
+
+
+    container.appendChild(row);
+
+    calculateTripExpenses();
+
+}
+
+
+function removeTripExpense(button) {
+
+    const row =
+        button.closest(
+            ".trip-expense-row"
+        );
+
+
+    if (row) {
+
+        row.remove();
+
+        calculateTripExpenses();
+
+    }
+
+}
+
+
+function calculateTripExpenses() {
+
+    let total = 0;
+
+
+    document
+        .querySelectorAll(".expense-amount")
+        .forEach(function(input) {
+
+            const value =
+                parseFloat(input.value) || 0;
+
+            total += value;
+
+        });
+
+
+    document.getElementById(
+        "trip-expense-total"
+    ).innerText =
+        total.toFixed(2);
+
+}
+
+
+/* =========================================================
+   EXPENSE AMOUNT AUTO CALCULATION
+   ========================================================= */
+
+document.addEventListener(
+    "input",
+    function(event) {
+
+        if (
+            event.target.classList.contains(
+                "expense-amount"
+            )
+        ) {
+
+            calculateTripExpenses();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL EXPENSE TOTAL
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        calculateTripExpenses();
+
+    }
+);
+
+</script>
+
+
+{% endblock %}
+
+
+
+{% comment %} {% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                Close Vehicle Trip
+            </h3>
+
+            <div class="text-muted">
+                Dispatch:
+                <strong>{{ trip.dispatch.dispatch_no }}</strong>
+
+                |
+
+                Trip:
+                <strong>{{ trip.trip_no }}</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ERROR -->
+    <!-- ===================================================== -->
+
+    {% if error %}
+
+        <div class="alert alert-danger">
             <i class="bi bi-exclamation-triangle"></i>
             {{ error }}
         </div>
@@ -604,4 +1601,4 @@ function removeSaleRow(button) {
 
 </script>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

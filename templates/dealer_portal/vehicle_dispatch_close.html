@@ -291,7 +291,614 @@
 
         </div>
 
-    {% endif %}
+        {% endif %}
+
+
+    <!-- ================================= -->
+    <!-- FINANCIAL SUMMARY -->
+    <!-- ================================= -->
+
+    <h5 class="mt-5 mb-3">
+        Dispatch Financial Summary
+    </h5>
+
+
+    <div class="row mb-4">
+
+        <!-- CASH -->
+
+        <div class="col-md-3">
+
+            <div class="card border-success">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Cash Sales
+                    </small>
+
+                    <h4 class="text-success mb-0">
+                        Rs. {{ cash_sales|floatformat:2 }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FONEPAY -->
+
+        <div class="col-md-3">
+
+            <div class="card border-primary">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Fonepay Sales
+                    </small>
+
+                    <h4 class="text-primary mb-0">
+                        Rs. {{ fonepay_sales|floatformat:2 }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CREDIT -->
+
+        <div class="col-md-3">
+
+            <div class="card border-warning">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Credit Sales
+                    </small>
+
+                    <h4 class="text-warning mb-0">
+                        Rs. {{ credit_sales|floatformat:2 }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL -->
+
+        <div class="col-md-3">
+
+            <div class="card border-dark">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Total Sales
+                    </small>
+
+                    <h4 class="mb-0">
+                        Rs. {{ total_sales|floatformat:2 }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- TRIP EXPENSES -->
+    <!-- ================================= -->
+
+    <h5 class="mt-4 mb-3">
+        Trip Expenses
+    </h5>
+
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-striped align-middle">
+
+            <thead class="table-danger">
+
+                <tr>
+
+                    <th>
+                        Trip
+                    </th>
+
+                    <th>
+                        Category
+                    </th>
+
+                    <th>
+                        Description
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th>
+                        Amount
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for expense in trip_expenses %}
+
+                    <tr>
+
+                        <td>
+
+                            Trip
+                            {{ expense.trip.trip_no }}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="badge bg-secondary">
+
+                                {{ expense.get_category_display }}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            {{ expense.description|default:"-" }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ expense.expense_date|date:"Y-m-d" }}
+
+                        </td>
+
+
+                        <td>
+
+                            <strong class="text-danger">
+
+                                Rs.
+                                {{ expense.amount|floatformat:2 }}
+
+                            </strong>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="text-center text-muted"
+                        >
+
+                            No Trip Expenses
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+
+            <tfoot>
+
+                <tr class="table-danger">
+
+                    <th colspan="4" class="text-end">
+
+                        Total Trip Expenses
+
+                    </th>
+
+                    <th>
+
+                        Rs.
+                        {{ total_trip_expenses|floatformat:2 }}
+
+                    </th>
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- CUSTOMER SALES / PAYMENT MODE -->
+    <!-- ================================= -->
+
+    <h5 class="mt-5 mb-3">
+        Vehicle Sales & Payment Mode
+    </h5>
+
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-striped align-middle">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>
+                        Trip
+                    </th>
+
+                    <th>
+                        Customer
+                    </th>
+
+                    <th>
+                        Product
+                    </th>
+
+                    <th>
+                        Quantity
+                    </th>
+
+                    <th>
+                        Bonus
+                    </th>
+
+                    <th>
+                        Rate
+                    </th>
+
+                    <th>
+                        Payment Mode
+                    </th>
+
+                    <th>
+                        Amount
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for sale in vehicle_sales %}
+
+                    <tr>
+
+                        <td>
+
+                            Trip
+                            {{ sale.trip.trip_no }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ sale.customer.name }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ sale.product.name }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ sale.quantity }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ sale.bonus_quantity }}
+
+                        </td>
+
+
+                        <td>
+
+                            Rs.
+                            {{ sale.rate|floatformat:2 }}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if sale.payment_mode == "CASH" %}
+
+                                <span class="badge bg-success">
+                                    CASH
+                                </span>
+
+                            {% elif sale.payment_mode == "FONEPAY" %}
+
+                                <span class="badge bg-primary">
+                                    FONEPAY
+                                </span>
+
+                            {% elif sale.payment_mode == "CREDIT" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    CREDIT
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ sale.payment_mode }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                Rs.
+                                {{ sale.amount|floatformat:2 }}
+                            </strong>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="text-center text-muted"
+                        >
+
+                            No Vehicle Sales Found
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- NET CASH CALCULATION -->
+    <!-- ================================= -->
+
+    <h5 class="mt-5 mb-3">
+        Dispatch Cash Summary
+    </h5>
+
+
+    <div class="card border-success mb-4">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted">
+                        Cash Sales
+                    </small>
+
+                    <h5 class="mb-0">
+
+                        Rs.
+                        {{ cash_sales|floatformat:2 }}
+
+                    </h5>
+
+                </div>
+
+
+                <div class="col-md-1 text-center">
+
+                    <strong>
+                        −
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <small class="text-muted">
+                        Trip Expenses
+                    </small>
+
+                    <h5 class="text-danger mb-0">
+
+                        Rs.
+                        {{ total_trip_expenses|floatformat:2 }}
+
+                    </h5>
+
+                </div>
+
+
+                <div class="col-md-1 text-center">
+
+                    <strong>
+                        =
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <small class="text-muted">
+                        Net Physical Cash
+                    </small>
+
+                    <h4 class="text-success mb-0">
+
+                        Rs.
+                        {{ net_cash|floatformat:2 }}
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- FINAL FINANCIAL TABLE -->
+    <!-- ================================= -->
+
+    <h5 class="mt-4 mb-3">
+        Final Financial Summary
+    </h5>
+
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered">
+
+            <tbody>
+
+                <tr>
+
+                    <th style="width: 60%;">
+                        Cash Sales
+                    </th>
+
+                    <td>
+                        Rs.
+                        {{ cash_sales|floatformat:2 }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <th>
+                        Fonepay Sales
+                    </th>
+
+                    <td>
+                        Rs.
+                        {{ fonepay_sales|floatformat:2 }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <th>
+                        Credit Sales
+                    </th>
+
+                    <td>
+                        Rs.
+                        {{ credit_sales|floatformat:2 }}
+                    </td>
+
+                </tr>
+
+
+                <tr class="table-light">
+
+                    <th>
+                        Total Sales
+                    </th>
+
+                    <th>
+                        Rs.
+                        {{ total_sales|floatformat:2 }}
+                    </th>
+
+                </tr>
+
+
+                <tr class="table-danger">
+
+                    <th>
+                        Less: Trip Expenses
+                    </th>
+
+                    <td>
+                        Rs.
+                        {{ total_trip_expenses|floatformat:2 }}
+                    </td>
+
+                </tr>
+
+
+                <tr class="table-success">
+
+                    <th>
+                        Net Physical Cash
+                    </th>
+
+                    <th>
+                        Rs.
+                        {{ net_cash|floatformat:2 }}
+                    </th>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 
     <!-- ================================= -->
