@@ -1,58 +1,141 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/dealer_base.html' %}
 
 {% block content %}
 
 <div class="card-box">
 
-    <h3>
-        Customer Ledger - {{ customer.name }}
-    </h3>
+
+{% if error %}
+
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+
+{% elif customer %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h3 class="mb-1">
+                Customer Ledger
+            </h3>
+
+            <div class="text-muted">
+                {{ customer.name }}
+                {% if customer.phone %}
+                    | {{ customer.phone }}
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'dealer_customer_ledger_list' %}"
+           class="btn btn-secondary">
+            ← Back
+        </a>
+
+    </div>
 
     <hr>
 
+    <!-- SUMMARY CARDS -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">
+                        Total Debit
+                    </small>
+
+                    <h4 class="text-danger mb-0">
+                        {{ total_debit|floatformat:2 }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">
+                        Total Credit
+                    </small>
+
+                    <h4 class="text-success mb-0">
+                        {{ total_credit|floatformat:2 }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">
+                        Total Bonus
+                    </small>
+
+                    <h4 class="text-warning mb-0">
+                        {{ total_bonus|floatformat:2 }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">
+                        Current Balance
+                    </small>
+
+                    <h4 class="mb-0">
+                        {{ balance|floatformat:2 }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LEDGER TABLE -->
+
     <div class="table-responsive">
 
-        <table class="table table-bordered table-hover">
+        <table class="table table-bordered table-hover align-middle">
 
             <thead class="table-dark">
 
                 <tr>
-
+                    <th>#</th>
                     <th>Date</th>
-
-                    <th>Reference</th>
-
                     <th>Type</th>
-
                     <th>Debit</th>
-
                     <th>Credit</th>
-
                     <th>Bonus Qty</th>
-
                     <th>Balance</th>
-
                 </tr>
 
             </thead>
 
             <tbody>
 
-                {% for row in ledgers %}
+                {% for row in ledger_entries %}
 
                 <tr>
+
+                    <td>
+                        {{ forloop.counter }}
+                    </td>
 
                     <td>
                         {{ row.created_at|date:"d M Y, h:i A" }}
                     </td>
 
                     <td>
-                        {{ row.reference|default:"-" }}
-                    </td>
 
-                    <td>
-
-                        {% if row.entry_type == "SALE" %}
+                        {% if row.entry_type == "SALE" or row.entry_type == "VEHICLE_SALE" %}
 
                             <span class="badge bg-primary">
                                 Sale
@@ -60,24 +143,34 @@
 
                         {% elif row.entry_type == "PAYMENT" %}
 
-                            <span class="badge bg-info">
+                            <span class="badge bg-success">
                                 Payment
                             </span>
 
                         {% else %}
 
-                            {{ row.entry_type }}
+                            <span class="badge bg-secondary">
+                                {{ row.entry_type }}
+                            </span>
 
                         {% endif %}
 
                     </td>
 
                     <td>
-                        {{ row.debit|floatformat:2 }}
+                        {% if row.debit %}
+                            {{ row.debit|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
                     </td>
 
                     <td>
-                        {{ row.credit|floatformat:2 }}
+                        {% if row.credit %}
+                            {{ row.credit|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
                     </td>
 
                     <td>
@@ -90,14 +183,16 @@
 
                         {% else %}
 
-                            0
+                            -
 
                         {% endif %}
 
                     </td>
 
                     <td>
-                        {{ row.balance|floatformat:2 }}
+                        <strong>
+                            {{ row.balance|floatformat:2 }}
+                        </strong>
                     </td>
 
                 </tr>
@@ -107,9 +202,9 @@
                 <tr>
 
                     <td colspan="7"
-                        class="text-center">
+                        class="text-center text-muted py-4">
 
-                        No ledger entries found.
+                        No ledger entries found for this customer.
 
                     </td>
 
@@ -150,6 +245,9 @@
         </table>
 
     </div>
+
+{% endif %}
+
 
 </div>
 

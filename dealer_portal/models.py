@@ -428,6 +428,12 @@ class VehicleTripItem(models.Model):
 
 class VehicleDispatchSale(models.Model):
 
+    PAYMENT_MODES = (
+        ("CASH", "Cash"),
+        ("FONEPAY", "Fonepay"),
+        ("CREDIT", "Credit"),
+    )
+
     dispatch = models.ForeignKey(
         VehicleDispatch,
         on_delete=models.CASCADE,
@@ -468,6 +474,11 @@ class VehicleDispatchSale(models.Model):
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2
+    )
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODES,
+        default="CASH"
     )
 
     created_at = models.DateTimeField(

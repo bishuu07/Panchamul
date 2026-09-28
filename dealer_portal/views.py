@@ -13,6 +13,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from datetime import date
 from .utils import add_customer_ledger
+from django.db import transaction
 
 from .models import (
     DealerSale,
@@ -394,6 +395,7 @@ def dealer_pending_dispatch_list(request):
 @login_required
 def dealer_dispatch_approve(request, pk):
 
+
     profile = get_object_or_404(
         DealerProfile,
         admin_user=request.user
@@ -407,8 +409,7 @@ def dealer_dispatch_approve(request, pk):
         dealer=dealer
     )
 
-    # Do not allow already approved dispatch to come through
-    # the approval page.
+    # Do not process an already approved dispatch
     if dispatch.status != 'PENDING':
 
         return redirect(
@@ -422,46 +423,74 @@ def dealer_dispatch_approve(request, pk):
 
     if request.method == 'POST':
 
+        errors = []
+
+        validated_items = []
+
         total_dispatched = Decimal('0')
         total_received = Decimal('0')
         total_damaged = Decimal('0')
         total_returned = Decimal('0')
 
-        errors = []
+        # -------------------------------------------------
+        # 1. VALIDATE ALL ITEMS FIRST
+        # -------------------------------------------------
 
         for item in items:
 
-            received_qty = Decimal(
-                request.POST.get(
-                    f'received_{item.id}',
-                    '0'
-                ) or '0'
-            )
+            try:
 
-            damaged_qty = Decimal(
-                request.POST.get(
-                    f'damaged_{item.id}',
-                    '0'
-                ) or '0'
-            )
+                received_qty = Decimal(
+                    request.POST.get(
+                        f'received_{item.id}',
+                        '0'
+                    ) or '0'
+                )
 
-            returned_qty = Decimal(
-                request.POST.get(
-                    f'returned_{item.id}',
-                    '0'
-                ) or '0'
-            )
+                damaged_qty = Decimal(
+                    request.POST.get(
+                        f'damaged_{item.id}',
+                        '0'
+                    ) or '0'
+                )
 
+                returned_qty = Decimal(
+                    request.POST.get(
+                        f'returned_{item.id}',
+                        '0'
+                    ) or '0'
+                )
+
+            except Exception:
+
+                errors.append(
+                    f'{item.product.name}: '
+                    f'Invalid quantity entered.'
+                )
+
+                continue
+
+            # ---------------------------------------------
             # Prevent negative quantities
+            # ---------------------------------------------
+
             if (
                 received_qty < 0
                 or damaged_qty < 0
                 or returned_qty < 0
             ):
+
                 errors.append(
-                    f'{item.product.name}: quantities cannot be negative.'
+                    f'{item.product.name}: '
+                    f'Quantities cannot be negative.'
                 )
+
                 continue
+
+            # ---------------------------------------------
+            # Received + Damaged + Returned
+            # must equal Dispatched
+            # ---------------------------------------------
 
             item_total = (
                 received_qty
@@ -469,9 +498,6 @@ def dealer_dispatch_approve(request, pk):
                 + returned_qty
             )
 
-            # IMPORTANT:
-            # received + damaged + returned
-            # must exactly equal dispatched quantity.
             if item_total != item.dispatched_qty:
 
                 errors.append(
@@ -483,24 +509,28 @@ def dealer_dispatch_approve(request, pk):
 
                 continue
 
+            # ---------------------------------------------
+            # Store validated data temporarily
+            # ---------------------------------------------
+
+            validated_items.append(
+                (
+                    item,
+                    received_qty,
+                    damaged_qty,
+                    returned_qty
+                )
+            )
+
             total_dispatched += item.dispatched_qty
             total_received += received_qty
             total_damaged += damaged_qty
             total_returned += returned_qty
 
-            item.received_qty = received_qty
-            item.damaged_qty = damaged_qty
-            item.returned_qty = returned_qty
+        # -------------------------------------------------
+        # 2. STOP IF VALIDATION FAILED
+        # -------------------------------------------------
 
-            item.save(
-                update_fields=[
-                    'received_qty',
-                    'damaged_qty',
-                    'returned_qty'
-                ]
-            )
-
-        # If validation failed, do not approve.
         if errors:
 
             return render(
@@ -513,7 +543,10 @@ def dealer_dispatch_approve(request, pk):
                 }
             )
 
-        # Safety check
+        # -------------------------------------------------
+        # 3. SAFETY CHECK
+        # -------------------------------------------------
+
         if total_dispatched <= 0:
 
             return render(
@@ -528,23 +561,90 @@ def dealer_dispatch_approve(request, pk):
                 }
             )
 
-        # Since every item must completely match,
-        # the dispatch is APPROVED.
-        dispatch.status = 'APPROVED'
-        dispatch.dealer_approved_by = request.user
-        dispatch.approved_at = timezone.now()
+        # -------------------------------------------------
+        # 4. UPDATE EVERYTHING ATOMICALLY
+        # -------------------------------------------------
 
-        dispatch.save(
-            update_fields=[
-                'status',
-                'dealer_approved_by',
-                'approved_at'
-            ]
-        )
+        with transaction.atomic():
+
+            # ---------------------------------------------
+            # Update each dispatch item
+            # and add RECEIVED quantity to DealerStock
+            # ---------------------------------------------
+
+            for (
+                item,
+                received_qty,
+                damaged_qty,
+                returned_qty
+            ) in validated_items:
+
+                # -----------------------------------------
+                # Update dispatch item
+                # -----------------------------------------
+
+                item.received_qty = received_qty
+                item.damaged_qty = damaged_qty
+                item.returned_qty = returned_qty
+
+                item.save(
+                    update_fields=[
+                        'received_qty',
+                        'damaged_qty',
+                        'returned_qty'
+                    ]
+                )
+
+                # -----------------------------------------
+                # Add ONLY received quantity to DealerStock
+                # -----------------------------------------
+
+                stock, created = DealerStock.objects.get_or_create(
+                    dealer=dealer,
+                    product=item.product,
+                    defaults={
+                        'quantity': Decimal('0')
+                    }
+                )
+
+                stock.quantity += received_qty
+
+                stock.save(
+                    update_fields=[
+                        'quantity',
+                        'updated_at'
+                    ]
+                )
+
+            # ---------------------------------------------
+            # Mark dispatch approved
+            # ---------------------------------------------
+
+            dispatch.status = 'APPROVED'
+
+            dispatch.dealer_approved_by = request.user
+
+            dispatch.approved_at = timezone.now()
+
+            dispatch.save(
+                update_fields=[
+                    'status',
+                    'dealer_approved_by',
+                    'approved_at'
+                ]
+            )
+
+        # -------------------------------------------------
+        # 5. RETURN TO DISPATCH LIST
+        # -------------------------------------------------
 
         return redirect(
             'dealer_dispatch_list'
         )
+
+# -----------------------------------------------------
+# GET REQUEST
+# -----------------------------------------------------
 
     return render(
         request,
@@ -554,6 +654,7 @@ def dealer_dispatch_approve(request, pk):
             'items': items,
         }
     )
+
 
 
 @login_required
@@ -1620,52 +1721,155 @@ def dealer_customer_ledger_list(request):
     )
 
 
+# @login_required
+# def dealer_customer_ledger_detail(
+#     request,
+#     customer_id
+# ):
+
+#     profile = get_object_or_404(
+#         DealerProfile,
+#         admin_user=request.user
+#     )
+
+#     customer = get_object_or_404(
+#         DealerCustomer,
+#         id=customer_id,
+#         dealer=profile.dealer
+#     )
+
+#     ledger_entries = (
+#         DealerCustomerLedger.objects
+#         .filter(
+#             customer=customer
+#         )
+#         .order_by("id")
+#     )
+
+#     total_debit = sum(
+#         (
+#             entry.debit
+#             for entry in ledger_entries
+#         ),
+#         Decimal("0")
+#     )
+
+#     total_credit = sum(
+#         (
+#             entry.credit
+#             for entry in ledger_entries
+#         ),
+#         Decimal("0")
+#     )
+
+#     total_bonus = sum(
+#         (
+#             entry.bonus_quantity
+#             for entry in ledger_entries
+#         ),
+#         Decimal("0")
+#     )
+
+#     last_entry = ledger_entries.last()
+
+#     balance = (
+#         last_entry.balance
+#         if last_entry
+#         else Decimal("0")
+#     )
+
+#     return render(
+#         request,
+#         "dealer_portal/customer_ledger_detail.html",
+#         {
+#             "customer": customer,
+#             "ledger_entries": ledger_entries,
+#             "total_debit": total_debit,
+#             "total_credit": total_credit,
+#             "total_bonus": total_bonus,
+#             "balance": balance
+#         }
+#     )
+
 @login_required
-def dealer_customer_ledger_detail(
-    request,
-    customer_id
-):
+def dealer_customer_ledger_detail(request, customer_id):
 
     profile = get_object_or_404(
         DealerProfile,
         admin_user=request.user
     )
 
-    customer = get_object_or_404(
-        DealerCustomer,
-        id=customer_id,
-        dealer=profile.dealer
-    )
+    print("================================")
+    print("LOGGED USER:", request.user)
+    print("PROFILE DEALER ID:", profile.dealer.id)
+    print("REQUESTED CUSTOMER ID:", customer_id)
+
+    try:
+        customer = DealerCustomer.objects.get(
+            id=customer_id
+        )
+
+        print("CUSTOMER FOUND:", customer.name)
+        print("CUSTOMER DEALER ID:", customer.dealer_id)
+
+    except DealerCustomer.DoesNotExist:
+
+        print("CUSTOMER DOES NOT EXIST")
+
+        return render(
+            request,
+            "dealer_portal/customer_ledger_detail.html",
+            {
+                "customer": None,
+                "ledger_entries": [],
+                "total_debit": Decimal("0"),
+                "total_credit": Decimal("0"),
+                "total_bonus": Decimal("0"),
+                "balance": Decimal("0"),
+                "error": "Customer does not exist."
+            }
+        )
+
+    if customer.dealer_id != profile.dealer.id:
+
+        print("!!! DEALER MISMATCH !!!")
+
+        return render(
+            request,
+            "dealer_portal/customer_ledger_detail.html",
+            {
+                "customer": None,
+                "ledger_entries": [],
+                "total_debit": Decimal("0"),
+                "total_credit": Decimal("0"),
+                "total_bonus": Decimal("0"),
+                "balance": Decimal("0"),
+                "error": (
+                    f"Customer belongs to dealer "
+                    f"{customer.dealer_id}, but logged-in user "
+                    f"belongs to dealer {profile.dealer.id}."
+                )
+            }
+        )
 
     ledger_entries = (
         DealerCustomerLedger.objects
-        .filter(
-            customer=customer
-        )
+        .filter(customer=customer)
         .order_by("id")
     )
 
     total_debit = sum(
-        (
-            entry.debit
-            for entry in ledger_entries
-        ),
+        (entry.debit for entry in ledger_entries),
         Decimal("0")
     )
 
     total_credit = sum(
-        (
-            entry.credit
-            for entry in ledger_entries
-        ),
+        (entry.credit for entry in ledger_entries),
         Decimal("0")
     )
 
     total_bonus = sum(
-        (
-            entry.bonus_quantity
-            for entry in ledger_entries
-        ),
+        (entry.bonus_quantity for entry in ledger_entries),
         Decimal("0")
     )
 
@@ -2346,6 +2550,12 @@ def vehicle_dispatch_report(request, pk):
 
     grand_qty = Decimal("0")
 
+    grand_cash = Decimal("0")
+
+    grand_fonepay = Decimal("0")
+
+    grand_credit = Decimal("0")
+
     # -----------------------
     # Trip Summary
     # -----------------------
@@ -2431,31 +2641,53 @@ def vehicle_dispatch_report(request, pk):
 
         summary[pid]["sales_amount"] += sale.amount
 
+        grand_qty += sale.quantity
+
         grand_total += sale.amount
 
-        grand_qty += sale.quantity
+        # =====================================
+        # PAYMENT MODE TOTALS
+        # =====================================
+
+        if sale.payment_mode == "CASH":
+
+            grand_cash += sale.amount
+
+        elif sale.payment_mode == "FONEPAY":
+
+            grand_fonepay += sale.amount
+
+        elif sale.payment_mode == "CREDIT":
+
+            grand_credit += sale.amount
 
     return render(
 
-        request,
+    request,
 
-        "dealer_portal/vehicle_dispatch_report.html",
+    "dealer_portal/vehicle_dispatch_report.html",
 
-        {
+    {
 
-            "dispatch": dispatch,
+        "dispatch": dispatch,
 
-            "trips": trips,
+        "trips": trips,
 
-            "summary": summary.values(),
+        "summary": summary.values(),
 
-            "grand_total": grand_total,
+        "grand_total": grand_total,
 
-            "grand_qty": grand_qty,
+        "grand_qty": grand_qty,
 
-        }
+        "grand_cash": grand_cash,
 
-    )
+        "grand_fonepay": grand_fonepay,
+
+        "grand_credit": grand_credit,
+
+    }
+
+)
 @login_required
 def vehicle_trip_detail(request, trip_id):
 
@@ -2593,6 +2825,669 @@ def vehicle_trip_create(request, dispatch_id):
 
 @login_required
 @transaction.atomic
+# def vehicle_trip_close(request, trip_id):     (working one abefore adding payment mode)
+
+#     # =====================================================
+#     # DEALER PROFILE
+#     # =====================================================
+
+#     profile = get_object_or_404(
+#         DealerProfile,
+#         admin_user=request.user
+#     )
+
+#     dealer = profile.dealer
+
+#     # =====================================================
+#     # GET TRIP
+#     # =====================================================
+
+#     trip = get_object_or_404(
+#         VehicleTrip.objects
+#         .select_related(
+#             "dispatch",
+#             "dispatch__vehicle"
+#         )
+#         .prefetch_related(
+#             "items__product"
+#         ),
+#         id=trip_id,
+#         dispatch__dealer=dealer
+#     )
+
+#     # =====================================================
+#     # CUSTOMERS
+#     # =====================================================
+
+#     customers = (
+#         DealerCustomer.objects
+#         .filter(
+#             dealer=dealer
+#         )
+#         .order_by("name")
+#     )
+
+#     # =====================================================
+#     # ALREADY CLOSED
+#     # =====================================================
+
+#     if trip.is_closed:
+
+#         return redirect(
+#             "vehicle_trip_detail",
+#             trip.id
+#         )
+
+#     # =====================================================
+#     # POST
+#     # =====================================================
+
+#     if request.method == "POST":
+
+#         # =================================================
+#         # IMPORTANT
+#         #
+#         # We DO NOT create:
+#         #
+#         # VehicleDispatchSale
+#         # DealerCustomerLedger
+#         #
+#         # yet.
+#         #
+#         # First validate the COMPLETE trip.
+#         # =================================================
+
+#         validated_sales = []
+
+#         # =================================================
+#         # PROCESS EVERY PRODUCT
+#         # =================================================
+
+#         for item in trip.items.all():
+
+#             # ---------------------------------------------
+#             # SALES INPUT
+#             # ---------------------------------------------
+
+#             sale_customers = request.POST.getlist(
+#                 f"sale_customer_{item.id}[]"
+#             )
+
+#             sale_quantities = request.POST.getlist(
+#                 f"sale_qty_{item.id}[]"
+#             )
+
+#             sale_bonuses = request.POST.getlist(
+#                 f"sale_bonus_{item.id}[]"
+#             )
+
+#             sale_rates = request.POST.getlist(
+#                 f"sale_rate_{item.id}[]"
+#             )
+#             sale_payment_modes = request.POST.getlist(
+#                 f"sale_payment_mode_{item.id}[]"
+# )
+
+#             # ---------------------------------------------
+#             # PRODUCT TOTALS
+#             # ---------------------------------------------
+
+#             product_sold = Decimal("0")
+
+#             product_bonus = Decimal("0")
+
+#             product_sales_amount = Decimal("0")
+
+#             # ---------------------------------------------
+#             # VALIDATE SALES
+#             # ---------------------------------------------
+
+#             for i in range(
+#                 len(sale_quantities)
+#             ):
+
+#                 # =========================================
+#                 # QUANTITY
+#                 # =========================================
+
+#                 try:
+
+#                     qty = Decimal(
+#                         sale_quantities[i]
+#                         or "0"
+#                     )
+
+#                 except Exception:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Invalid sale quantity "
+#                                 f"for {item.product.name}."
+#                         }
+#                     )
+
+#                 # =========================================
+#                 # BONUS
+#                 # =========================================
+
+#                 try:
+
+#                     bonus = Decimal(
+#                         sale_bonuses[i]
+#                         if (
+#                             i < len(sale_bonuses)
+#                             and sale_bonuses[i]
+#                         )
+#                         else "0"
+#                     )
+
+#                 except Exception:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Invalid bonus quantity "
+#                                 f"for {item.product.name}."
+#                         }
+#                     )
+
+#                 # =========================================
+#                 # RATE
+#                 # =========================================
+
+#                 try:
+
+#                     rate = Decimal(
+#                         sale_rates[i]
+#                         if (
+#                             i < len(sale_rates)
+#                             and sale_rates[i]
+#                         )
+#                         else "0"
+#                     )
+
+#                 except Exception:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Invalid rate "
+#                                 f"for {item.product.name}."
+#                         }
+#                     )
+
+#                  # Payment Mode
+#                 payment_mode = (
+#                     sale_payment_modes[i]
+#                     if (i < len(sale_payment_modes) and sale_payment_modes[i])
+#                     else "CASH"
+#                 )
+
+#                 if payment_mode not in ["CASH", "FONEPAY", "CREDIT"]:
+#                     return render(request, "dealer_portal/vehicle_trip_close.html", {
+#                         "trip": trip,
+#                         "customers": customers,
+#                         "error": f"Invalid payment mode for {item.product.name}."
+#                     })
+
+#                 # =========================================
+#                 # NEGATIVE CHECK
+#                 # =========================================
+
+#                 if qty < 0:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Sale quantity cannot be "
+#                                 f"negative for "
+#                                 f"{item.product.name}."
+#                         }
+#                     )
+
+#                 if bonus < 0:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Bonus quantity cannot be "
+#                                 f"negative for "
+#                                 f"{item.product.name}."
+#                         }
+#                     )
+
+#                 if rate < 0:
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Rate cannot be negative "
+#                                 f"for {item.product.name}."
+#                         }
+#                     )
+
+#                 # =========================================
+#                 # NOTHING ENTERED
+#                 # =========================================
+
+#                 if qty <= 0 and bonus <= 0:
+
+#                     continue
+
+#                 # =========================================
+#                 # CUSTOMER REQUIRED
+#                 # =========================================
+
+#                 if (
+#                     i >= len(sale_customers)
+#                     or not sale_customers[i]
+#                 ):
+
+#                     return render(
+#                         request,
+#                         "dealer_portal/vehicle_trip_close.html",
+#                         {
+#                             "trip": trip,
+#                             "customers": customers,
+#                             "error":
+#                                 f"Please select a customer "
+#                                 f"for {item.product.name}."
+#                         }
+#                     )
+
+#                 # =========================================
+#                 # CUSTOMER
+#                 # =========================================
+
+#                 customer = get_object_or_404(
+#                     DealerCustomer,
+#                     id=sale_customers[i],
+#                     dealer=dealer
+#                 )
+
+#                 # =========================================
+#                 # BONUS-ONLY SALE
+#                 #
+#                 # If bonus exists but sale qty is zero,
+#                 # rate is not required.
+#                 # =========================================
+
+#                 if qty <= 0:
+
+#                     rate = Decimal("0")
+
+#                 # =========================================
+#                 # AMOUNT
+#                 #
+#                 # BONUS IS FREE.
+#                 # =========================================
+
+#                 amount = (
+#                     qty * rate
+#                 )
+
+#                 # =========================================
+#                 # SAVE ONLY IN MEMORY FOR NOW
+#                 #
+#                 # DO NOT CREATE DATABASE RECORD YET.
+#                 # =========================================
+
+#                 validated_sales.append(
+#                     {
+#                         "item": item,
+#                         "customer": customer,
+#                         "quantity": qty,
+#                         "bonus_quantity": bonus,
+#                         "rate": rate,
+#                         "amount": amount,
+#                     }
+#                 )
+
+#                 product_sold += qty
+
+#                 product_bonus += bonus
+
+#                 product_sales_amount += amount
+
+#             # =================================================
+#             # OTHER QUANTITIES
+#             # =================================================
+
+#             try:
+
+#                 returned = Decimal(
+#                     request.POST.get(
+#                         f"return_{item.id}",
+#                         "0"
+#                     ) or "0"
+#                 )
+
+#                 breakage = Decimal(
+#                     request.POST.get(
+#                         f"breakage_{item.id}",
+#                         "0"
+#                     ) or "0"
+#                 )
+
+#                 leakage = Decimal(
+#                     request.POST.get(
+#                         f"leakage_{item.id}",
+#                         "0"
+#                     ) or "0"
+#                 )
+
+#                 sponsor = Decimal(
+#                     request.POST.get(
+#                         f"sponsor_{item.id}",
+#                         "0"
+#                     ) or "0"
+#                 )
+
+#             except Exception:
+
+#                 return render(
+#                     request,
+#                     "dealer_portal/vehicle_trip_close.html",
+#                     {
+#                         "trip": trip,
+#                         "customers": customers,
+#                         "error":
+#                             f"Invalid quantity entered "
+#                             f"for {item.product.name}."
+#                     }
+#                 )
+
+#             # =================================================
+#             # NEGATIVE CHECK
+#             # =================================================
+
+#             if (
+#                 returned < 0
+#                 or breakage < 0
+#                 or leakage < 0
+#                 or sponsor < 0
+#             ):
+
+#                 return render(
+#                     request,
+#                     "dealer_portal/vehicle_trip_close.html",
+#                     {
+#                         "trip": trip,
+#                         "customers": customers,
+#                         "error":
+#                             f"Quantities cannot be negative "
+#                             f"for {item.product.name}."
+#                     }
+#                 )
+
+#             # =================================================
+#             # EXACT RECONCILIATION
+#             # =================================================
+
+#             total_accounted = (
+#                 product_sold
+#                 + product_bonus
+#                 + returned
+#                 + breakage
+#                 + leakage
+#                 + sponsor
+#             )
+
+#             # =================================================
+#             # MUST EXACTLY MATCH DISPATCH QTY
+#             # =================================================
+
+#             if total_accounted != item.dispatch_qty:
+
+#                 return render(
+#                     request,
+#                     "dealer_portal/vehicle_trip_close.html",
+#                     {
+#                         "trip": trip,
+#                         "customers": customers,
+#                         "error":
+#                             f"{item.product.name}: "
+#                             f"Loaded = {item.dispatch_qty}, "
+#                             f"but Sold ({product_sold}) + "
+#                             f"Bonus ({product_bonus}) + "
+#                             f"Returned ({returned}) + "
+#                             f"Breakage ({breakage}) + "
+#                             f"Leakage ({leakage}) + "
+#                             f"Sponsor ({sponsor}) = "
+#                             f"{total_accounted}. "
+#                             f"These quantities must exactly match."
+#                     }
+#                 )
+
+#             # =================================================
+#             # SAVE RECONCILIATION DATA IN MEMORY
+#             # =================================================
+
+#             item._close_data = {
+#                 "sold_qty": product_sold,
+#                 "bonus_qty": product_bonus,
+#                 "return_qty": returned,
+#                 "breakage_qty": breakage,
+#                 "leakage_qty": leakage,
+#                 "sponsor_qty": sponsor,
+#                 "sales_amount": product_sales_amount,
+#             }
+
+#         # =====================================================
+#         # EVERYTHING PASSED VALIDATION
+#         #
+#         # ONLY NOW DO WE WRITE TO DATABASE.
+#         # =====================================================
+
+#         # =====================================================
+#         # CREATE VEHICLE SALES + LEDGER
+#         # =====================================================
+
+#         for sale_data in validated_sales:
+
+#             item = sale_data["item"]
+
+#             customer = sale_data["customer"]
+
+#             qty = sale_data["quantity"]
+
+#             bonus = sale_data["bonus_quantity"]
+
+#             rate = sale_data["rate"]
+
+#             amount = sale_data["amount"]
+
+#             # =============================================
+#             # VEHICLE SALE
+#             # =============================================
+
+#             VehicleDispatchSale.objects.create(
+
+#                 dispatch=trip.dispatch,
+
+#                 customer=customer,
+
+#                 product=item.product,
+
+#                 quantity=qty,
+
+#                 bonus_quantity=bonus,
+
+#                 rate=rate,
+
+#                 amount=amount
+
+#             )
+
+#             # =============================================
+#             # CUSTOMER LEDGER
+#             #
+#             # IMPORTANT:
+#             # This happens ONLY after the ENTIRE trip
+#             # has passed validation.
+#             # =============================================
+
+#             if amount > 0 or bonus > 0:
+
+#                 add_customer_ledger(
+
+#                     customer=customer,
+
+#                     entry_type="VEHICLE_SALE",
+
+#                     debit=amount,
+
+#                     bonus_quantity=bonus
+
+#                 )
+
+#         # =====================================================
+#         # UPDATE TRIP ITEMS
+#         # =====================================================
+
+#         for item in trip.items.all():
+
+#             data = item._close_data
+
+#             item.sold_qty = (
+#                 data["sold_qty"]
+#             )
+
+#             item.bonus_qty = (
+#                 data["bonus_qty"]
+#             )
+
+#             item.return_qty = (
+#                 data["return_qty"]
+#             )
+
+#             item.breakage_qty = (
+#                 data["breakage_qty"]
+#             )
+
+#             item.leakage_qty = (
+#                 data["leakage_qty"]
+#             )
+
+#             item.sponsor_qty = (
+#                 data["sponsor_qty"]
+#             )
+
+#             item.sales_amount = (
+#                 data["sales_amount"]
+#             )
+
+#             item.save()
+
+#             # =============================================
+#             # RETURN STOCK
+#             # =============================================
+
+#             if data["return_qty"] > 0:
+
+#                 stock, created = (
+#                     DealerStock.objects
+#                     .get_or_create(
+#                         dealer=dealer,
+#                         product=item.product,
+#                         defaults={
+#                             "quantity": Decimal("0")
+#                         }
+#                     )
+#                 )
+
+#                 stock.quantity = (
+#                     stock.quantity
+#                     + data["return_qty"]
+#                 )
+
+#                 stock.save()
+
+#             # =============================================
+#             # SPONSOR HISTORY
+#             # =============================================
+
+#             if data["sponsor_qty"] > 0:
+
+#                 DealerSponsor.objects.create(
+
+#                     dealer=dealer,
+
+#                     vehicle=trip.dispatch.vehicle,
+
+#                     vehicle_dispatch=trip.dispatch,
+
+#                     product=item.product,
+
+#                     quantity=data["sponsor_qty"],
+
+#                     sponsor_date=date.today(),
+
+#                     source="VEHICLE",
+
+#                     remarks=(
+#                         f"Trip {trip.trip_no}"
+#                     )
+
+#                 )
+
+#         # =====================================================
+#         # CLOSE TRIP
+#         # =====================================================
+
+#         trip.is_closed = True
+
+#         trip.save()
+
+#         # =====================================================
+#         # SUCCESS
+#         # =====================================================
+
+#         return redirect(
+#             "vehicle_trip_detail",
+#             trip.id
+#         )
+
+#     # =========================================================
+#     # GET
+#     # =========================================================
+
+#     return render(
+#         request,
+#         "dealer_portal/vehicle_trip_close.html",
+#         {
+#             "trip": trip,
+#             "customers": customers
+#         }
+#     )
+
+
+@login_required
 def vehicle_trip_close(request, trip_id):
 
     # =====================================================
@@ -2629,9 +3524,7 @@ def vehicle_trip_close(request, trip_id):
 
     customers = (
         DealerCustomer.objects
-        .filter(
-            dealer=dealer
-        )
+        .filter(dealer=dealer)
         .order_by("name")
     )
 
@@ -2640,7 +3533,6 @@ def vehicle_trip_close(request, trip_id):
     # =====================================================
 
     if trip.is_closed:
-
         return redirect(
             "vehicle_trip_detail",
             trip.id
@@ -2652,568 +3544,513 @@ def vehicle_trip_close(request, trip_id):
 
     if request.method == "POST":
 
-        # =================================================
-        # IMPORTANT
-        #
-        # We DO NOT create:
-        #
-        # VehicleDispatchSale
-        # DealerCustomerLedger
-        #
-        # yet.
-        #
-        # First validate the COMPLETE trip.
-        # =================================================
+        # Everything inside this block succeeds together.
+        # If anything fails, nothing is saved.
+        with transaction.atomic():
 
-        validated_sales = []
+            validated_sales = []
 
-        # =================================================
-        # PROCESS EVERY PRODUCT
-        # =================================================
+            # =================================================
+            # PROCESS EVERY PRODUCT
+            # =================================================
 
-        for item in trip.items.all():
+            for item in trip.items.all():
 
-            # ---------------------------------------------
-            # SALES INPUT
-            # ---------------------------------------------
-
-            sale_customers = request.POST.getlist(
-                f"sale_customer_{item.id}[]"
-            )
-
-            sale_quantities = request.POST.getlist(
-                f"sale_qty_{item.id}[]"
-            )
-
-            sale_bonuses = request.POST.getlist(
-                f"sale_bonus_{item.id}[]"
-            )
-
-            sale_rates = request.POST.getlist(
-                f"sale_rate_{item.id}[]"
-            )
-
-            # ---------------------------------------------
-            # PRODUCT TOTALS
-            # ---------------------------------------------
-
-            product_sold = Decimal("0")
-
-            product_bonus = Decimal("0")
-
-            product_sales_amount = Decimal("0")
-
-            # ---------------------------------------------
-            # VALIDATE SALES
-            # ---------------------------------------------
-
-            for i in range(
-                len(sale_quantities)
-            ):
-
-                # =========================================
-                # QUANTITY
-                # =========================================
-
-                try:
-
-                    qty = Decimal(
-                        sale_quantities[i]
-                        or "0"
-                    )
-
-                except Exception:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Invalid sale quantity "
-                                f"for {item.product.name}."
-                        }
-                    )
-
-                # =========================================
-                # BONUS
-                # =========================================
-
-                try:
-
-                    bonus = Decimal(
-                        sale_bonuses[i]
-                        if (
-                            i < len(sale_bonuses)
-                            and sale_bonuses[i]
-                        )
-                        else "0"
-                    )
-
-                except Exception:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Invalid bonus quantity "
-                                f"for {item.product.name}."
-                        }
-                    )
-
-                # =========================================
-                # RATE
-                # =========================================
-
-                try:
-
-                    rate = Decimal(
-                        sale_rates[i]
-                        if (
-                            i < len(sale_rates)
-                            and sale_rates[i]
-                        )
-                        else "0"
-                    )
-
-                except Exception:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Invalid rate "
-                                f"for {item.product.name}."
-                        }
-                    )
-
-                # =========================================
-                # NEGATIVE CHECK
-                # =========================================
-
-                if qty < 0:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Sale quantity cannot be "
-                                f"negative for "
-                                f"{item.product.name}."
-                        }
-                    )
-
-                if bonus < 0:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Bonus quantity cannot be "
-                                f"negative for "
-                                f"{item.product.name}."
-                        }
-                    )
-
-                if rate < 0:
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Rate cannot be negative "
-                                f"for {item.product.name}."
-                        }
-                    )
-
-                # =========================================
-                # NOTHING ENTERED
-                # =========================================
-
-                if qty <= 0 and bonus <= 0:
-
-                    continue
-
-                # =========================================
-                # CUSTOMER REQUIRED
-                # =========================================
-
-                if (
-                    i >= len(sale_customers)
-                    or not sale_customers[i]
-                ):
-
-                    return render(
-                        request,
-                        "dealer_portal/vehicle_trip_close.html",
-                        {
-                            "trip": trip,
-                            "customers": customers,
-                            "error":
-                                f"Please select a customer "
-                                f"for {item.product.name}."
-                        }
-                    )
-
-                # =========================================
-                # CUSTOMER
-                # =========================================
-
-                customer = get_object_or_404(
-                    DealerCustomer,
-                    id=sale_customers[i],
-                    dealer=dealer
+                sale_customers = request.POST.getlist(
+                    f"sale_customer_{item.id}[]"
                 )
 
-                # =========================================
-                # BONUS-ONLY SALE
-                #
-                # If bonus exists but sale qty is zero,
-                # rate is not required.
-                # =========================================
-
-                if qty <= 0:
-
-                    rate = Decimal("0")
-
-                # =========================================
-                # AMOUNT
-                #
-                # BONUS IS FREE.
-                # =========================================
-
-                amount = (
-                    qty * rate
+                sale_quantities = request.POST.getlist(
+                    f"sale_qty_{item.id}[]"
                 )
 
-                # =========================================
-                # SAVE ONLY IN MEMORY FOR NOW
-                #
-                # DO NOT CREATE DATABASE RECORD YET.
-                # =========================================
+                sale_bonuses = request.POST.getlist(
+                    f"sale_bonus_{item.id}[]"
+                )
 
-                validated_sales.append(
-                    {
+                sale_rates = request.POST.getlist(
+                    f"sale_rate_{item.id}[]"
+                )
+
+                sale_payment_modes = request.POST.getlist(
+                    f"sale_payment_mode_{item.id}[]"
+                )
+
+                product_sold = Decimal("0")
+                product_bonus = Decimal("0")
+                product_sales_amount = Decimal("0")
+
+                # =================================================
+                # VALIDATE SALES
+                # =================================================
+
+                for i in range(len(sale_quantities)):
+
+                    # ---------------------------------------------
+                    # QUANTITY
+                    # ---------------------------------------------
+
+                    try:
+                        qty = Decimal(
+                            sale_quantities[i] or "0"
+                        )
+                    except Exception:
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Invalid sale quantity "
+                                    f"for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    # ---------------------------------------------
+                    # BONUS
+                    # ---------------------------------------------
+
+                    try:
+                        bonus = Decimal(
+                            sale_bonuses[i]
+                            if (
+                                i < len(sale_bonuses)
+                                and sale_bonuses[i]
+                            )
+                            else "0"
+                        )
+                    except Exception:
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Invalid bonus quantity "
+                                    f"for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    # ---------------------------------------------
+                    # RATE
+                    # ---------------------------------------------
+
+                    try:
+                        rate = Decimal(
+                            sale_rates[i]
+                            if (
+                                i < len(sale_rates)
+                                and sale_rates[i]
+                            )
+                            else "0"
+                        )
+                    except Exception:
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Invalid rate "
+                                    f"for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    # ---------------------------------------------
+                    # PAYMENT MODE
+                    # ---------------------------------------------
+
+                    payment_mode = (
+                        sale_payment_modes[i]
+                        if (
+                            i < len(sale_payment_modes)
+                            and sale_payment_modes[i]
+                        )
+                        else "CASH"
+                    )
+
+                    if payment_mode not in [
+                        "CASH",
+                        "FONEPAY",
+                        "CREDIT"
+                    ]:
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Invalid payment mode "
+                                    f"for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    # ---------------------------------------------
+                    # NEGATIVE CHECK
+                    # ---------------------------------------------
+
+                    if qty < 0 or bonus < 0 or rate < 0:
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Negative values are not "
+                                    f"allowed for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    # ---------------------------------------------
+                    # SKIP EMPTY ROW
+                    # ---------------------------------------------
+
+                    if qty <= 0 and bonus <= 0:
+                        continue
+
+                    # ---------------------------------------------
+                    # CUSTOMER REQUIRED
+                    # ---------------------------------------------
+
+                    if (
+                        i >= len(sale_customers)
+                        or not sale_customers[i]
+                    ):
+                        return render(
+                            request,
+                            "dealer_portal/vehicle_trip_close.html",
+                            {
+                                "trip": trip,
+                                "customers": customers,
+                                "error": (
+                                    f"Please select a customer "
+                                    f"for {item.product.name}."
+                                )
+                            }
+                        )
+
+                    customer = get_object_or_404(
+                        DealerCustomer,
+                        id=sale_customers[i],
+                        dealer=dealer
+                    )
+
+                    # ---------------------------------------------
+                    # IF NO SALE QTY, RATE = 0
+                    # ---------------------------------------------
+
+                    if qty <= 0:
+                        rate = Decimal("0")
+
+                    # ---------------------------------------------
+                    # AMOUNT
+                    # ---------------------------------------------
+
+                    amount = qty * rate
+
+                    # ---------------------------------------------
+                    # STORE VALIDATED SALE
+                    # ---------------------------------------------
+
+                    validated_sales.append({
                         "item": item,
                         "customer": customer,
                         "quantity": qty,
                         "bonus_quantity": bonus,
                         "rate": rate,
                         "amount": amount,
-                    }
+                        "payment_mode": payment_mode,
+                    })
+
+                    product_sold += qty
+                    product_bonus += bonus
+                    product_sales_amount += amount
+
+                # =================================================
+                # OTHER QUANTITIES
+                # =================================================
+
+                try:
+                    returned = Decimal(
+                        request.POST.get(
+                            f"return_{item.id}",
+                            "0"
+                        ) or "0"
+                    )
+
+                    breakage = Decimal(
+                        request.POST.get(
+                            f"breakage_{item.id}",
+                            "0"
+                        ) or "0"
+                    )
+
+                    leakage = Decimal(
+                        request.POST.get(
+                            f"leakage_{item.id}",
+                            "0"
+                        ) or "0"
+                    )
+
+                    sponsor = Decimal(
+                        request.POST.get(
+                            f"sponsor_{item.id}",
+                            "0"
+                        ) or "0"
+                    )
+
+                except Exception:
+                    return render(
+                        request,
+                        "dealer_portal/vehicle_trip_close.html",
+                        {
+                            "trip": trip,
+                            "customers": customers,
+                            "error": (
+                                f"Invalid quantity entered "
+                                f"for {item.product.name}."
+                            )
+                        }
+                    )
+
+                # =================================================
+                # NEGATIVE CHECK
+                # =================================================
+
+                if (
+                    returned < 0
+                    or breakage < 0
+                    or leakage < 0
+                    or sponsor < 0
+                ):
+                    return render(
+                        request,
+                        "dealer_portal/vehicle_trip_close.html",
+                        {
+                            "trip": trip,
+                            "customers": customers,
+                            "error": (
+                                f"Quantities cannot be negative "
+                                f"for {item.product.name}."
+                            )
+                        }
+                    )
+
+                # =================================================
+                # TOTAL ACCOUNTED
+                # =================================================
+
+                total_accounted = (
+                    product_sold
+                    + product_bonus
+                    + returned
+                    + breakage
+                    + leakage
+                    + sponsor
                 )
 
-                product_sold += qty
+                # =================================================
+                # MUST MATCH LOADED
+                # =================================================
 
-                product_bonus += bonus
+                if total_accounted != item.dispatch_qty:
 
-                product_sales_amount += amount
+                    return render(
+                        request,
+                        "dealer_portal/vehicle_trip_close.html",
+                        {
+                            "trip": trip,
+                            "customers": customers,
+                            "error": (
+                                f"{item.product.name}: "
+                                f"Loaded = {item.dispatch_qty}, "
+                                f"but accounted = {total_accounted}. "
+                                f"Must match exactly."
+                            )
+                        }
+                    )
 
-            # =================================================
-            # OTHER QUANTITIES
-            # =================================================
+                # =================================================
+                # STORE CLOSE DATA
+                # =================================================
 
-            try:
+                item._close_data = {
+                    "sold_qty": product_sold,
+                    "bonus_qty": product_bonus,
+                    "return_qty": returned,
+                    "breakage_qty": breakage,
+                    "leakage_qty": leakage,
+                    "sponsor_qty": sponsor,
+                    "sales_amount": product_sales_amount,
+                }
 
-                returned = Decimal(
-                    request.POST.get(
-                        f"return_{item.id}",
-                        "0"
-                    ) or "0"
-                )
+            # =====================================================
+            # CREATE VEHICLE SALES
+            # =====================================================
 
-                breakage = Decimal(
-                    request.POST.get(
-                        f"breakage_{item.id}",
-                        "0"
-                    ) or "0"
-                )
+            for sale_data in validated_sales:
 
-                leakage = Decimal(
-                    request.POST.get(
-                        f"leakage_{item.id}",
-                        "0"
-                    ) or "0"
-                )
+                item = sale_data["item"]
+                customer = sale_data["customer"]
+                qty = sale_data["quantity"]
+                bonus = sale_data["bonus_quantity"]
+                rate = sale_data["rate"]
+                amount = sale_data["amount"]
+                payment_mode = sale_data["payment_mode"]
 
-                sponsor = Decimal(
-                    request.POST.get(
-                        f"sponsor_{item.id}",
-                        "0"
-                    ) or "0"
-                )
+                # Each payment split becomes a separate sale record.
+                #
+                # Example:
+                # 2 CASH
+                # 3 CREDIT
+                #
+                # creates two VehicleDispatchSale records.
 
-            except Exception:
-
-                return render(
-                    request,
-                    "dealer_portal/vehicle_trip_close.html",
-                    {
-                        "trip": trip,
-                        "customers": customers,
-                        "error":
-                            f"Invalid quantity entered "
-                            f"for {item.product.name}."
-                    }
-                )
-
-            # =================================================
-            # NEGATIVE CHECK
-            # =================================================
-
-            if (
-                returned < 0
-                or breakage < 0
-                or leakage < 0
-                or sponsor < 0
-            ):
-
-                return render(
-                    request,
-                    "dealer_portal/vehicle_trip_close.html",
-                    {
-                        "trip": trip,
-                        "customers": customers,
-                        "error":
-                            f"Quantities cannot be negative "
-                            f"for {item.product.name}."
-                    }
-                )
-
-            # =================================================
-            # EXACT RECONCILIATION
-            # =================================================
-
-            total_accounted = (
-                product_sold
-                + product_bonus
-                + returned
-                + breakage
-                + leakage
-                + sponsor
-            )
-
-            # =================================================
-            # MUST EXACTLY MATCH DISPATCH QTY
-            # =================================================
-
-            if total_accounted != item.dispatch_qty:
-
-                return render(
-                    request,
-                    "dealer_portal/vehicle_trip_close.html",
-                    {
-                        "trip": trip,
-                        "customers": customers,
-                        "error":
-                            f"{item.product.name}: "
-                            f"Loaded = {item.dispatch_qty}, "
-                            f"but Sold ({product_sold}) + "
-                            f"Bonus ({product_bonus}) + "
-                            f"Returned ({returned}) + "
-                            f"Breakage ({breakage}) + "
-                            f"Leakage ({leakage}) + "
-                            f"Sponsor ({sponsor}) = "
-                            f"{total_accounted}. "
-                            f"These quantities must exactly match."
-                    }
-                )
-
-            # =================================================
-            # SAVE RECONCILIATION DATA IN MEMORY
-            # =================================================
-
-            item._close_data = {
-                "sold_qty": product_sold,
-                "bonus_qty": product_bonus,
-                "return_qty": returned,
-                "breakage_qty": breakage,
-                "leakage_qty": leakage,
-                "sponsor_qty": sponsor,
-                "sales_amount": product_sales_amount,
-            }
-
-        # =====================================================
-        # EVERYTHING PASSED VALIDATION
-        #
-        # ONLY NOW DO WE WRITE TO DATABASE.
-        # =====================================================
-
-        # =====================================================
-        # CREATE VEHICLE SALES + LEDGER
-        # =====================================================
-
-        for sale_data in validated_sales:
-
-            item = sale_data["item"]
-
-            customer = sale_data["customer"]
-
-            qty = sale_data["quantity"]
-
-            bonus = sale_data["bonus_quantity"]
-
-            rate = sale_data["rate"]
-
-            amount = sale_data["amount"]
-
-            # =============================================
-            # VEHICLE SALE
-            # =============================================
-
-            VehicleDispatchSale.objects.create(
-
-                dispatch=trip.dispatch,
-
-                customer=customer,
-
-                product=item.product,
-
-                quantity=qty,
-
-                bonus_quantity=bonus,
-
-                rate=rate,
-
-                amount=amount
-
-            )
-
-            # =============================================
-            # CUSTOMER LEDGER
-            #
-            # IMPORTANT:
-            # This happens ONLY after the ENTIRE trip
-            # has passed validation.
-            # =============================================
-
-            if amount > 0 or bonus > 0:
-
-                add_customer_ledger(
-
+                VehicleDispatchSale.objects.create(
+                    dispatch=trip.dispatch,
                     customer=customer,
-
-                    entry_type="VEHICLE_SALE",
-
-                    debit=amount,
-
-                    bonus_quantity=bonus
-
+                    product=item.product,
+                    quantity=qty,
+                    bonus_quantity=bonus,
+                    rate=rate,
+                    amount=amount,
+                    payment_mode=payment_mode
                 )
 
-        # =====================================================
-        # UPDATE TRIP ITEMS
-        # =====================================================
+            # =====================================================
+            # CUSTOMER LEDGER
+            # =====================================================
+            #
+            # Combine all payment splits for each customer.
+            #
+            # CASH     -> no debit
+            # FONEPAY  -> no debit
+            # CREDIT   -> debit
+            #
+            # Bonus is added only once to the combined ledger entry.
 
-        for item in trip.items.all():
+            customer_ledger_data = {}
 
-            data = item._close_data
+            for sale_data in validated_sales:
 
-            item.sold_qty = (
-                data["sold_qty"]
-            )
+                customer = sale_data["customer"]
+                payment_mode = sale_data["payment_mode"]
+                amount = sale_data["amount"]
+                bonus = sale_data["bonus_quantity"]
 
-            item.bonus_qty = (
-                data["bonus_qty"]
-            )
+                customer_id = customer.id
 
-            item.return_qty = (
-                data["return_qty"]
-            )
+                if customer_id not in customer_ledger_data:
+                    customer_ledger_data[customer_id] = {
+                        "customer": customer,
+                        "credit_amount": Decimal("0"),
+                        "bonus_quantity": Decimal("0"),
+                    }
 
-            item.breakage_qty = (
-                data["breakage_qty"]
-            )
+                # Only CREDIT becomes customer debt.
+                if payment_mode == "CREDIT":
+                    customer_ledger_data[
+                        customer_id
+                    ]["credit_amount"] += amount
 
-            item.leakage_qty = (
-                data["leakage_qty"]
-            )
+                # All bonus quantities are combined.
+                customer_ledger_data[
+                    customer_id
+                ]["bonus_quantity"] += bonus
 
-            item.sponsor_qty = (
-                data["sponsor_qty"]
-            )
+            # =====================================================
+            # CREATE ONE LEDGER ENTRY PER CUSTOMER
+            # =====================================================
 
-            item.sales_amount = (
-                data["sales_amount"]
-            )
+            for data in customer_ledger_data.values():
 
-            item.save()
+                customer = data["customer"]
+                credit_amount = data["credit_amount"]
+                bonus_quantity = data["bonus_quantity"]
 
-            # =============================================
-            # RETURN STOCK
-            # =============================================
+                # Create ledger if there is either:
+                # - credit debt
+                # - bonus quantity
+                if (
+                    credit_amount > 0
+                    or bonus_quantity > 0
+                ):
 
-            if data["return_qty"] > 0:
+                    add_customer_ledger(
+                        customer=customer,
+                        entry_type="VEHICLE_SALE",
+                        debit=credit_amount,
+                        bonus_quantity=bonus_quantity
+                    )
 
-                stock, created = (
-                    DealerStock.objects
-                    .get_or_create(
+            # =====================================================
+            # UPDATE TRIP ITEMS
+            # =====================================================
+
+            for item in trip.items.all():
+
+                data = item._close_data
+
+                item.sold_qty = data["sold_qty"]
+                item.bonus_qty = data["bonus_qty"]
+                item.return_qty = data["return_qty"]
+                item.breakage_qty = data["breakage_qty"]
+                item.leakage_qty = data["leakage_qty"]
+                item.sponsor_qty = data["sponsor_qty"]
+                item.sales_amount = data["sales_amount"]
+
+                item.save()
+
+                # =================================================
+                # RETURN STOCK
+                # =================================================
+
+                if data["return_qty"] > 0:
+
+                    stock, created = DealerStock.objects.get_or_create(
                         dealer=dealer,
                         product=item.product,
                         defaults={
                             "quantity": Decimal("0")
                         }
                     )
-                )
 
-                stock.quantity = (
-                    stock.quantity
-                    + data["return_qty"]
-                )
+                    stock.quantity += data["return_qty"]
+                    stock.save()
 
-                stock.save()
+                # =================================================
+                # SPONSOR HISTORY
+                # =================================================
 
-            # =============================================
-            # SPONSOR HISTORY
-            # =============================================
+                if data["sponsor_qty"] > 0:
 
-            if data["sponsor_qty"] > 0:
-
-                DealerSponsor.objects.create(
-
-                    dealer=dealer,
-
-                    vehicle=trip.dispatch.vehicle,
-
-                    vehicle_dispatch=trip.dispatch,
-
-                    product=item.product,
-
-                    quantity=data["sponsor_qty"],
-
-                    sponsor_date=date.today(),
-
-                    source="VEHICLE",
-
-                    remarks=(
-                        f"Trip {trip.trip_no}"
+                    DealerSponsor.objects.create(
+                        dealer=dealer,
+                        vehicle=trip.dispatch.vehicle,
+                        vehicle_dispatch=trip.dispatch,
+                        product=item.product,
+                        quantity=data["sponsor_qty"],
+                        sponsor_date=date.today(),
+                        source="VEHICLE",
+                        remarks=f"Trip {trip.trip_no}"
                     )
 
-                )
+            # =====================================================
+            # CLOSE TRIP
+            # =====================================================
 
-        # =====================================================
-        # CLOSE TRIP
-        # =====================================================
-
-        trip.is_closed = True
-
-        trip.save()
+            trip.is_closed = True
+            trip.save()
 
         # =====================================================
         # SUCCESS
@@ -3236,6 +4073,7 @@ def vehicle_trip_close(request, trip_id):
             "customers": customers
         }
     )
+
 
 @login_required
 def sponsor_list(request):

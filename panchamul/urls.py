@@ -27,9 +27,9 @@ urlpatterns = [
     'sales/',
     include('sales.urls')
     ),
-    path(
+    path(    
     'dealer-portal/',
     include('dealer_portal.urls')
     ),
-    
+      
 ]

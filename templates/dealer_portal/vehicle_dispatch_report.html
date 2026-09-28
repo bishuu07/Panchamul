@@ -9,6 +9,216 @@
     <hr>
 
     <div class="row">
+        <div class="col-md-3">
+            <strong>Dispatch</strong><br>
+            {{ dispatch.dispatch_no }}
+        </div>
+        <div class="col-md-3">
+            <strong>Vehicle</strong><br>
+            {{ dispatch.vehicle.vehicle_no }}
+        </div>
+        <div class="col-md-3">
+            <strong>Date</strong><br>
+            {{ dispatch.dispatch_date }}
+        </div>
+        <div class="col-md-3">
+            <strong>Status</strong><br>
+            {{ dispatch.status }}
+        </div>
+    </div>
+
+    <hr>
+
+    <h4>Trips</h4>
+
+    {% for trip in trips %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>Trip {{ trip.trip_no }}</strong>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Loaded</th>
+                        <th>Sold</th>
+                        <th>Returned</th>
+                        <th>Breakage</th>
+                        <th>Leakage</th>
+                        <th>Sponsor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in trip.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.dispatch_qty }}</td>
+                        <td>{{ item.sold_qty }}</td>
+                        <td>{{ item.return_qty }}</td>
+                        <td>{{ item.breakage_qty }}</td>
+                        <td>{{ item.leakage_qty }}</td>
+                        <td>{{ item.sponsor_qty }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+        <div class="alert alert-info">No Trips Found.</div>
+    {% endfor %}
+
+    <hr>
+
+    <h3>Final Summary</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Product</th>
+                <th>Loaded</th>
+                <th>Sold</th>
+                <th>Returned</th>
+                <th>Breakage</th>
+                <th>Leakage</th>
+                <th>Sponsor</th>
+                <th>Total Sold Qty</th>
+                <th>Total Sales Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in summary %}
+            <tr>
+                <td><strong>{{ row.product.name }}</strong></td>
+                <td>{{ row.loaded }}</td>
+                <td>{{ row.sold }}</td>
+                <td>{{ row.returned }}</td>
+                <td>{{ row.breakage }}</td>
+                <td>{{ row.leakage }}</td>
+                <td>{{ row.sponsor }}</td>
+                <td>{{ row.sales_qty }}</td>
+                <td><strong>Rs. {{ row.sales_amount }}</strong></td>
+            </tr>
+
+            <tr>
+                <td colspan="9">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Customer</th>
+                                <th>Qty</th>
+                                <th>Bonus</th>
+                                <th>Rate</th>
+                                <th>Payment</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for sale in row.sales %}
+                            <tr>
+                                <td>{{ sale.customer.name }}</td>
+                                <td>{{ sale.quantity }}</td>
+                                <td>{{ sale.bonus_quantity }}</td>
+                                <td>Rs. {{ sale.rate }}</td>
+                                <td>
+                                    {% if sale.payment_mode == "CASH" %}
+                                        <span class="badge bg-success">Cash</span>
+                                    {% elif sale.payment_mode == "FONEPAY" %}
+                                        <span class="badge bg-info">Fonepay</span>
+                                    {% elif sale.payment_mode == "CREDIT" %}
+                                        <span class="badge bg-danger">Credit</span>
+                                    {% endif %}
+                                </td>
+                                <td>Rs. {{ sale.amount }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No Sales</td>
+                            </tr>
+                        {% endfor %}
+
+                        {% if row.sales %}
+                        <tr class="table-warning">
+                            <th colspan="2">{{ row.sales_qty }}</th>
+                            <th>{{ row.sales_bonus }}</th>
+                            <th>Total</th>
+                            <th></th>
+                            <th>Rs. {{ row.sales_amount }}</th>
+                        </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h4>Payment Summary</h4>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card border-success mb-3">
+                <div class="card-body">
+                    <h6 class="text-success">CASH</h6>
+                    <h4>Rs. {{ grand_cash }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-info mb-3">
+                <div class="card-body">
+                    <h6 class="text-info">FONEPAY</h6>
+                    <h4>Rs. {{ grand_fonepay }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <h6 class="text-danger">CREDIT</h6>
+                    <h4>Rs. {{ grand_credit }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-primary mb-3">
+                <div class="card-body">
+                    <h6 class="text-primary">TOTAL SALES</h6>
+                    <h4>Rs. {{ grand_total }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <a href="{% url 'vehicle_dispatch_list' %}" class="btn btn-secondary">Back</a>
+
+</div>
+
+{% endblock %}
+
+
+
+
+{% comment %} {% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <h2>Vehicle Dispatch Report</h2>
+
+    <hr>
+
+    <div class="row">
 
         <div class="col-md-3">
             <strong>Dispatch</strong><br>
@@ -308,4 +518,5 @@
 
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}
+

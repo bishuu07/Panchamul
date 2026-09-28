@@ -72,13 +72,7 @@ def dealer_create(request):
         }
     )
 
-    return render(
-        request,
-        'dashboard/super_admin/dealer_create.html',
-        {
-            'form': form
-        }
-    )
+    
 
 def dealer_edit(request, pk):
 
