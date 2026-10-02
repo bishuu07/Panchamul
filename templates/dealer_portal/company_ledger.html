@@ -1,0 +1,165 @@
+{% extends 'dashboard/dealer_base.html' %}
+
+{% block content %}
+
+<div class="card-box">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Company Ledger</h3>
+            <p class="text-muted mb-0">Your account with Panchamul</p>
+        </div>
+        <a href="{% url 'company_payment_create' %}" class="btn btn-primary">
+            + Pay Company
+        </a>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="row g-3 mb-4">
+        <!-- TOTAL DISPATCH -->
+        <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+                <div class="text-muted small">Total Dispatch / Purchase</div>
+                <h4 class="mb-0 mt-2">Rs. {{ total_debit|floatformat:2 }}</h4>
+            </div>
+        </div>
+
+        <!-- TOTAL PAID -->
+        <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+                <div class="text-muted small">Total Paid to Company</div>
+                <h4 class="mb-0 mt-2">Rs. {{ total_credit|floatformat:2 }}</h4>
+            </div>
+        </div>
+
+        <!-- OUTSTANDING -->
+        <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+                <div class="text-muted small">Outstanding Payable</div>
+                {% if outstanding > 0 %}
+                    <h4 class="mb-0 mt-2 text-danger">
+                        Rs. {{ outstanding|floatformat:2 }}
+                    </h4>
+                    <small class="text-danger">Amount to pay to company</small>
+                {% elif outstanding < 0 %}
+                    <h4 class="mb-0 mt-2 text-success">
+                        Rs. {{ outstanding|floatformat:2 }}
+                    </h4>
+                    <small class="text-success">Advance paid to company</small>
+                {% else %}
+                    <h4 class="mb-0 mt-2 text-success">Rs. 0.00</h4>
+                    <small class="text-success">Account settled</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- LEDGER TABLE -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Particular</th>
+                    <th class="text-end">Debit</th>
+                    <th class="text-end">Credit</th>
+                    <th class="text-end">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in ledger_entries %}
+                <tr>
+                    <!-- DATE -->
+                    <td>{{ entry.transaction_date|date:"Y-m-d" }}</td>
+
+                    <!-- REFERENCE -->
+                    <td>
+                        {% if entry.transaction_type == 'DISPATCH' and entry.dispatch %}
+                            <a href="{% url 'dealer_dispatch_detail' entry.dispatch.id %}"
+                               class="fw-bold text-decoration-none">
+                                {{ entry.dispatch.dispatch_no }}
+                            </a>
+                        {% elif entry.transaction_type == 'PAYMENT' and entry.payment %}
+                            <strong>
+                                {% if entry.payment.reference_no %}
+                                    {{ entry.payment.reference_no }}
+                                {% else %}
+                                    Payment
+                                {% endif %}
+                            </strong>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <!-- PARTICULAR -->
+                    <td>
+                        {% if entry.transaction_type == 'DISPATCH' %}
+                            Company Dispatch
+                        {% elif entry.transaction_type == 'PAYMENT' %}
+                            Payment to Company
+                            {% if entry.payment %}
+                                <br>
+                                <small class="text-muted">
+                                    {{ entry.payment.get_payment_method_display }}
+                                </small>
+                            {% endif %}
+                        {% elif entry.transaction_type == 'ADJUSTMENT' %}
+                            Adjustment
+                        {% else %}
+                            {{ entry.transaction_type }}
+                        {% endif %}
+                    </td>
+
+                    <!-- DEBIT -->
+                    <td class="text-end">
+                        {% if entry.debit > 0 %}
+                            <span class="text-danger">
+                                Rs. {{ entry.debit|floatformat:2 }}
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <!-- CREDIT -->
+                    <td class="text-end">
+                        {% if entry.credit > 0 %}
+                            <span class="text-success">
+                                Rs. {{ entry.credit|floatformat:2 }}
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <!-- BALANCE -->
+                    <td class="text-end fw-bold">
+                        {% if entry.running_balance > 0 %}
+                            <span class="text-danger">
+                                Rs. {{ entry.running_balance|floatformat:2 }}
+                            </span>
+                        {% elif entry.running_balance < 0 %}
+                            <span class="text-success">
+                                Rs. {{ entry.running_balance|floatformat:2 }}
+                            </span>
+                        {% else %}
+                            Rs. 0.00
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        No company transactions found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

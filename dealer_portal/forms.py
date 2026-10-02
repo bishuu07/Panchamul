@@ -1,5 +1,6 @@
 from django import forms
-from .models import DealerCustomer,DealerSale,DealerSponsor
+from .models import DealerCustomer,DealerSale,DealerSponsor, CompanyPayment
+
 
 
 class DealerCustomerForm(forms.ModelForm):
@@ -67,3 +68,58 @@ class DealerSponsorForm(forms.ModelForm):
             'remarks'
 
         ]
+
+
+
+
+
+
+class CompanyPaymentForm(forms.ModelForm):
+
+    class Meta:
+        model = CompanyPayment
+        fields = [
+            'payment_date',
+            'amount',
+            'payment_method',
+            'reference_no',
+            'remarks',
+        ]
+
+        widgets = {
+            'payment_date': forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'class': 'form-control'
+                }
+            ),
+
+            'amount': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.01',
+                    'min': '0.01'
+                }
+            ),
+
+            'payment_method': forms.Select(
+                attrs={
+                    'class': 'form-select'
+                }
+            ),
+
+            'reference_no': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'e.g. PAY-0001'
+                }
+            ),
+
+            'remarks': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'rows': 3,
+                    'placeholder': 'Payment remarks...'
+                }
+            ),
+        }

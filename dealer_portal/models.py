@@ -1,6 +1,7 @@
 from django.db import models
 from dealers.models import Dealer
 from inventory.models import Product
+from django.conf import settings
 
 class DealerCustomer(models.Model):
 
@@ -493,9 +494,60 @@ class VehicleDispatchSale(models.Model):
         )
 
 
+class CompanyPayment(models.Model):
 
+    PAYMENT_METHOD_CHOICES = (
+        ('CASH', 'Cash'),
+        ('BANK', 'Bank Transfer'),
+        ('FONEPAY', 'Fonepay'),
+        ('CHEQUE', 'Cheque'),
+        ('OTHER', 'Other'),
+    )
+
+    dealer = models.ForeignKey(
+        'dealers.Dealer',
+        on_delete=models.CASCADE,
+        related_name='company_payments'
+    )
+
+    payment_date = models.DateField()
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES
+    )
+
+    reference_no = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    remarks = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.dealer} - {self.amount}"
 
 class DealerSponsor(models.Model):
+    
 
     SOURCE_CHOICES = (
         ('DEALER', 'Dealer'),
@@ -556,3 +608,60 @@ class DealerSponsor(models.Model):
 
     def __str__(self):
         return f"{self.product.name} ({self.quantity})"
+
+
+
+class DealerCompanyLedger(models.Model):
+
+    TRANSACTION_CHOICES = (
+        ('DISPATCH', 'Company Dispatch'),
+        ('PAYMENT', 'Payment to Company'),
+        ('ADJUSTMENT', 'Adjustment'),
+    )
+
+    dealer = models.ForeignKey(
+        'dealers.Dealer',
+        on_delete=models.CASCADE,
+        related_name='company_ledger'
+    )
+
+    transaction_date = models.DateField()
+
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=TRANSACTION_CHOICES
+    )
+
+    dispatch = models.ForeignKey(
+        'inventory.Dispatch',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    payment = models.ForeignKey(
+        CompanyPayment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    debit = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    credit = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    remarks = models.TextField(
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )

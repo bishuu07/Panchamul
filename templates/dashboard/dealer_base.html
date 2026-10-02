@@ -76,15 +76,30 @@
 
 <div class="sidebar">
 
+    <!-- ============================= -->
+    <!-- LOGO -->
+    <!-- ============================= -->
+
     <div class="logo">
         Dealer ERP
     </div>
+
+
+    <!-- ============================= -->
+    <!-- DASHBOARD -->
+    <!-- ============================= -->
 
     <a href="{% url 'dealer_dashboard' %}">
         Dashboard
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- DISPATCH -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Dispatch
@@ -102,7 +117,13 @@
         New Vehicle Dispatch
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- INVENTORY -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Inventory
@@ -116,7 +137,24 @@
         Stock Report
     </a>
 
+
     <hr style="color:white;">
+
+        <div class="menu-title">
+            Reports
+        </div>
+
+        <a href="{% url 'dealer_overall_report' %}">
+            Overall Report
+        </a>
+
+
+    <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- CUSTOMERS -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Customers
@@ -138,7 +176,13 @@
         Outstanding Report
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- SALES -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Sales
@@ -164,40 +208,71 @@
         Sales Report
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- ACCOUNTS -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Accounts
     </div>
 
+
+    <!-- Customer Accounts -->
+
     <a href="{% url 'dealer_customer_payment_list' %}">
-        Payment History
+        Customer Payment History
     </a>
 
     <a href="{% url 'dealer_customer_payment_create' %}">
-        Add Payment
+        Add Customer Payment
     </a>
 
 
-    <hr>
+    <!-- Company Accounts -->
 
-        <div class="menu-title">
-            Expenses
-        </div>
+    <a href="{% url 'company_ledger' %}">
+        Company Ledger
+    </a>
 
-        <a href="{% url 'dealer_expense_list' %}">
-            Expense List
-        </a>
+    <a href="{% url 'company_payment_create' %}">
+        Pay Company
+    </a>
 
-        <a href="{% url 'dealer_expense_create' %}">
-            Add Expense
-        </a>
-
-        <a href="{% url 'dealer_expense_report' %}">
-            Expense Report
-        </a>
 
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- EXPENSES -->
+    <!-- ============================= -->
+
+    <div class="menu-title">
+        Expenses
+    </div>
+
+    <a href="{% url 'dealer_expense_list' %}">
+        Expense List
+    </a>
+
+    <a href="{% url 'dealer_expense_create' %}">
+        Add Expense
+    </a>
+
+    <a href="{% url 'dealer_expense_report' %}">
+        Expense Report
+    </a>
+
+
+    <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- SPONSOR -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Sponsor
@@ -211,7 +286,13 @@
         Give Sponsor
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- VEHICLE MANAGEMENT -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Vehicle Management
@@ -225,7 +306,13 @@
         Add Vehicle
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- DEALER STAFF -->
+    <!-- ============================= -->
 
     <div class="menu-title">
         Dealer Staff
@@ -239,7 +326,13 @@
         Add Staff
     </a>
 
+
     <hr style="color:white;">
+
+
+    <!-- ============================= -->
+    <!-- LOGOUT -->
+    <!-- ============================= -->
 
     <a href="{% url 'logout' %}">
         Logout
@@ -248,12 +341,17 @@
 </div>
 
 
+<!-- ============================= -->
+<!-- MAIN CONTENT -->
+<!-- ============================= -->
+
 <div class="main-content">
 
     {% block content %}
     {% endblock %}
 
-</div> o
+</div>
+
 
 </body>
 

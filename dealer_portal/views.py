@@ -4,7 +4,7 @@ from .models import DealerCustomer, DealerSalesReturn, DealerSalesReturnItem
 from django.shortcuts import render, redirect,get_object_or_404
 from dealers.models import DealerProfile
 from inventory.models import DealerStock
-from .forms import DealerCustomerForm,DealerSaleForm, DealerVehicleForm,DealerSponsorForm
+from .forms import DealerCustomerForm,DealerSaleForm, DealerVehicleForm,DealerSponsorForm, CompanyPaymentForm
 from dealers.models import DealerProfile
 from inventory.models import Dispatch, DispatchItem,Product,DealerStock
 from decimal import Decimal
@@ -15,6 +15,7 @@ from datetime import date
 from .utils import add_customer_ledger
 from django.db import transaction
 from expenses.models import TripExpense
+from django.contrib import messages
 
 from .models import (
     DealerSale,
@@ -28,8 +29,12 @@ from .models import (
     DealerSponsor,
     VehicleTrip,
     VehicleDispatchSale,
+    DealerCompanyLedger,
+    CompanyPayment,
+
     
 )
+from expenses.models import DealerExpense
 
 
 
@@ -354,48 +359,274 @@ def dealer_pending_dispatch_list(request):
         {'dispatches': dispatches}
     )
 
+
+
 # @login_required
 # def dealer_dispatch_approve(request, pk):
 
-#     profile = DealerProfile.objects.get(admin_user=request.user)
+
+#     profile = get_object_or_404(
+#         DealerProfile,
+#         admin_user=request.user
+#     )
+
 #     dealer = profile.dealer
 
 #     dispatch = get_object_or_404(
 #         Dispatch,
 #         pk=pk,
-#         dealer=dealer,
-#         status='PENDING'
+#         dealer=dealer
 #     )
+
+#     # Do not process an already approved dispatch
+#     if dispatch.status != 'PENDING':
+
+#         return redirect(
+#             'dealer_dispatch_edit',
+#             dispatch.id
+#         )
+
+#     items = dispatch.items.select_related(
+#         'product'
+#     ).all()
 
 #     if request.method == 'POST':
 
-#         # Mark approved
-#         dispatch.status = 'APPROVED'
-#         dispatch.dealer_approved_by = request.user
-#         dispatch.approved_at = timezone.now()
-#         dispatch.save()
+#         errors = []
 
-#         # CREATE DEALER STOCK
-#         for item in dispatch.items.all():
+#         validated_items = []
 
-#             DealerStock.objects.create(
-#                 dealer=dealer,
-#                 product=item.product,
-#                 quantity=item.dispatched_qty
+#         total_dispatched = Decimal('0')
+#         total_received = Decimal('0')
+#         total_damaged = Decimal('0')
+#         total_returned = Decimal('0')
+
+#         # -------------------------------------------------
+#         # 1. VALIDATE ALL ITEMS FIRST
+#         # -------------------------------------------------
+
+#         for item in items:
+
+#             try:
+
+#                 received_qty = Decimal(
+#                     request.POST.get(
+#                         f'received_{item.id}',
+#                         '0'
+#                     ) or '0'
+#                 )
+
+#                 damaged_qty = Decimal(
+#                     request.POST.get(
+#                         f'damaged_{item.id}',
+#                         '0'
+#                     ) or '0'
+#                 )
+
+#                 returned_qty = Decimal(
+#                     request.POST.get(
+#                         f'returned_{item.id}',
+#                         '0'
+#                     ) or '0'
+#                 )
+
+#             except Exception:
+
+#                 errors.append(
+#                     f'{item.product.name}: '
+#                     f'Invalid quantity entered.'
+#                 )
+
+#                 continue
+
+#             # ---------------------------------------------
+#             # Prevent negative quantities
+#             # ---------------------------------------------
+
+#             if (
+#                 received_qty < 0
+#                 or damaged_qty < 0
+#                 or returned_qty < 0
+#             ):
+
+#                 errors.append(
+#                     f'{item.product.name}: '
+#                     f'Quantities cannot be negative.'
+#                 )
+
+#                 continue
+
+#             # ---------------------------------------------
+#             # Received + Damaged + Returned
+#             # must equal Dispatched
+#             # ---------------------------------------------
+
+#             item_total = (
+#                 received_qty
+#                 + damaged_qty
+#                 + returned_qty
 #             )
 
-#         return redirect('dealer_pending_dispatch_list')
+#             if item_total != item.dispatched_qty:
+
+#                 errors.append(
+#                     f'{item.product.name}: '
+#                     f'Dispatched {item.dispatched_qty}, '
+#                     f'but Received + Damaged + Returned = '
+#                     f'{item_total}.'
+#                 )
+
+#                 continue
+
+#             # ---------------------------------------------
+#             # Store validated data temporarily
+#             # ---------------------------------------------
+
+#             validated_items.append(
+#                 (
+#                     item,
+#                     received_qty,
+#                     damaged_qty,
+#                     returned_qty
+#                 )
+#             )
+
+#             total_dispatched += item.dispatched_qty
+#             total_received += received_qty
+#             total_damaged += damaged_qty
+#             total_returned += returned_qty
+
+#         # -------------------------------------------------
+#         # 2. STOP IF VALIDATION FAILED
+#         # -------------------------------------------------
+
+#         if errors:
+
+#             return render(
+#                 request,
+#                 'dealer_portal/dispatch_approval.html',
+#                 {
+#                     'dispatch': dispatch,
+#                     'items': items,
+#                     'errors': errors,
+#                 }
+#             )
+
+#         # -------------------------------------------------
+#         # 3. SAFETY CHECK
+#         # -------------------------------------------------
+
+#         if total_dispatched <= 0:
+
+#             return render(
+#                 request,
+#                 'dealer_portal/dispatch_approval.html',
+#                 {
+#                     'dispatch': dispatch,
+#                     'items': items,
+#                     'errors': [
+#                         'Dispatch has no valid quantity.'
+#                     ],
+#                 }
+#             )
+
+#         # -------------------------------------------------
+#         # 4. UPDATE EVERYTHING ATOMICALLY
+#         # -------------------------------------------------
+
+#         with transaction.atomic():
+
+#             # ---------------------------------------------
+#             # Update each dispatch item
+#             # and add RECEIVED quantity to DealerStock
+#             # ---------------------------------------------
+
+#             for (
+#                 item,
+#                 received_qty,
+#                 damaged_qty,
+#                 returned_qty
+#             ) in validated_items:
+
+#                 # -----------------------------------------
+#                 # Update dispatch item
+#                 # -----------------------------------------
+
+#                 item.received_qty = received_qty
+#                 item.damaged_qty = damaged_qty
+#                 item.returned_qty = returned_qty
+
+#                 item.save(
+#                     update_fields=[
+#                         'received_qty',
+#                         'damaged_qty',
+#                         'returned_qty'
+#                     ]
+#                 )
+
+#                 # -----------------------------------------
+#                 # Add ONLY received quantity to DealerStock
+#                 # -----------------------------------------
+
+#                 stock, created = DealerStock.objects.get_or_create(
+#                     dealer=dealer,
+#                     product=item.product,
+#                     defaults={
+#                         'quantity': Decimal('0')
+#                     }
+#                 )
+
+#                 stock.quantity += received_qty
+
+#                 stock.save(
+#                     update_fields=[
+#                         'quantity',
+#                         'updated_at'
+#                     ]
+#                 )
+
+#             # ---------------------------------------------
+#             # Mark dispatch approved
+#             # ---------------------------------------------
+
+#             dispatch.status = 'APPROVED'
+
+#             dispatch.dealer_approved_by = request.user
+
+#             dispatch.approved_at = timezone.now()
+
+#             dispatch.save(
+#                 update_fields=[
+#                     'status',
+#                     'dealer_approved_by',
+#                     'approved_at'
+#                 ]
+#             )
+
+#         # -------------------------------------------------
+#         # 5. RETURN TO DISPATCH LIST
+#         # -------------------------------------------------
+
+#         return redirect(
+#             'dealer_dispatch_list'
+#         )
+
+# # -----------------------------------------------------
+# # GET REQUEST
+# # -----------------------------------------------------
 
 #     return render(
 #         request,
 #         'dealer_portal/dispatch_approval.html',
-#         {'dispatch': dispatch}
+#         {
+#             'dispatch': dispatch,
+#             'items': items,
+#         }
 #     )
 
 
 @login_required
 def dealer_dispatch_approve(request, pk):
-
 
     profile = get_object_or_404(
         DealerProfile,
@@ -410,7 +641,10 @@ def dealer_dispatch_approve(request, pk):
         dealer=dealer
     )
 
-    # Do not process an already approved dispatch
+    # -------------------------------------------------
+    # Already approved/partial dispatch
+    # -------------------------------------------------
+
     if dispatch.status != 'PENDING':
 
         return redirect(
@@ -418,9 +652,15 @@ def dealer_dispatch_approve(request, pk):
             dispatch.id
         )
 
-    items = dispatch.items.select_related(
-        'product'
-    ).all()
+    items = list(
+        dispatch.items.select_related(
+            'product'
+        ).all()
+    )
+
+    # -------------------------------------------------
+    # POST
+    # -------------------------------------------------
 
     if request.method == 'POST':
 
@@ -433,9 +673,9 @@ def dealer_dispatch_approve(request, pk):
         total_damaged = Decimal('0')
         total_returned = Decimal('0')
 
-        # -------------------------------------------------
+        # =================================================
         # 1. VALIDATE ALL ITEMS FIRST
-        # -------------------------------------------------
+        # =================================================
 
         for item in items:
 
@@ -466,14 +706,14 @@ def dealer_dispatch_approve(request, pk):
 
                 errors.append(
                     f'{item.product.name}: '
-                    f'Invalid quantity entered.'
+                    'Invalid quantity entered.'
                 )
 
                 continue
 
-            # ---------------------------------------------
+            # -------------------------------------------------
             # Prevent negative quantities
-            # ---------------------------------------------
+            # -------------------------------------------------
 
             if (
                 received_qty < 0
@@ -483,15 +723,15 @@ def dealer_dispatch_approve(request, pk):
 
                 errors.append(
                     f'{item.product.name}: '
-                    f'Quantities cannot be negative.'
+                    'Quantities cannot be negative.'
                 )
 
                 continue
 
-            # ---------------------------------------------
+            # -------------------------------------------------
             # Received + Damaged + Returned
             # must equal Dispatched
-            # ---------------------------------------------
+            # -------------------------------------------------
 
             item_total = (
                 received_qty
@@ -510,9 +750,9 @@ def dealer_dispatch_approve(request, pk):
 
                 continue
 
-            # ---------------------------------------------
-            # Store validated data temporarily
-            # ---------------------------------------------
+            # -------------------------------------------------
+            # Store validated values
+            # -------------------------------------------------
 
             validated_items.append(
                 (
@@ -528,9 +768,9 @@ def dealer_dispatch_approve(request, pk):
             total_damaged += damaged_qty
             total_returned += returned_qty
 
-        # -------------------------------------------------
+        # =================================================
         # 2. STOP IF VALIDATION FAILED
-        # -------------------------------------------------
+        # =================================================
 
         if errors:
 
@@ -544,9 +784,9 @@ def dealer_dispatch_approve(request, pk):
                 }
             )
 
-        # -------------------------------------------------
+        # =================================================
         # 3. SAFETY CHECK
-        # -------------------------------------------------
+        # =================================================
 
         if total_dispatched <= 0:
 
@@ -562,16 +802,15 @@ def dealer_dispatch_approve(request, pk):
                 }
             )
 
-        # -------------------------------------------------
+        # =================================================
         # 4. UPDATE EVERYTHING ATOMICALLY
-        # -------------------------------------------------
+        # =================================================
 
         with transaction.atomic():
 
-            # ---------------------------------------------
-            # Update each dispatch item
-            # and add RECEIVED quantity to DealerStock
-            # ---------------------------------------------
+            # -------------------------------------------------
+            # Update dispatch items
+            # -------------------------------------------------
 
             for (
                 item,
@@ -579,10 +818,6 @@ def dealer_dispatch_approve(request, pk):
                 damaged_qty,
                 returned_qty
             ) in validated_items:
-
-                # -----------------------------------------
-                # Update dispatch item
-                # -----------------------------------------
 
                 item.received_qty = received_qty
                 item.damaged_qty = damaged_qty
@@ -596,9 +831,9 @@ def dealer_dispatch_approve(request, pk):
                     ]
                 )
 
-                # -----------------------------------------
+                # -------------------------------------------------
                 # Add ONLY received quantity to DealerStock
-                # -----------------------------------------
+                # -------------------------------------------------
 
                 stock, created = DealerStock.objects.get_or_create(
                     dealer=dealer,
@@ -608,7 +843,15 @@ def dealer_dispatch_approve(request, pk):
                     }
                 )
 
-                stock.quantity += received_qty
+                current_stock = (
+                    stock.quantity
+                    or Decimal('0')
+                )
+
+                stock.quantity = (
+                    current_stock
+                    + received_qty
+                )
 
                 stock.save(
                     update_fields=[
@@ -617,9 +860,9 @@ def dealer_dispatch_approve(request, pk):
                     ]
                 )
 
-            # ---------------------------------------------
+            # -------------------------------------------------
             # Mark dispatch approved
-            # ---------------------------------------------
+            # -------------------------------------------------
 
             dispatch.status = 'APPROVED'
 
@@ -635,17 +878,59 @@ def dealer_dispatch_approve(request, pk):
                 ]
             )
 
-        # -------------------------------------------------
-        # 5. RETURN TO DISPATCH LIST
-        # -------------------------------------------------
+            # =================================================
+            # COMPANY LEDGER
+            # =================================================
+            #
+            # Create ONE debit for this company dispatch.
+            #
+            # dispatch.total_amount is the amount the dealer
+            # owes the company for this dispatch.
+            #
+            # Do NOT create another ledger entry if one already
+            # exists.
+            # =================================================
+
+            ledger_exists = DealerCompanyLedger.objects.filter(
+                transaction_type='DISPATCH',
+                dispatch=dispatch
+            ).exists()
+
+            if not ledger_exists:
+
+                DealerCompanyLedger.objects.create(
+                    dealer=dealer,
+                    transaction_date=dispatch.dispatch_date,
+                    transaction_type='DISPATCH',
+                    dispatch=dispatch,
+                    debit=dispatch.total_amount,
+                    credit=Decimal('0'),
+                    remarks=(
+                        f'Company Dispatch '
+                        f'{dispatch.dispatch_no}'
+                    )
+                )
+
+        # =================================================
+        # 5. SUCCESS MESSAGE
+        # =================================================
+
+        messages.success(
+            request,
+            f'Dispatch {dispatch.dispatch_no} approved successfully.'
+        )
+
+        # =================================================
+        # 6. RETURN TO DISPATCH LIST
+        # =================================================
 
         return redirect(
             'dealer_dispatch_list'
         )
 
-# -----------------------------------------------------
-# GET REQUEST
-# -----------------------------------------------------
+    # =====================================================
+    # GET REQUEST
+    # =====================================================
 
     return render(
         request,
@@ -656,6 +941,221 @@ def dealer_dispatch_approve(request, pk):
         }
     )
 
+
+
+# @login_required
+# def dealer_dispatch_edit(request, pk):
+
+#     profile = get_object_or_404(
+#         DealerProfile,
+#         admin_user=request.user
+#     )
+
+#     dealer = profile.dealer
+
+#     dispatch = get_object_or_404(
+#         Dispatch,
+#         pk=pk,
+#         dealer=dealer
+#     )
+
+#     # Only approved/partial dispatches can be edited.
+#     if dispatch.status not in ['APPROVED', 'PARTIAL']:
+
+#         return redirect(
+#             'dealer_dispatch_approval',
+#             dispatch.id
+#         )
+
+#     items = list(
+#         dispatch.items.select_related(
+#             'product'
+#         ).all()
+#     )
+
+#     if request.method == 'POST':
+
+#         errors = []
+
+#         # Store old received quantities first.
+#         old_received = {}
+
+#         for item in items:
+
+#             old_received[item.id] = (
+#                 item.received_qty or Decimal('0')
+#             )
+
+#         # -----------------------------------
+#         # Validate everything FIRST
+#         # -----------------------------------
+
+#         new_values = {}
+
+#         for item in items:
+
+#             received_qty = Decimal(
+#                 request.POST.get(
+#                     f'received_{item.id}',
+#                     '0'
+#                 ) or '0'
+#             )
+
+#             damaged_qty = Decimal(
+#                 request.POST.get(
+#                     f'damaged_{item.id}',
+#                     '0'
+#                 ) or '0'
+#             )
+
+#             returned_qty = Decimal(
+#                 request.POST.get(
+#                     f'returned_{item.id}',
+#                     '0'
+#                 ) or '0'
+#             )
+
+#             if (
+#                 received_qty < 0
+#                 or damaged_qty < 0
+#                 or returned_qty < 0
+#             ):
+
+#                 errors.append(
+#                     f'{item.product.name}: '
+#                     'quantities cannot be negative.'
+#                 )
+
+#                 continue
+
+#             total = (
+#                 received_qty
+#                 + damaged_qty
+#                 + returned_qty
+#             )
+
+#             if total != item.dispatched_qty:
+
+#                 errors.append(
+#                     f'{item.product.name}: '
+#                     f'Dispatched {item.dispatched_qty}, '
+#                     f'but Received + Damaged + Returned = '
+#                     f'{total}.'
+#                 )
+
+#                 continue
+
+#             new_values[item.id] = {
+#                 'received': received_qty,
+#                 'damaged': damaged_qty,
+#                 'returned': returned_qty,
+#             }
+
+#         # Don't modify database if anything is invalid.
+#         if errors:
+
+#             return render(
+#                 request,
+#                 'dealer_portal/dispatch_approval.html',
+#                 {
+#                     'dispatch': dispatch,
+#                     'items': items,
+#                     'errors': errors,
+#                     'edit_mode': True,
+#                 }
+#             )
+
+#         # -----------------------------------
+#         # Update stock + dispatch items
+#         # -----------------------------------
+
+#         for item in items:
+
+#             values = new_values[item.id]
+
+#             new_received = values['received']
+
+#             old_qty = old_received[item.id]
+
+#             # Difference in received stock
+#             stock_difference = (
+#                 new_received - old_qty
+#             )
+
+#             if stock_difference != 0:
+
+#                 stock, created = DealerStock.objects.get_or_create(
+#                     dealer=dealer,
+#                     product=item.product,
+#                     defaults={
+#                         'quantity': Decimal('0')
+#                     }
+#                 )
+
+#                 current_stock = (
+#                     stock.quantity
+#                     or Decimal('0')
+#                 )
+
+#                 new_stock = (
+#                     current_stock
+#                     + stock_difference
+#                 )
+
+#                 # Never allow negative stock
+#                 if new_stock < 0:
+
+#                     errors.append(
+#                         f'{item.product.name}: '
+#                         'stock cannot become negative.'
+#                     )
+
+#                     continue
+
+#                 stock.quantity = new_stock
+#                 stock.save(
+#                     update_fields=['quantity']
+#                 )
+
+#             # Update dispatch item
+#             item.received_qty = values['received']
+#             item.damaged_qty = values['damaged']
+#             item.returned_qty = values['returned']
+
+#             item.save(
+#                 update_fields=[
+#                     'received_qty',
+#                     'damaged_qty',
+#                     'returned_qty'
+#                 ]
+#             )
+
+#         if errors:
+
+#             return render(
+#                 request,
+#                 'dealer_portal/dispatch_approval.html',
+#                 {
+#                     'dispatch': dispatch,
+#                     'items': items,
+#                     'errors': errors,
+#                     'edit_mode': True,
+#                 }
+#             )
+
+#         return redirect(
+#             'dealer_dispatch_list'
+#         )
+
+#     return render(
+#         request,
+#         'dealer_portal/dispatch_approval.html',
+#         {
+#             'dispatch': dispatch,
+#             'items': items,
+#             'edit_mode': True,
+#         }
+#     )
 
 
 @login_required
@@ -674,7 +1174,10 @@ def dealer_dispatch_edit(request, pk):
         dealer=dealer
     )
 
+    # -------------------------------------------------
     # Only approved/partial dispatches can be edited.
+    # -------------------------------------------------
+
     if dispatch.status not in ['APPROVED', 'PARTIAL']:
 
         return redirect(
@@ -688,47 +1191,70 @@ def dealer_dispatch_edit(request, pk):
         ).all()
     )
 
+    # -------------------------------------------------
+    # POST
+    # -------------------------------------------------
+
     if request.method == 'POST':
 
         errors = []
 
-        # Store old received quantities first.
+        # -------------------------------------------------
+        # Store old received quantities
+        # -------------------------------------------------
+
         old_received = {}
 
         for item in items:
 
             old_received[item.id] = (
-                item.received_qty or Decimal('0')
+                item.received_qty
+                or Decimal('0')
             )
 
-        # -----------------------------------
-        # Validate everything FIRST
-        # -----------------------------------
+        # -------------------------------------------------
+        # Validate everything first
+        # -------------------------------------------------
 
         new_values = {}
 
         for item in items:
 
-            received_qty = Decimal(
-                request.POST.get(
-                    f'received_{item.id}',
-                    '0'
-                ) or '0'
-            )
+            try:
 
-            damaged_qty = Decimal(
-                request.POST.get(
-                    f'damaged_{item.id}',
-                    '0'
-                ) or '0'
-            )
+                received_qty = Decimal(
+                    request.POST.get(
+                        f'received_{item.id}',
+                        '0'
+                    ) or '0'
+                )
 
-            returned_qty = Decimal(
-                request.POST.get(
-                    f'returned_{item.id}',
-                    '0'
-                ) or '0'
-            )
+                damaged_qty = Decimal(
+                    request.POST.get(
+                        f'damaged_{item.id}',
+                        '0'
+                    ) or '0'
+                )
+
+                returned_qty = Decimal(
+                    request.POST.get(
+                        f'returned_{item.id}',
+                        '0'
+                    ) or '0'
+                )
+
+            except Exception:
+
+                errors.append(
+                    f'{item.product.name}: '
+                    'Invalid quantity entered.'
+                )
+
+                continue
+
+            # -------------------------------------------------
+            # Prevent negative quantities
+            # -------------------------------------------------
 
             if (
                 received_qty < 0
@@ -738,10 +1264,15 @@ def dealer_dispatch_edit(request, pk):
 
                 errors.append(
                     f'{item.product.name}: '
-                    'quantities cannot be negative.'
+                    'Quantities cannot be negative.'
                 )
 
                 continue
+
+            # -------------------------------------------------
+            # Received + Damaged + Returned
+            # must equal Dispatched
+            # -------------------------------------------------
 
             total = (
                 received_qty
@@ -766,7 +1297,10 @@ def dealer_dispatch_edit(request, pk):
                 'returned': returned_qty,
             }
 
-        # Don't modify database if anything is invalid.
+        # -------------------------------------------------
+        # Stop if validation failed
+        # -------------------------------------------------
+
         if errors:
 
             return render(
@@ -780,9 +1314,9 @@ def dealer_dispatch_edit(request, pk):
                 }
             )
 
-        # -----------------------------------
-        # Update stock + dispatch items
-        # -----------------------------------
+        # =================================================
+        # CHECK STOCK CHANGES BEFORE MODIFYING DATABASE
+        # =================================================
 
         for item in items:
 
@@ -792,24 +1326,21 @@ def dealer_dispatch_edit(request, pk):
 
             old_qty = old_received[item.id]
 
-            # Difference in received stock
             stock_difference = (
                 new_received - old_qty
             )
 
-            if stock_difference != 0:
+            if stock_difference < 0:
 
-                stock, created = DealerStock.objects.get_or_create(
+                stock = DealerStock.objects.filter(
                     dealer=dealer,
-                    product=item.product,
-                    defaults={
-                        'quantity': Decimal('0')
-                    }
-                )
+                    product=item.product
+                ).first()
 
                 current_stock = (
                     stock.quantity
-                    or Decimal('0')
+                    if stock
+                    else Decimal('0')
                 )
 
                 new_stock = (
@@ -817,7 +1348,6 @@ def dealer_dispatch_edit(request, pk):
                     + stock_difference
                 )
 
-                # Never allow negative stock
                 if new_stock < 0:
 
                     errors.append(
@@ -825,25 +1355,9 @@ def dealer_dispatch_edit(request, pk):
                         'stock cannot become negative.'
                     )
 
-                    continue
-
-                stock.quantity = new_stock
-                stock.save(
-                    update_fields=['quantity']
-                )
-
-            # Update dispatch item
-            item.received_qty = values['received']
-            item.damaged_qty = values['damaged']
-            item.returned_qty = values['returned']
-
-            item.save(
-                update_fields=[
-                    'received_qty',
-                    'damaged_qty',
-                    'returned_qty'
-                ]
-            )
+        # -------------------------------------------------
+        # Stop if stock validation failed
+        # -------------------------------------------------
 
         if errors:
 
@@ -858,9 +1372,101 @@ def dealer_dispatch_edit(request, pk):
                 }
             )
 
+        # =================================================
+        # UPDATE STOCK + DISPATCH ITEMS ATOMICALLY
+        # =================================================
+
+        with transaction.atomic():
+
+            for item in items:
+
+                values = new_values[item.id]
+
+                new_received = values['received']
+
+                old_qty = old_received[item.id]
+
+                # -------------------------------------------------
+                # Difference in dealer stock
+                # -------------------------------------------------
+
+                stock_difference = (
+                    new_received - old_qty
+                )
+
+                if stock_difference != 0:
+
+                    stock, created = DealerStock.objects.get_or_create(
+                        dealer=dealer,
+                        product=item.product,
+                        defaults={
+                            'quantity': Decimal('0')
+                        }
+                    )
+
+                    current_stock = (
+                        stock.quantity
+                        or Decimal('0')
+                    )
+
+                    stock.quantity = (
+                        current_stock
+                        + stock_difference
+                    )
+
+                    stock.save(
+                        update_fields=[
+                            'quantity',
+                            'updated_at'
+                        ]
+                    )
+
+                # -------------------------------------------------
+                # Update dispatch item
+                # -------------------------------------------------
+
+                item.received_qty = values['received']
+                item.damaged_qty = values['damaged']
+                item.returned_qty = values['returned']
+
+                item.save(
+                    update_fields=[
+                        'received_qty',
+                        'damaged_qty',
+                        'returned_qty'
+                    ]
+                )
+
+        # -------------------------------------------------
+        # IMPORTANT:
+        #
+        # DO NOT CREATE ANOTHER COMPANY LEDGER ENTRY HERE.
+        #
+        # The original DISPATCH debit already exists.
+        #
+        # Example:
+        #
+        # Dispatch 345345 = 20,000
+        #
+        # Editing:
+        # Received 200 -> 195
+        #
+        # does NOT create another 20,000 debit.
+        #
+        # -------------------------------------------------
+
+        messages.success(
+            request,
+            f'Dispatch {dispatch.dispatch_no} updated successfully.'
+        )
+
         return redirect(
             'dealer_dispatch_list'
         )
+
+    # -------------------------------------------------
+    # GET REQUEST
+    # -------------------------------------------------
 
     return render(
         request,
@@ -922,163 +1528,7 @@ def dealer_dispatch_detail(request, dispatch_id):
             'items': items,
         }
     )
-# @login_required
-# def dealer_sale_create(request):
 
-#     profile = DealerProfile.objects.get(
-#         admin_user=request.user
-#     )
-
-#     dealer = profile.dealer
-
-#     products = Product.objects.filter(
-#         is_active=True
-#     )
-
-#     customers = DealerCustomer.objects.filter(
-#         dealer=dealer
-#     )
-
-#     if request.method == "POST":
-
-#         customer_id = request.POST.get(
-#             'customer'
-#         )
-
-#         invoice_no = request.POST.get(
-#             'invoice_no'
-#         )
-
-#         sale_date = request.POST.get(
-#             'sale_date'
-#         )
-
-#         paid_amount = Decimal(
-#             request.POST.get(
-#                 'paid_amount',
-#                 0
-#             ) or 0
-#         )
-
-#         customer = DealerCustomer.objects.get(
-#             id=customer_id
-#         )
-
-#         sale = DealerSale.objects.create(
-#             dealer=dealer,
-#             customer=customer,
-#             invoice_no=invoice_no,
-#             sale_date=sale_date,
-#             paid_amount=paid_amount
-#         )
-
-#         total_amount = Decimal('0')
-
-#         product_ids = request.POST.getlist(
-#             'product[]'
-#         )
-
-#         for product_id in product_ids:
-
-#             qty = Decimal(
-#                 request.POST.get(
-#                     f'qty_{product_id}',
-#                     0
-#                 ) or 0
-#             )
-
-#             rate = Decimal(
-#                 request.POST.get(
-#                     f'rate_{product_id}',
-#                     0
-#                 ) or 0
-#             )
-
-#             if qty <= 0:
-#                 continue
-
-#             product = Product.objects.get(
-#                 id=product_id
-#             )
-
-#             stock = DealerStock.objects.get(
-#                 dealer=dealer,
-#                 product=product
-#             )
-
-#             if stock.quantity < qty:
-
-#                 sale.delete()
-
-#                 return render(
-#                     request,
-#                     'dealer_portal/sale_create.html',
-#                     {
-#                         'products': products,
-#                         'customers': customers,
-#                         'error':
-#                         f'Insufficient stock for '
-#                         f'{product.name}'
-#                     }
-#                 )
-
-#             amount = qty * rate
-
-#             DealerSaleItem.objects.create(
-#                 sale=sale,
-#                 product=product,
-#                 quantity=qty,
-#                 rate=rate,
-#                 amount=amount
-#             )
-
-#             stock.quantity -= qty
-#             stock.save()
-
-#             total_amount += amount
-
-#         sale.total_amount = total_amount
-#         sale.due_amount = (
-#             total_amount -
-#             paid_amount
-#         )
-
-#         sale.save()
-
-#         balance = add_customer_ledger(
-#             customer=customer,
-#             entry_type="SALE",
-#             debit=total_amount
-#         )
-
-#         if paid_amount > 0:
-
-#             balance = add_customer_ledger(
-#                 customer=customer,
-#                 entry_type="PAYMENT",
-#                 credit=paid_amount
-#             )
-
-#         sale.due_amount = balance
-#         sale.save()
-
-#         return redirect(
-#             'dealer_sale_list'
-#         )
-
-#     stocks = DealerStock.objects.filter(
-#     dealer=dealer
-# )
-
-#     return render(
-#         request,
-#         'dealer_portal/sale_create.html',
-#         {
-#             'products': products,
-#             'customers': customers,
-#             'stocks': stocks
-#         }
-#     )
 
 
 from django.db import transaction
@@ -1750,75 +2200,7 @@ def dealer_customer_ledger_list(request):
     )
 
 
-# @login_required
-# def dealer_customer_ledger_detail(
-#     request,
-#     customer_id
-# ):
 
-#     profile = get_object_or_404(
-#         DealerProfile,
-#         admin_user=request.user
-#     )
-
-#     customer = get_object_or_404(
-#         DealerCustomer,
-#         id=customer_id,
-#         dealer=profile.dealer
-#     )
-
-#     ledger_entries = (
-#         DealerCustomerLedger.objects
-#         .filter(
-#             customer=customer
-#         )
-#         .order_by("id")
-#     )
-
-#     total_debit = sum(
-#         (
-#             entry.debit
-#             for entry in ledger_entries
-#         ),
-#         Decimal("0")
-#     )
-
-#     total_credit = sum(
-#         (
-#             entry.credit
-#             for entry in ledger_entries
-#         ),
-#         Decimal("0")
-#     )
-
-#     total_bonus = sum(
-#         (
-#             entry.bonus_quantity
-#             for entry in ledger_entries
-#         ),
-#         Decimal("0")
-#     )
-
-#     last_entry = ledger_entries.last()
-
-#     balance = (
-#         last_entry.balance
-#         if last_entry
-#         else Decimal("0")
-#     )
-
-#     return render(
-#         request,
-#         "dealer_portal/customer_ledger_detail.html",
-#         {
-#             "customer": customer,
-#             "ledger_entries": ledger_entries,
-#             "total_debit": total_debit,
-#             "total_credit": total_credit,
-#             "total_bonus": total_bonus,
-#             "balance": balance
-#         }
-#     )
 
 @login_required
 def dealer_customer_ledger_detail(request, customer_id):
@@ -3142,591 +3524,7 @@ def vehicle_trip_create(request, dispatch_id):
 
 
 @login_required
-# def vehicle_trip_close(request, trip_id):
 
-#     # =====================================================
-#     # DEALER PROFILE
-#     # =====================================================
-
-#     profile = get_object_or_404(
-#         DealerProfile,
-#         admin_user=request.user
-#     )
-
-#     dealer = profile.dealer
-
-#     # =====================================================
-#     # GET TRIP
-#     # =====================================================
-
-#     trip = get_object_or_404(
-#         VehicleTrip.objects
-#         .select_related(
-#             "dispatch",
-#             "dispatch__vehicle"
-#         )
-#         .prefetch_related(
-#             "items__product"
-#         ),
-#         id=trip_id,
-#         dispatch__dealer=dealer
-#     )
-
-#     # =====================================================
-#     # CUSTOMERS
-#     # =====================================================
-
-#     customers = (
-#         DealerCustomer.objects
-#         .filter(dealer=dealer)
-#         .order_by("name")
-#     )
-
-#     # =====================================================
-#     # ALREADY CLOSED
-#     # =====================================================
-
-#     if trip.is_closed:
-#         return redirect(
-#             "vehicle_trip_detail",
-#             trip.id
-#         )
-
-#     # =====================================================
-#     # POST
-#     # =====================================================
-
-#     if request.method == "POST":
-
-#         # Everything inside this block succeeds together.
-#         # If anything fails, nothing is saved.
-#         with transaction.atomic():
-
-#             validated_sales = []
-
-#             # =================================================
-#             # PROCESS EVERY PRODUCT
-#             # =================================================
-
-#             for item in trip.items.all():
-
-#                 sale_customers = request.POST.getlist(
-#                     f"sale_customer_{item.id}[]"
-#                 )
-
-#                 sale_quantities = request.POST.getlist(
-#                     f"sale_qty_{item.id}[]"
-#                 )
-
-#                 sale_bonuses = request.POST.getlist(
-#                     f"sale_bonus_{item.id}[]"
-#                 )
-
-#                 sale_rates = request.POST.getlist(
-#                     f"sale_rate_{item.id}[]"
-#                 )
-
-#                 sale_payment_modes = request.POST.getlist(
-#                     f"sale_payment_mode_{item.id}[]"
-#                 )
-
-#                 product_sold = Decimal("0")
-#                 product_bonus = Decimal("0")
-#                 product_sales_amount = Decimal("0")
-
-#                 # =================================================
-#                 # VALIDATE SALES
-#                 # =================================================
-
-#                 for i in range(len(sale_quantities)):
-
-#                     # ---------------------------------------------
-#                     # QUANTITY
-#                     # ---------------------------------------------
-
-#                     try:
-#                         qty = Decimal(
-#                             sale_quantities[i] or "0"
-#                         )
-#                     except Exception:
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Invalid sale quantity "
-#                                     f"for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     # ---------------------------------------------
-#                     # BONUS
-#                     # ---------------------------------------------
-
-#                     try:
-#                         bonus = Decimal(
-#                             sale_bonuses[i]
-#                             if (
-#                                 i < len(sale_bonuses)
-#                                 and sale_bonuses[i]
-#                             )
-#                             else "0"
-#                         )
-#                     except Exception:
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Invalid bonus quantity "
-#                                     f"for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     # ---------------------------------------------
-#                     # RATE
-#                     # ---------------------------------------------
-
-#                     try:
-#                         rate = Decimal(
-#                             sale_rates[i]
-#                             if (
-#                                 i < len(sale_rates)
-#                                 and sale_rates[i]
-#                             )
-#                             else "0"
-#                         )
-#                     except Exception:
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Invalid rate "
-#                                     f"for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     # ---------------------------------------------
-#                     # PAYMENT MODE
-#                     # ---------------------------------------------
-
-#                     payment_mode = (
-#                         sale_payment_modes[i]
-#                         if (
-#                             i < len(sale_payment_modes)
-#                             and sale_payment_modes[i]
-#                         )
-#                         else "CASH"
-#                     )
-
-#                     if payment_mode not in [
-#                         "CASH",
-#                         "FONEPAY",
-#                         "CREDIT"
-#                     ]:
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Invalid payment mode "
-#                                     f"for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     # ---------------------------------------------
-#                     # NEGATIVE CHECK
-#                     # ---------------------------------------------
-
-#                     if qty < 0 or bonus < 0 or rate < 0:
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Negative values are not "
-#                                     f"allowed for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     # ---------------------------------------------
-#                     # SKIP EMPTY ROW
-#                     # ---------------------------------------------
-
-#                     if qty <= 0 and bonus <= 0:
-#                         continue
-
-#                     # ---------------------------------------------
-#                     # CUSTOMER REQUIRED
-#                     # ---------------------------------------------
-
-#                     if (
-#                         i >= len(sale_customers)
-#                         or not sale_customers[i]
-#                     ):
-#                         return render(
-#                             request,
-#                             "dealer_portal/vehicle_trip_close.html",
-#                             {
-#                                 "trip": trip,
-#                                 "customers": customers,
-#                                 "error": (
-#                                     f"Please select a customer "
-#                                     f"for {item.product.name}."
-#                                 )
-#                             }
-#                         )
-
-#                     customer = get_object_or_404(
-#                         DealerCustomer,
-#                         id=sale_customers[i],
-#                         dealer=dealer
-#                     )
-
-#                     # ---------------------------------------------
-#                     # IF NO SALE QTY, RATE = 0
-#                     # ---------------------------------------------
-
-#                     if qty <= 0:
-#                         rate = Decimal("0")
-
-#                     # ---------------------------------------------
-#                     # AMOUNT
-#                     # ---------------------------------------------
-
-#                     amount = qty * rate
-
-#                     # ---------------------------------------------
-#                     # STORE VALIDATED SALE
-#                     # ---------------------------------------------
-
-#                     validated_sales.append({
-#                         "item": item,
-#                         "customer": customer,
-#                         "quantity": qty,
-#                         "bonus_quantity": bonus,
-#                         "rate": rate,
-#                         "amount": amount,
-#                         "payment_mode": payment_mode,
-#                     })
-
-#                     product_sold += qty
-#                     product_bonus += bonus
-#                     product_sales_amount += amount
-
-#                 # =================================================
-#                 # OTHER QUANTITIES
-#                 # =================================================
-
-#                 try:
-#                     returned = Decimal(
-#                         request.POST.get(
-#                             f"return_{item.id}",
-#                             "0"
-#                         ) or "0"
-#                     )
-
-#                     breakage = Decimal(
-#                         request.POST.get(
-#                             f"breakage_{item.id}",
-#                             "0"
-#                         ) or "0"
-#                     )
-
-#                     leakage = Decimal(
-#                         request.POST.get(
-#                             f"leakage_{item.id}",
-#                             "0"
-#                         ) or "0"
-#                     )
-
-#                     sponsor = Decimal(
-#                         request.POST.get(
-#                             f"sponsor_{item.id}",
-#                             "0"
-#                         ) or "0"
-#                     )
-
-#                 except Exception:
-#                     return render(
-#                         request,
-#                         "dealer_portal/vehicle_trip_close.html",
-#                         {
-#                             "trip": trip,
-#                             "customers": customers,
-#                             "error": (
-#                                 f"Invalid quantity entered "
-#                                 f"for {item.product.name}."
-#                             )
-#                         }
-#                     )
-
-#                 # =================================================
-#                 # NEGATIVE CHECK
-#                 # =================================================
-
-#                 if (
-#                     returned < 0
-#                     or breakage < 0
-#                     or leakage < 0
-#                     or sponsor < 0
-#                 ):
-#                     return render(
-#                         request,
-#                         "dealer_portal/vehicle_trip_close.html",
-#                         {
-#                             "trip": trip,
-#                             "customers": customers,
-#                             "error": (
-#                                 f"Quantities cannot be negative "
-#                                 f"for {item.product.name}."
-#                             )
-#                         }
-#                     )
-
-#                 # =================================================
-#                 # TOTAL ACCOUNTED
-#                 # =================================================
-
-#                 total_accounted = (
-#                     product_sold
-#                     + product_bonus
-#                     + returned
-#                     + breakage
-#                     + leakage
-#                     + sponsor
-#                 )
-
-#                 # =================================================
-#                 # MUST MATCH LOADED
-#                 # =================================================
-
-#                 if total_accounted != item.dispatch_qty:
-
-#                     return render(
-#                         request,
-#                         "dealer_portal/vehicle_trip_close.html",
-#                         {
-#                             "trip": trip,
-#                             "customers": customers,
-#                             "error": (
-#                                 f"{item.product.name}: "
-#                                 f"Loaded = {item.dispatch_qty}, "
-#                                 f"but accounted = {total_accounted}. "
-#                                 f"Must match exactly."
-#                             )
-#                         }
-#                     )
-
-#                 # =================================================
-#                 # STORE CLOSE DATA
-#                 # =================================================
-
-#                 item._close_data = {
-#                     "sold_qty": product_sold,
-#                     "bonus_qty": product_bonus,
-#                     "return_qty": returned,
-#                     "breakage_qty": breakage,
-#                     "leakage_qty": leakage,
-#                     "sponsor_qty": sponsor,
-#                     "sales_amount": product_sales_amount,
-#                 }
-
-#             # =====================================================
-#             # CREATE VEHICLE SALES
-#             # =====================================================
-
-#             for sale_data in validated_sales:
-
-#                 item = sale_data["item"]
-#                 customer = sale_data["customer"]
-#                 qty = sale_data["quantity"]
-#                 bonus = sale_data["bonus_quantity"]
-#                 rate = sale_data["rate"]
-#                 amount = sale_data["amount"]
-#                 payment_mode = sale_data["payment_mode"]
-
-#                 # Each payment split becomes a separate sale record.
-#                 #
-#                 # Example:
-#                 # 2 CASH
-#                 # 3 CREDIT
-#                 #
-#                 # creates two VehicleDispatchSale records.
-
-#                 VehicleDispatchSale.objects.create(
-#                     dispatch=trip.dispatch,
-#                     customer=customer,
-#                     product=item.product,
-#                     quantity=qty,
-#                     bonus_quantity=bonus,
-#                     rate=rate,
-#                     amount=amount,
-#                     payment_mode=payment_mode
-#                 )
-
-#             # =====================================================
-#             # CUSTOMER LEDGER
-#             # =====================================================
-#             #
-#             # Combine all payment splits for each customer.
-#             #
-#             # CASH     -> no debit
-#             # FONEPAY  -> no debit
-#             # CREDIT   -> debit
-#             #
-#             # Bonus is added only once to the combined ledger entry.
-
-#             customer_ledger_data = {}
-
-#             for sale_data in validated_sales:
-
-#                 customer = sale_data["customer"]
-#                 payment_mode = sale_data["payment_mode"]
-#                 amount = sale_data["amount"]
-#                 bonus = sale_data["bonus_quantity"]
-
-#                 customer_id = customer.id
-
-#                 if customer_id not in customer_ledger_data:
-#                     customer_ledger_data[customer_id] = {
-#                         "customer": customer,
-#                         "credit_amount": Decimal("0"),
-#                         "bonus_quantity": Decimal("0"),
-#                     }
-
-#                 # Only CREDIT becomes customer debt.
-#                 if payment_mode == "CREDIT":
-#                     customer_ledger_data[
-#                         customer_id
-#                     ]["credit_amount"] += amount
-
-#                 # All bonus quantities are combined.
-#                 customer_ledger_data[
-#                     customer_id
-#                 ]["bonus_quantity"] += bonus
-
-#             # =====================================================
-#             # CREATE ONE LEDGER ENTRY PER CUSTOMER
-#             # =====================================================
-
-#             for data in customer_ledger_data.values():
-
-#                 customer = data["customer"]
-#                 credit_amount = data["credit_amount"]
-#                 bonus_quantity = data["bonus_quantity"]
-
-#                 # Create ledger if there is either:
-#                 # - credit debt
-#                 # - bonus quantity
-#                 if (
-#                     credit_amount > 0
-#                     or bonus_quantity > 0
-#                 ):
-
-#                     add_customer_ledger(
-#                         customer=customer,
-#                         entry_type="VEHICLE_SALE",
-#                         debit=credit_amount,
-#                         bonus_quantity=bonus_quantity
-#                     )
-
-#             # =====================================================
-#             # UPDATE TRIP ITEMS
-#             # =====================================================
-
-#             for item in trip.items.all():
-
-#                 data = item._close_data
-
-#                 item.sold_qty = data["sold_qty"]
-#                 item.bonus_qty = data["bonus_qty"]
-#                 item.return_qty = data["return_qty"]
-#                 item.breakage_qty = data["breakage_qty"]
-#                 item.leakage_qty = data["leakage_qty"]
-#                 item.sponsor_qty = data["sponsor_qty"]
-#                 item.sales_amount = data["sales_amount"]
-
-#                 item.save()
-
-#                 # =================================================
-#                 # RETURN STOCK
-#                 # =================================================
-
-#                 if data["return_qty"] > 0:
-
-#                     stock, created = DealerStock.objects.get_or_create(
-#                         dealer=dealer,
-#                         product=item.product,
-#                         defaults={
-#                             "quantity": Decimal("0")
-#                         }
-#                     )
-
-#                     stock.quantity += data["return_qty"]
-#                     stock.save()
-
-#                 # =================================================
-#                 # SPONSOR HISTORY
-#                 # =================================================
-
-#                 if data["sponsor_qty"] > 0:
-
-#                     DealerSponsor.objects.create(
-#                         dealer=dealer,
-#                         vehicle=trip.dispatch.vehicle,
-#                         vehicle_dispatch=trip.dispatch,
-#                         product=item.product,
-#                         quantity=data["sponsor_qty"],
-#                         sponsor_date=date.today(),
-#                         source="VEHICLE",
-#                         remarks=f"Trip {trip.trip_no}"
-#                     )
-
-#             # =====================================================
-#             # CLOSE TRIP
-#             # =====================================================
-
-#             trip.is_closed = True
-#             trip.save()
-
-#         # =====================================================
-#         # SUCCESS
-#         # =====================================================
-
-#         return redirect(
-#             "vehicle_trip_detail",
-#             trip.id
-#         )
-
-#     # =========================================================
-#     # GET
-#     # =========================================================
-
-#     return render(
-#         request,
-#         "dealer_portal/vehicle_trip_close.html",
-#         {
-#             "trip": trip,
-#             "customers": customers
-#         }
-#     )
 
 
 
@@ -4685,6 +4483,7 @@ def dealer_sales_report(request):
 @login_required
 def dealer_stock_report(request):
 
+
     profile = DealerProfile.objects.get(
         admin_user=request.user
     )
@@ -4701,4 +4500,538 @@ def dealer_stock_report(request):
         {
             'stocks': stocks
         }
+    )
+
+
+@login_required
+def company_payment_create(request):
+
+    profile = get_object_or_404(
+        DealerProfile,
+        admin_user=request.user
+    )
+
+    dealer = profile.dealer
+
+    form = CompanyPaymentForm(
+        request.POST or None
+    )
+
+    if request.method == 'POST':
+
+        if form.is_valid():
+
+            payment = form.save(
+                commit=False
+            )
+
+            payment.dealer = dealer
+            payment.created_by = request.user
+
+            with transaction.atomic():
+
+                payment.save()
+
+                # Create CREDIT in company ledger
+                DealerCompanyLedger.objects.create(
+                    dealer=dealer,
+                    transaction_date=payment.payment_date,
+                    transaction_type='PAYMENT',
+                    payment=payment,
+                    debit=Decimal('0'),
+                    credit=payment.amount,
+                    remarks=(
+                        payment.remarks
+                        or f'Payment to company - {payment.reference_no or ""}'
+                    )
+                )
+
+            messages.success(
+                request,
+                'Company payment recorded successfully.'
+            )
+
+            return redirect(
+                'company_ledger'
+            )
+
+    return render(
+        request,
+        'dealer_portal/company_payment_form.html',
+        {
+            'form': form,
+            'dealer': dealer,
+        }
+    )
+
+
+@login_required
+def company_ledger(request):
+    profile = get_object_or_404(
+        DealerProfile,
+        admin_user=request.user
+    )
+    dealer = profile.dealer
+
+    # Fetch ledger entries ordered by date and ID
+    ledger_entries = list(
+        DealerCompanyLedger.objects
+        .filter(dealer=dealer)
+        .select_related('dispatch', 'payment')
+        .order_by('transaction_date', 'id')
+    )
+
+    # Totals
+    total_debit = (
+        DealerCompanyLedger.objects
+        .filter(dealer=dealer)
+        .aggregate(total=Sum('debit'))['total']
+        or Decimal('0')
+    )
+    total_credit = (
+        DealerCompanyLedger.objects
+        .filter(dealer=dealer)
+        .aggregate(total=Sum('credit'))['total']
+        or Decimal('0')
+    )
+    outstanding = total_debit - total_credit
+
+    # Running balance calculation
+    running_balance = Decimal('0')
+    for entry in ledger_entries:
+        running_balance += (entry.debit - entry.credit)
+        entry.running_balance = running_balance
+
+    return render(
+        request,
+        'dealer_portal/company_ledger.html',
+        {
+            'dealer': dealer,
+            'ledger_entries': ledger_entries,
+            'total_debit': total_debit,
+            'total_credit': total_credit,
+            'outstanding': outstanding,
+        }
+    )
+
+
+@login_required
+def dealer_overall_report(request):
+
+    # ==========================================================
+    # GET DEALER
+    # ==========================================================
+
+    profile = get_object_or_404(
+        DealerProfile,
+        admin_user=request.user
+    )
+
+    dealer = profile.dealer
+
+    # ==========================================================
+    # DATE FILTER
+    # ==========================================================
+
+    today = timezone.localdate()
+
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
+
+    # Default = current month
+    if not from_date:
+        from_date = today.replace(day=1).isoformat()
+
+    if not to_date:
+        to_date = today.isoformat()
+
+    # ==========================================================
+    # DEALER SALES
+    # ==========================================================
+
+    dealer_sales_qs = DealerSale.objects.filter(
+        dealer=dealer,
+        sale_date__range=[from_date, to_date]
+    )
+
+    dealer_sales = (
+        dealer_sales_qs.aggregate(
+            total=Sum("total_amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    dealer_sale_count = dealer_sales_qs.count()
+
+    # ==========================================================
+    # VEHICLE SALES
+    # ==========================================================
+
+    vehicle_sales_qs = VehicleDispatchSale.objects.filter(
+        dispatch__dealer=dealer,
+        created_at__date__range=[from_date, to_date]
+    )
+
+    vehicle_sales = (
+        vehicle_sales_qs.aggregate(
+            total=Sum("amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    vehicle_sale_count = vehicle_sales_qs.count()
+
+    # ==========================================================
+    # TOTAL SALES
+    # ==========================================================
+
+    total_sales = dealer_sales + vehicle_sales
+
+    # ==========================================================
+    # CUSTOMER PAYMENTS
+    # ==========================================================
+
+    customer_payments_qs = DealerCustomerPayment.objects.filter(
+    dealer=dealer,
+    payment_date__range=[from_date, to_date]
+    )
+
+    customer_payments = (
+        customer_payments_qs.aggregate(
+            total=Sum("amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # CUSTOMER OUTSTANDING
+    #
+    # This is CURRENT outstanding, not limited by date filter.
+    # ==========================================================
+
+    customer_outstanding = (
+        DealerSale.objects.filter(
+            dealer=dealer
+        ).aggregate(
+            total=Sum("due_amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # EXPENSES
+    # ==========================================================
+
+    expenses_qs = DealerExpense.objects.filter(
+        dealer=dealer,
+        expense_date__range=[from_date, to_date]
+    )
+
+    total_expenses = (
+        expenses_qs.aggregate(
+            total=Sum("amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    expense_count = expenses_qs.count()
+
+    # ==========================================================
+    # EXPENSE BY CATEGORY
+    # ==========================================================
+
+    expense_categories = (
+        expenses_qs
+        .values("category")
+        .annotate(
+            total=Sum("amount")
+        )
+        .order_by("-total")
+    )
+
+    # ==========================================================
+    # COMPANY PAYMENTS
+    # ==========================================================
+
+    company_payments_qs = CompanyPayment.objects.filter(
+        dealer=dealer,
+        payment_date__range=[from_date, to_date]
+    )
+
+    paid_to_company = (
+        company_payments_qs.aggregate(
+            total=Sum("amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    company_payment_count = company_payments_qs.count()
+
+    # ==========================================================
+    # COMPANY ACCOUNT
+    #
+    # Current company payable is calculated from the full ledger.
+    # ==========================================================
+
+    company_ledger = DealerCompanyLedger.objects.filter(
+        dealer=dealer
+    )
+
+    company_debit = (
+        company_ledger.aggregate(
+            total=Sum("debit")
+        )["total"]
+        or Decimal("0")
+    )
+
+    company_credit = (
+        company_ledger.aggregate(
+            total=Sum("credit")
+        )["total"]
+        or Decimal("0")
+    )
+
+    company_payable = company_debit - company_credit
+
+    # ==========================================================
+    # COMPANY DISPATCHES
+    # ==========================================================
+
+    dispatches_qs = Dispatch.objects.filter(
+        dealer=dealer,
+        dispatch_date__range=[from_date, to_date]
+    )
+
+    dispatch_count = dispatches_qs.count()
+
+    dispatch_value = (
+        dispatches_qs.aggregate(
+            total=Sum("total_amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # SALES RETURNS
+    # ==========================================================
+
+    returns_qs = DealerSalesReturn.objects.filter(
+        dealer=dealer
+    )
+
+    # Use created_at for the period if the model has it.
+    # If your return model uses return_date instead,
+    # change created_at__date below to return_date.
+    returns_period_qs = returns_qs.filter(
+        created_at__date__range=[from_date, to_date]
+    )
+
+    total_returns = (
+        returns_period_qs.aggregate(
+            total=Sum("total_return_amount")
+        )["total"]
+        or Decimal("0")
+    )
+
+    return_count = returns_period_qs.count()
+
+    # ==========================================================
+    # VEHICLE TRIPS
+    # ==========================================================
+
+    vehicle_trips_qs = VehicleTrip.objects.filter(
+        dispatch__dealer=dealer
+    )
+
+    vehicle_trip_count = vehicle_trips_qs.filter(
+    dispatch_time__date__range=[from_date, to_date]
+    ).count()
+    # ==========================================================
+    # BREAKAGE
+    # ==========================================================
+
+    breakage_qty = (
+        VehicleTripItem.objects.filter(
+            trip__dispatch__dealer=dealer,
+            trip__dispatch_time__date__range=[from_date, to_date]
+        ).aggregate(
+            total=Sum("breakage_qty")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # LEAKAGE
+    # ==========================================================
+
+    leakage_qty = (
+        VehicleTripItem.objects.filter(
+            trip__dispatch__dealer=dealer,
+            trip__dispatch_time__date__range=[from_date, to_date]
+        ).aggregate(
+            total=Sum("leakage_qty")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # STOCK
+    #
+    # Current stock, not date filtered.
+    # ==========================================================
+
+    total_products = DealerStock.objects.filter(
+        dealer=dealer
+    ).count()
+
+    total_stock_qty = (
+        DealerStock.objects.filter(
+            dealer=dealer
+        ).aggregate(
+            total=Sum("quantity")
+        )["total"]
+        or Decimal("0")
+    )
+
+    # ==========================================================
+    # VEHICLES
+    # ==========================================================
+
+    total_vehicles = DealerVehicle.objects.filter(
+        dealer=dealer
+    ).count()
+
+    # ==========================================================
+    # NET OPERATING RESULT
+    #
+    # Sales - Expenses - Returns
+    #
+    # Customer payments are NOT added here because payments
+    # are collections against sales, not additional sales.
+    # ==========================================================
+
+    net_sales_after_returns = total_sales - total_returns
+
+    estimated_net_result = (
+        net_sales_after_returns - total_expenses
+    )
+
+    # ==========================================================
+    # RECENT DEALER SALES
+    # ==========================================================
+
+    recent_sales = (
+        DealerSale.objects.filter(
+            dealer=dealer
+        )
+        .select_related("customer")
+        .order_by("-sale_date", "-id")[:10]
+    )
+
+    # ==========================================================
+    # RECENT CUSTOMER PAYMENTS
+    # ==========================================================
+
+    recent_customer_payments = (
+    DealerCustomerPayment.objects
+    .filter(
+        dealer=dealer,
+        payment_date__range=[from_date, to_date]
+    )
+    .select_related("customer")
+    .order_by("-payment_date", "-id")[:10]
+)
+
+    # ==========================================================
+    # RECENT COMPANY PAYMENTS
+    # ==========================================================
+
+    recent_company_payments = (
+        CompanyPayment.objects.filter(
+            dealer=dealer
+        )
+        .order_by("-payment_date", "-id")[:10]
+    )
+
+    # ==========================================================
+    # RECENT EXPENSES
+    # ==========================================================
+
+    recent_expenses = (
+        DealerExpense.objects.filter(
+            dealer=dealer
+        )
+        .order_by("-expense_date", "-id")[:10]
+    )
+
+    # ==========================================================
+    # CONTEXT
+    # ==========================================================
+
+    context = {
+
+        "dealer": dealer,
+
+        # Dates
+        "from_date": from_date,
+        "to_date": to_date,
+
+        # Sales
+        "dealer_sales": dealer_sales,
+        "vehicle_sales": vehicle_sales,
+        "total_sales": total_sales,
+
+        "dealer_sale_count": dealer_sale_count,
+        "vehicle_sale_count": vehicle_sale_count,
+
+        # Customer
+        "customer_payments": customer_payments,
+        "customer_outstanding": customer_outstanding,
+
+        # Expenses
+        "total_expenses": total_expenses,
+        "expense_count": expense_count,
+        "expense_categories": expense_categories,
+
+        # Company
+        "paid_to_company": paid_to_company,
+        "company_payment_count": company_payment_count,
+
+        "company_debit": company_debit,
+        "company_credit": company_credit,
+        "company_payable": company_payable,
+
+        # Dispatch
+        "dispatch_count": dispatch_count,
+        "dispatch_value": dispatch_value,
+
+        # Returns
+        "total_returns": total_returns,
+        "return_count": return_count,
+
+        # Vehicle
+        "vehicle_trip_count": vehicle_trip_count,
+        "breakage_qty": breakage_qty,
+        "leakage_qty": leakage_qty,
+
+        # Stock
+        "total_products": total_products,
+        "total_stock_qty": total_stock_qty,
+        "total_vehicles": total_vehicles,
+
+        # Result
+        "net_sales_after_returns": net_sales_after_returns,
+        "estimated_net_result": estimated_net_result,
+
+        # Recent data
+        "recent_sales": recent_sales,
+        "recent_customer_payments": recent_customer_payments,
+        "recent_company_payments": recent_company_payments,
+        "recent_expenses": recent_expenses,
+    }
+
+    return render(
+        request,
+        "dealer_portal/overall_report.html",
+        context
     )

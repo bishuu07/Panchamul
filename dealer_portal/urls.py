@@ -48,7 +48,7 @@ path(
     dealer_dispatch_list,
     name='dealer_dispatch_list'
     ),
-    
+
     path(
     'dispatch/<int:dispatch_id>/',
     views.dealer_dispatch_detail,
@@ -202,6 +202,22 @@ path(
     "vehicle-trip/<int:trip_id>/close/",
     views.vehicle_trip_close,
     name="vehicle_trip_close"
+),
+
+path(
+    'company-payment/',
+    views.company_payment_create,
+    name='company_payment_create'
+),
+path(
+    'company-ledger/',
+    views.company_ledger,
+    name='company_ledger'
+),
+path(
+    'reports/overall/',
+    views.dealer_overall_report,
+    name='dealer_overall_report'
 ),
 
 ]
