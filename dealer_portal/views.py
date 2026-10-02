@@ -894,6 +894,34 @@ def dealer_dispatch_list(request):
     )
 
 
+@login_required
+def dealer_dispatch_detail(request, dispatch_id):
+
+    profile = get_object_or_404(
+        DealerProfile,
+        admin_user=request.user
+    )
+
+    dealer = profile.dealer
+
+    dispatch = get_object_or_404(
+        Dispatch,
+        id=dispatch_id,
+        dealer=dealer
+    )
+
+    items = dispatch.items.select_related(
+        'product'
+    ).all()
+
+    return render(
+        request,
+        'dealer_portal/dispatch_detail.html',
+        {
+            'dispatch': dispatch,
+            'items': items,
+        }
+    )
 # @login_required
 # def dealer_sale_create(request):
 

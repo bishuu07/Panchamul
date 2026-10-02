@@ -48,6 +48,12 @@ path(
     dealer_dispatch_list,
     name='dealer_dispatch_list'
     ),
+    
+    path(
+    'dispatch/<int:dispatch_id>/',
+    views.dealer_dispatch_detail,
+    name='dealer_dispatch_detail'
+),
 
     path(
     'sales/',
