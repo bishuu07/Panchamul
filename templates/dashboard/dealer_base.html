@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
@@ -10,96 +11,515 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
     <style>
 
-        body{
-            background:#f5f6fa;
+        /* =========================================================
+           GLOBAL
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
         }
 
-        .sidebar{
-            width:250px;
-            height:100vh;
-            position:fixed;
-            left:0;
-            top:0;
-            background:#1f2937;
-            overflow-y:auto;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
         }
 
-        .logo{
-            color:white;
-            font-size:22px;
-            font-weight:bold;
-            padding:20px;
-            text-align:center;
-            border-bottom:1px solid #374151;
+        body {
+            background: #f5f6fa;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1f2937;
         }
 
-        .menu-title{
-            color:#9ca3af;
-            font-size:12px;
-            text-transform:uppercase;
-            padding:15px 20px 5px;
+
+        /* =========================================================
+           MOBILE TOPBAR
+        ========================================================= */
+
+        .mobile-topbar {
+            display: none;
+            height: 60px;
+            background: #1f2937;
+            color: white;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1040;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
         }
 
-        .sidebar a{
-            display:block;
-            color:white;
-            text-decoration:none;
-            padding:10px 20px;
+        .mobile-brand {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .3px;
         }
 
-        .sidebar a:hover{
-            background:#374151;
+        .menu-toggle {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 28px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
-        .main-content{
-            margin-left:250px;
-            padding:20px;
+        .menu-toggle:hover {
+            background: #374151;
         }
 
-        .card-box{
-            background:white;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 2px 8px rgba(0,0,0,.08);
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #1f2937;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 1050;
+
+            transition: transform .25s ease;
+        }
+
+
+        /* Custom scrollbar */
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+
+
+        /* =========================================================
+           LOGO
+        ========================================================= */
+
+        .logo {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #374151;
+            position: sticky;
+            top: 0;
+            background: #1f2937;
+            z-index: 2;
+        }
+
+
+        /* =========================================================
+           MENU TITLE
+        ========================================================= */
+
+        .menu-title {
+            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .7px;
+            text-transform: uppercase;
+            padding: 17px 20px 7px;
+        }
+
+
+        /* =========================================================
+           SIDEBAR LINKS
+        ========================================================= */
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+
+            min-height: 44px;
+
+            color: #f9fafb;
+            text-decoration: none;
+
+            padding: 10px 20px;
+
+            font-size: 14px;
+
+            border-left: 3px solid transparent;
+
+            transition:
+                background .15s ease,
+                color .15s ease,
+                border-color .15s ease;
+        }
+
+        .sidebar a:hover {
+            background: #374151;
+            color: white;
+            border-left-color: #60a5fa;
+        }
+
+        .sidebar a:active {
+            background: #4b5563;
+        }
+
+
+        /* =========================================================
+           SIDEBAR DIVIDER
+        ========================================================= */
+
+        .sidebar hr {
+            margin: 8px 15px;
+            opacity: .25;
+        }
+
+
+        /* =========================================================
+           LOGOUT
+        ========================================================= */
+
+        .logout-link {
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+
+        .logout-link:hover {
+            background: #7f1d1d !important;
+            border-left-color: #ef4444 !important;
+        }
+
+
+        /* =========================================================
+           OVERLAY
+        ========================================================= */
+
+        .sidebar-overlay {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0, 0, 0, .45);
+
+            z-index: 1045;
+        }
+
+
+        /* =========================================================
+           MAIN CONTENT
+        ========================================================= */
+
+        .main-content {
+            margin-left: 250px;
+            padding: 24px;
+
+            min-height: 100vh;
+
+            width: calc(100% - 250px);
+        }
+
+
+        /* =========================================================
+           CARD
+        ========================================================= */
+
+        .card-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+
+        /* =========================================================
+           RESPONSIVE TABLET
+        ========================================================= */
+
+        @media (max-width: 991.98px) {
+
+            .sidebar {
+                width: 235px;
+            }
+
+            .main-content {
+                margin-left: 235px;
+                width: calc(100% - 235px);
+                padding: 20px;
+            }
+
+            .sidebar a {
+                font-size: 14px;
+                padding: 10px 17px;
+            }
+
+            .menu-title {
+                padding-left: 17px;
+            }
+
+        }
+
+
+        /* =========================================================
+           RESPONSIVE MOBILE
+        ========================================================= */
+
+        @media (max-width: 767.98px) {
+
+            /* Mobile top bar */
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+
+            /* Sidebar hidden */
+
+            .sidebar {
+                width: 280px;
+                max-width: 85vw;
+
+                transform: translateX(-100%);
+
+                box-shadow: 5px 0 20px rgba(0,0,0,.25);
+            }
+
+
+            /* Sidebar open */
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+
+            /* Overlay */
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+
+            /* Main content */
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+
+                padding: 75px 12px 20px;
+            }
+
+
+            /* Logo inside mobile sidebar */
+
+            .logo {
+                padding: 18px 15px;
+                font-size: 20px;
+            }
+
+
+            /* Menu links */
+
+            .sidebar a {
+                min-height: 48px;
+                padding: 11px 20px;
+                font-size: 15px;
+            }
+
+
+            /* Menu headings */
+
+            .menu-title {
+                padding: 17px 20px 7px;
+            }
+
+
+            /* Cards */
+
+            .card-box {
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+        }
+
+
+        /* =========================================================
+           SMALL MOBILE
+        ========================================================= */
+
+        @media (max-width: 480px) {
+
+            .mobile-topbar {
+                height: 56px;
+                padding: 0 10px;
+            }
+
+            .mobile-brand {
+                font-size: 17px;
+            }
+
+            .main-content {
+                padding: 68px 10px 15px;
+            }
+
+            .card-box {
+                padding: 13px;
+            }
+
+        }
+
+
+        /* =========================================================
+           PREVENT HORIZONTAL SCROLL
+        ========================================================= */
+
+        body {
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE IMAGES
+        ========================================================= */
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE TABLES
+        ========================================================= */
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        /* =========================================================
+           FORM ELEMENTS - TOUCH FRIENDLY
+        ========================================================= */
+
+        @media (max-width: 767.98px) {
+
+            input,
+            select,
+            textarea,
+            button {
+                font-size: 16px !important;
+            }
+
+            .btn {
+                min-height: 42px;
+            }
+
         }
 
     </style>
 
 </head>
 
+
 <body>
 
-<div class="sidebar">
 
-    <!-- ============================= -->
-    <!-- LOGO -->
-    <!-- ============================= -->
+<!-- =========================================================
+     MOBILE TOP BAR
+========================================================= -->
+
+<div class="mobile-topbar">
+
+    <button
+        type="button"
+        class="menu-toggle"
+        id="menuToggle"
+        aria-label="Open menu"
+        aria-expanded="false">
+
+        ☰
+
+    </button>
+
+
+    <div class="mobile-brand">
+        Dealer ERP
+    </div>
+
+
+    <div style="width:44px;"></div>
+
+</div>
+
+
+
+<!-- =========================================================
+     SIDEBAR OVERLAY
+========================================================= -->
+
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay">
+</div>
+
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<div class="sidebar" id="sidebar">
+
+
+    <!-- =====================================================
+         LOGO
+    ====================================================== -->
 
     <div class="logo">
         Dealer ERP
     </div>
 
 
-    <!-- ============================= -->
-    <!-- DASHBOARD -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
 
     <a href="{% url 'dealer_dashboard' %}">
         Dashboard
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- DISPATCH -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         DISPATCH
+    ====================================================== -->
 
     <div class="menu-title">
         Dispatch
@@ -118,12 +538,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- INVENTORY -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         INVENTORY
+    ====================================================== -->
 
     <div class="menu-title">
         Inventory
@@ -138,23 +559,30 @@
     </a>
 
 
-    <hr style="color:white;">
-
-        <div class="menu-title">
-            Reports
-        </div>
-
-        <a href="{% url 'dealer_overall_report' %}">
-            Overall Report
-        </a>
+    <hr>
 
 
-    <hr style="color:white;">
+
+    <!-- =====================================================
+         REPORTS
+    ====================================================== -->
+
+    <div class="menu-title">
+        Reports
+    </div>
+
+    <a href="{% url 'dealer_overall_report' %}">
+        Overall Report
+    </a>
 
 
-    <!-- ============================= -->
-    <!-- CUSTOMERS -->
-    <!-- ============================= -->
+    <hr>
+
+
+
+    <!-- =====================================================
+         CUSTOMERS
+    ====================================================== -->
 
     <div class="menu-title">
         Customers
@@ -177,12 +605,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- SALES -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         SALES
+    ====================================================== -->
 
     <div class="menu-title">
         Sales
@@ -209,19 +638,18 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- ACCOUNTS -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         ACCOUNTS
+    ====================================================== -->
 
     <div class="menu-title">
         Accounts
     </div>
 
-
-    <!-- Customer Accounts -->
 
     <a href="{% url 'dealer_customer_payment_list' %}">
         Customer Payment History
@@ -232,8 +660,6 @@
     </a>
 
 
-    <!-- Company Accounts -->
-
     <a href="{% url 'company_ledger' %}">
         Company Ledger
     </a>
@@ -243,12 +669,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- EXPENSES -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         EXPENSES
+    ====================================================== -->
 
     <div class="menu-title">
         Expenses
@@ -267,12 +694,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- SPONSOR -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         SPONSOR
+    ====================================================== -->
 
     <div class="menu-title">
         Sponsor
@@ -287,12 +715,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- VEHICLE MANAGEMENT -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         VEHICLE MANAGEMENT
+    ====================================================== -->
 
     <div class="menu-title">
         Vehicle Management
@@ -307,12 +736,13 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- DEALER STAFF -->
-    <!-- ============================= -->
+
+    <!-- =====================================================
+         DEALER STAFF
+    ====================================================== -->
 
     <div class="menu-title">
         Dealer Staff
@@ -327,23 +757,29 @@
     </a>
 
 
-    <hr style="color:white;">
+    <hr>
 
 
-    <!-- ============================= -->
-    <!-- LOGOUT -->
-    <!-- ============================= -->
 
-    <a href="{% url 'logout' %}">
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
+
+    <a
+        href="{% url 'logout' %}"
+        class="logout-link">
+
         Logout
+
     </a>
 
 </div>
 
 
-<!-- ============================= -->
-<!-- MAIN CONTENT -->
-<!-- ============================= -->
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
 
 <div class="main-content">
 
@@ -351,6 +787,120 @@
     {% endblock %}
 
 </div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+        const menuToggle = document.getElementById("menuToggle");
+
+
+
+        /* =====================================================
+           OPEN / CLOSE SIDEBAR
+        ===================================================== */
+
+        function toggleSidebar() {
+
+            sidebar.classList.toggle("show");
+            overlay.classList.toggle("show");
+
+            const isOpen = sidebar.classList.contains("show");
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                isOpen ? "true" : "false"
+            );
+
+        }
+
+
+
+        /* =====================================================
+           MENU BUTTON
+        ===================================================== */
+
+        menuToggle.addEventListener(
+            "click",
+            toggleSidebar
+        );
+
+
+
+        /* =====================================================
+           OVERLAY CLICK
+        ===================================================== */
+
+        overlay.addEventListener(
+            "click",
+            toggleSidebar
+        );
+
+
+
+        /* =====================================================
+           CLOSE MENU AFTER CLICKING LINK ON MOBILE
+        ===================================================== */
+
+        const sidebarLinks =
+            sidebar.querySelectorAll("a");
+
+        sidebarLinks.forEach(function (link) {
+
+            link.addEventListener("click", function () {
+
+                if (window.innerWidth <= 767) {
+
+                    sidebar.classList.remove("show");
+                    overlay.classList.remove("show");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                }
+
+            });
+
+        });
+
+
+
+        /* =====================================================
+           CLOSE SIDEBAR WHEN SCREEN BECOMES DESKTOP
+        ===================================================== */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                if (window.innerWidth > 767) {
+
+                    sidebar.classList.remove("show");
+                    overlay.classList.remove("show");
+
+                    menuToggle.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                }
+
+            }
+        );
+
+    });
+
+</script>
 
 
 </body>
