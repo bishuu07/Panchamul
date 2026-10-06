@@ -5,104 +5,158 @@
 {% block content %}
 
 <style>
+
+    /* =====================================================
+       PAGE
+    ===================================================== */
+
     .report-page {
-        padding: 10px 0 30px;
+        padding: 10px 0 35px;
     }
 
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
     .report-header {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: #fff;
+        border-radius: 16px;
+        padding: 22px 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, .16);
+
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
         gap: 15px;
         flex-wrap: wrap;
     }
 
     .report-title h2 {
         margin: 0;
-        font-size: 26px;
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .report-title p {
+        margin: 6px 0 0;
+        font-size: 13px;
+        opacity: .9;
+    }
+
+
+    /* =====================================================
+       FILTER
+    ===================================================== */
+
+    .filter-card {
+        background: #fff;
+        border: 1px solid #e7edf5;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, .05);
+    }
+
+    .filter-heading {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 17px;
+    }
+
+    .filter-heading-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #eaf3ff;
+        color: #0d6efd;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .filter-card h5 {
+        margin: 0;
+        font-size: 16px;
         font-weight: 700;
         color: #1f2937;
     }
 
-    .report-title p {
-        margin: 5px 0 0;
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    .filter-card {
-        background: #fff;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 22px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    }
-
-    .filter-card h5 {
-        margin-bottom: 15px;
-        font-weight: 600;
-        color: #374151;
-    }
-
     .filter-row {
         display: flex;
-        align-items: end;
-        gap: 15px;
+        align-items: flex-end;
+        gap: 12px;
         flex-wrap: wrap;
     }
 
     .filter-group {
         flex: 1;
-        min-width: 180px;
+        min-width: 190px;
     }
 
     .filter-group label {
         display: block;
         margin-bottom: 6px;
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 12px;
+        font-weight: 700;
         color: #4b5563;
     }
 
     .filter-group input {
         width: 100%;
-        border: 1px solid #d1d5db;
+        height: 43px;
+        border: 1px solid #d7dee8;
         border-radius: 8px;
-        padding: 9px 12px;
+        padding: 8px 12px;
         font-size: 14px;
+        color: #374151;
+        background: #fff;
+        transition: .2s ease;
     }
 
     .filter-group input:focus {
         outline: none;
-        border-color: #0ea5e9;
-        box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .10);
     }
 
     .btn-filter {
-        background: #0ea5e9;
+        height: 43px;
+        background: #0d6efd;
         color: #fff;
         border: none;
-        padding: 10px 20px;
+        padding: 0 20px;
         border-radius: 8px;
         font-weight: 600;
-        cursor: pointer;
+        white-space: nowrap;
+        transition: .2s ease;
     }
 
     .btn-filter:hover {
-        background: #0284c7;
+        background: #0b5ed7;
         color: #fff;
+        transform: translateY(-1px);
     }
 
     .btn-reset {
+        height: 43px;
         background: #f3f4f6;
         color: #374151;
-        border: none;
-        padding: 10px 18px;
+        padding: 0 18px;
         border-radius: 8px;
         font-weight: 600;
         text-decoration: none;
-        display: inline-block;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        white-space: nowrap;
+        transition: .2s ease;
     }
 
     .btn-reset:hover {
@@ -110,7 +164,10 @@
         color: #111827;
     }
 
-    /* Summary cards */
+
+    /* =====================================================
+       SUMMARY CARDS
+    ===================================================== */
 
     .summary-grid {
         display: grid;
@@ -120,11 +177,23 @@
     }
 
     .summary-card {
+        position: relative;
+        overflow: hidden;
+
         background: #fff;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-        border-left: 4px solid #0ea5e9;
+        border: 1px solid #e7edf5;
+        border-left: 4px solid #0d6efd;
+        border-radius: 14px;
+
+        padding: 18px;
+
+        box-shadow: 0 5px 18px rgba(0, 0, 0, .05);
+        transition: .2s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .08);
     }
 
     .summary-card.green {
@@ -143,24 +212,59 @@
         border-left-color: #8b5cf6;
     }
 
+    .summary-icon {
+        width: 38px;
+        height: 38px;
+
+        border-radius: 10px;
+        background: #eef5ff;
+        color: #0d6efd;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 17px;
+        margin-bottom: 12px;
+    }
+
+    .summary-card.green .summary-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .summary-card.orange .summary-icon {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .summary-card.red .summary-icon {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .summary-card.purple .summary-icon {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
     .summary-label {
-        font-size: 13px;
+        font-size: 12px;
         color: #6b7280;
-        margin-bottom: 7px;
+        margin-bottom: 5px;
     }
 
     .summary-value {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         color: #111827;
+        word-break: break-word;
     }
 
-    .summary-icon {
-        font-size: 20px;
-        margin-bottom: 10px;
-    }
 
-    /* Main sections */
+    /* =====================================================
+       REPORT GRID
+    ===================================================== */
 
     .report-grid {
         display: grid;
@@ -171,70 +275,153 @@
 
     .report-card {
         background: #fff;
-        border-radius: 12px;
+        border: 1px solid #e7edf5;
+        border-radius: 15px;
         padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        box-shadow: 0 5px 18px rgba(0, 0, 0, .05);
     }
 
     .report-card.full {
         grid-column: 1 / -1;
     }
 
+
+    /* =====================================================
+       CARD TITLE
+    ===================================================== */
+
     .card-title {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 18px;
+        gap: 9px;
+
+        margin-bottom: 17px;
         padding-bottom: 12px;
-        border-bottom: 1px solid #e5e7eb;
+
+        border-bottom: 1px solid #edf0f4;
     }
 
     .card-title h5 {
         margin: 0;
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 700;
         color: #1f2937;
     }
 
+    .card-title i {
+        color: #0d6efd;
+    }
+
+
+    /* =====================================================
+       FINANCIAL ROW
+    ===================================================== */
+
+    .financial-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+
+        padding: 11px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .financial-row:last-child {
+        border-bottom: none;
+    }
+
+    .financial-label {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .financial-value {
+        font-weight: 700;
+        color: #111827;
+        font-size: 13px;
+        text-align: right;
+    }
+
+    .financial-value.positive {
+        color: #059669;
+    }
+
+    .financial-value.warning {
+        color: #d97706;
+    }
+
+    .financial-value.danger {
+        color: #dc2626;
+    }
+
+
+    /* =====================================================
+       TABLE
+    ===================================================== */
+
     .table-wrapper {
+        width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .report-table {
         width: 100%;
+        min-width: 600px;
         border-collapse: collapse;
     }
 
     .report-table th {
         background: #f8fafc;
-        color: #6b7280;
-        font-size: 12px;
+        color: #64748b;
+
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        padding: 11px;
+        letter-spacing: .3px;
+
+        padding: 12px;
         text-align: left;
         white-space: nowrap;
+        border-bottom: 1px solid #e5e7eb;
     }
 
     .report-table td {
-        padding: 11px;
-        border-top: 1px solid #f1f5f9;
+        padding: 12px;
+        border-bottom: 1px solid #f1f5f9;
+
         font-size: 13px;
         color: #374151;
+
+        vertical-align: middle;
     }
 
-    .report-table tr:hover td {
-        background: #f8fafc;
+    .report-table tbody tr:hover td {
+        background: #f8fbff;
+    }
+
+    .report-table tbody tr:last-child td {
+        border-bottom: none;
     }
 
     .amount {
-        font-weight: 600;
+        font-weight: 700;
         color: #111827;
     }
 
+
+    /* =====================================================
+       BADGES
+    ===================================================== */
+
     .badge-status {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+
         padding: 4px 9px;
         border-radius: 20px;
+
         font-size: 11px;
         font-weight: 600;
     }
@@ -264,61 +451,57 @@
         color: #0369a1;
     }
 
-    /* Financial summary */
 
-    .financial-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 11px 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .financial-row:last-child {
-        border-bottom: none;
-    }
-
-    .financial-label {
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    .financial-value {
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .financial-value.positive {
-        color: #059669;
-    }
-
-    .financial-value.warning {
-        color: #d97706;
-    }
-
-    .financial-value.danger {
-        color: #dc2626;
-    }
-
-    /* Empty */
+    /* =====================================================
+       EMPTY STATE
+    ===================================================== */
 
     .empty-state {
         text-align: center;
-        padding: 25px;
+        padding: 30px 20px;
         color: #9ca3af;
-        font-size: 14px;
+        font-size: 13px;
     }
 
-    /* Responsive */
+    .empty-state-icon {
+        width: 45px;
+        height: 45px;
+
+        margin: 0 auto 10px;
+
+        border-radius: 50%;
+        background: #f1f5f9;
+        color: #94a3b8;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 18px;
+    }
+
+
+    /* =====================================================
+       LARGE TABLET
+    ===================================================== */
 
     @media (max-width: 1200px) {
+
         .summary-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
         }
+
     }
 
-    @media (max-width: 768px) {
+
+    /* =====================================================
+       TABLET
+    ===================================================== */
+
+    @media (max-width: 900px) {
+
         .summary-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .report-grid {
@@ -329,48 +512,191 @@
             grid-column: auto;
         }
 
-        .report-header {
-            align-items: flex-start;
+        .filter-group {
+            min-width: 160px;
         }
+
     }
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 576px) {
+
+        .report-page {
+            padding: 5px 0 25px;
+        }
+
+        .report-header {
+            border-radius: 12px;
+            padding: 17px;
+            margin-bottom: 15px;
+        }
+
+        .report-title h2 {
+            font-size: 20px;
+        }
+
+        .report-title p {
+            font-size: 12px;
+        }
+
+
+        /* Filter */
+
+        .filter-card {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .filter-heading {
+            margin-bottom: 14px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 11px;
+        }
+
+        .filter-group {
+            width: 100%;
+            min-width: 100%;
+        }
+
+        .btn-filter,
+        .btn-reset {
+            width: 100%;
+        }
+
+
+        /* Summary */
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .summary-value {
+            font-size: 21px;
+        }
+
+
+        /* Report cards */
+
+        .report-grid {
+            gap: 15px;
+            margin-bottom: 16px;
+        }
+
+        .report-card {
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .card-title h5 {
+            font-size: 15px;
+        }
+
+
+        /* Financial rows */
+
+        .financial-row {
+            padding: 10px 0;
+        }
+
+        .financial-label {
+            font-size: 12px;
+        }
+
+        .financial-value {
+            font-size: 12px;
+        }
+
+
+        /* Tables */
+
+        .report-table {
+            min-width: 600px;
+        }
+
+        .report-table th {
+            padding: 10px;
+            font-size: 10px;
+        }
+
+        .report-table td {
+            padding: 10px;
+            font-size: 12px;
+        }
+
+    }
+
 </style>
 
 
 <div class="report-page">
 
-    <!-- Header -->
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
 
     <div class="report-header">
 
         <div class="report-title">
+
             <h2>
                 <i class="bi bi-bar-chart-line"></i>
                 Overall Report
             </h2>
 
             <p>
-                {{ dealer.name }} —
+                {{ dealer.name }}
+                —
                 {{ from_date|date:"d M Y" }}
                 to
                 {{ to_date|date:"d M Y" }}
             </p>
+
         </div>
 
     </div>
 
 
-    <!-- Date Filter -->
+    <!-- =================================================
+         DATE FILTER
+    ================================================== -->
 
     <div class="filter-card">
 
-        <h5>
-            <i class="bi bi-calendar3"></i>
-            Report Period
-        </h5>
+        <div class="filter-heading">
+
+            <div class="filter-heading-icon">
+                <i class="bi bi-calendar3"></i>
+            </div>
+
+            <h5>
+                Report Period
+            </h5>
+
+        </div>
+
 
         <form method="get">
 
             <div class="filter-row">
+
 
                 <div class="filter-group">
 
@@ -405,24 +731,30 @@
 
 
                 <div>
+
                     <button
                         type="submit"
-                        class="btn-filter"
-                    >
+                        class="btn-filter">
+
                         <i class="bi bi-search"></i>
                         Generate Report
+
                     </button>
+
                 </div>
 
 
                 <div>
+
                     <a
                         href="{% url 'dealer_overall_report' %}"
-                        class="btn-reset"
-                    >
+                        class="btn-reset">
+
                         <i class="bi bi-arrow-counterclockwise"></i>
                         Reset
+
                     </a>
+
                 </div>
 
             </div>
@@ -432,9 +764,12 @@
     </div>
 
 
-    <!-- Main Summary -->
+    <!-- =================================================
+         MAIN SUMMARY
+    ================================================== -->
 
     <div class="summary-grid">
+
 
         <!-- Dealer Sales -->
 
@@ -587,12 +922,16 @@
 
         </div>
 
+
     </div>
 
 
-    <!-- Financial + Dispatch -->
+    <!-- =================================================
+         FINANCIAL + DISPATCH
+    ================================================== -->
 
     <div class="report-grid">
+
 
         <!-- Financial Summary -->
 
@@ -600,8 +939,9 @@
 
             <div class="card-title">
 
+                <i class="bi bi-calculator"></i>
+
                 <h5>
-                    <i class="bi bi-calculator"></i>
                     Financial Summary
                 </h5>
 
@@ -720,8 +1060,9 @@
 
             <div class="card-title">
 
+                <i class="bi bi-box-seam"></i>
+
                 <h5>
-                    <i class="bi bi-box-seam"></i>
                     Company Dispatch
                 </h5>
 
@@ -797,9 +1138,12 @@
     </div>
 
 
-    <!-- Vehicle Trips + Stock -->
+    <!-- =================================================
+         VEHICLE + STOCK
+    ================================================== -->
 
     <div class="report-grid">
+
 
         <!-- Vehicle Trip Summary -->
 
@@ -807,8 +1151,9 @@
 
             <div class="card-title">
 
+                <i class="bi bi-truck"></i>
+
                 <h5>
-                    <i class="bi bi-truck"></i>
                     Vehicle Trip Summary
                 </h5>
 
@@ -875,8 +1220,9 @@
 
             <div class="card-title">
 
+                <i class="bi bi-boxes"></i>
+
                 <h5>
-                    <i class="bi bi-boxes"></i>
                     Current Stock
                 </h5>
 
@@ -926,14 +1272,17 @@
     </div>
 
 
-    <!-- Expense Category -->
+    <!-- =================================================
+         EXPENSE BREAKDOWN
+    ================================================== -->
 
     <div class="report-card full" style="margin-bottom:22px;">
 
         <div class="card-title">
 
+            <i class="bi bi-pie-chart"></i>
+
             <h5>
-                <i class="bi bi-pie-chart"></i>
                 Expense Category Breakdown
             </h5>
 
@@ -949,8 +1298,15 @@
                 <thead>
 
                     <tr>
-                        <th>Category</th>
-                        <th>Total Amount</th>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th>
+                            Total Amount
+                        </th>
+
                     </tr>
 
                 </thead>
@@ -982,7 +1338,13 @@
         {% else %}
 
         <div class="empty-state">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-pie-chart"></i>
+            </div>
+
             No expenses found for this period.
+
         </div>
 
         {% endif %}
@@ -990,14 +1352,17 @@
     </div>
 
 
-    <!-- Recent Sales -->
+    <!-- =================================================
+         RECENT SALES
+    ================================================== -->
 
     <div class="report-card full" style="margin-bottom:22px;">
 
         <div class="card-title">
 
+            <i class="bi bi-cart3"></i>
+
             <h5>
-                <i class="bi bi-cart3"></i>
                 Recent Dealer Sales
             </h5>
 
@@ -1013,11 +1378,13 @@
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Total</th>
                         <th>Paid</th>
                         <th>Due</th>
+
                     </tr>
 
                 </thead>
@@ -1061,7 +1428,13 @@
         {% else %}
 
         <div class="empty-state">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-cart3"></i>
+            </div>
+
             No sales found for this period.
+
         </div>
 
         {% endif %}
@@ -1069,14 +1442,17 @@
     </div>
 
 
-    <!-- Customer Payments -->
+    <!-- =================================================
+         CUSTOMER PAYMENTS
+    ================================================== -->
 
     <div class="report-card full" style="margin-bottom:22px;">
 
         <div class="card-title">
 
+            <i class="bi bi-cash-coin"></i>
+
             <h5>
-                <i class="bi bi-cash-coin"></i>
                 Recent Customer Payments
             </h5>
 
@@ -1092,9 +1468,11 @@
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Amount</th>
+
                     </tr>
 
                 </thead>
@@ -1130,7 +1508,13 @@
         {% else %}
 
         <div class="empty-state">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-cash-coin"></i>
+            </div>
+
             No customer payments found for this period.
+
         </div>
 
         {% endif %}
@@ -1138,14 +1522,17 @@
     </div>
 
 
-    <!-- Company Payments -->
+    <!-- =================================================
+         COMPANY PAYMENTS
+    ================================================== -->
 
     <div class="report-card full" style="margin-bottom:22px;">
 
         <div class="card-title">
 
+            <i class="bi bi-building-check"></i>
+
             <h5>
-                <i class="bi bi-building-check"></i>
                 Recent Company Payments
             </h5>
 
@@ -1161,10 +1548,12 @@
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
                         <th>Payment Method</th>
                         <th>Reference</th>
                         <th>Amount</th>
+
                     </tr>
 
                 </thead>
@@ -1204,7 +1593,13 @@
         {% else %}
 
         <div class="empty-state">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-building"></i>
+            </div>
+
             No company payments found for this period.
+
         </div>
 
         {% endif %}
@@ -1212,14 +1607,17 @@
     </div>
 
 
-    <!-- Expenses -->
+    <!-- =================================================
+         EXPENSES
+    ================================================== -->
 
     <div class="report-card full" style="margin-bottom:22px;">
 
         <div class="card-title">
 
+            <i class="bi bi-wallet"></i>
+
             <h5>
-                <i class="bi bi-wallet"></i>
                 Recent Expenses
             </h5>
 
@@ -1235,10 +1633,12 @@
                 <thead>
 
                     <tr>
+
                         <th>Date</th>
                         <th>Category</th>
                         <th>Description</th>
                         <th>Amount</th>
+
                     </tr>
 
                 </thead>
@@ -1278,7 +1678,13 @@
         {% else %}
 
         <div class="empty-state">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-wallet"></i>
+            </div>
+
             No expenses found for this period.
+
         </div>
 
         {% endif %}

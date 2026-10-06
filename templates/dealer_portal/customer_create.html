@@ -1,22 +1,227 @@
+
 {% extends 'dashboard/dealer_base.html' %}
 
 {% block content %}
 
-<div class="card-box">
+<style>
+    /* ==============================
+       ADD CUSTOMER PAGE
+    ============================== */
 
-    <h3>Add Customer</h3>
+    .customer-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
-    <form method="POST">
+    .customer-card {
+        border: none;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
 
-        {% csrf_token %}
+    .customer-header {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: #ffffff;
+        padding: 24px 28px;
+    }
 
-        {{ form.as_p }}
+    .customer-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
 
-        <button class="btn btn-success">
-            Save
-        </button>
+    .customer-header p {
+        margin: 5px 0 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
 
-    </form>
+    .customer-body {
+        padding: 30px;
+    }
+
+    /* Django generated form */
+
+    .customer-form p {
+        margin-bottom: 20px;
+    }
+
+    .customer-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: 600;
+        color: #343a40;
+        font-size: 0.9rem;
+    }
+
+    .customer-form input,
+    .customer-form select,
+    .customer-form textarea {
+        width: 100%;
+        padding: 11px 13px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .customer-form input:focus,
+    .customer-form select:focus,
+    .customer-form textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
+    }
+
+    .customer-form textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .customer-form input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+    }
+
+    .customer-form .helptext {
+        display: block;
+        margin-top: 5px;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+
+    /* Error messages */
+
+    .customer-form .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0;
+        color: #dc3545;
+        font-size: 0.85rem;
+    }
+
+    .customer-form .errorlist li {
+        margin-bottom: 3px;
+    }
+
+    /* Buttons */
+
+    .customer-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #eeeeee;
+        margin-top: 10px;
+    }
+
+    .btn-save {
+        min-width: 140px;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+
+    /* Mobile */
+
+    @media (max-width: 576px) {
+
+        .customer-page {
+            width: 100%;
+        }
+
+        .customer-header {
+            padding: 20px;
+        }
+
+        .customer-header h3 {
+            font-size: 1.2rem;
+        }
+
+        .customer-body {
+            padding: 20px;
+        }
+
+        .customer-actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .btn-save,
+        .btn-back {
+            width: 100%;
+        }
+    }
+</style>
+
+
+<div class="customer-page">
+
+    <div class="customer-card">
+
+        <!-- HEADER -->
+        <div class="customer-header">
+
+            <h3>
+                <i class="bi bi-person-plus-fill me-2"></i>
+                Add Customer
+            </h3>
+
+            <p>
+                Create a new customer account and save their details.
+            </p>
+
+        </div>
+
+
+        <!-- BODY -->
+        <div class="customer-body">
+
+            <form method="POST" class="customer-form">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+
+                <!-- ACTIONS -->
+                <div class="customer-actions">
+
+                    <a
+                        href="javascript:history.back()"
+                        class="btn btn-outline-secondary btn-back"
+                    >
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Back
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-save"
+                    >
+                        <i class="bi bi-check-circle me-1"></i>
+                        Save Customer
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </div>
 

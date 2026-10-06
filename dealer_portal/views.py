@@ -16,6 +16,8 @@ from .utils import add_customer_ledger
 from django.db import transaction
 from expenses.models import TripExpense
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 from .models import (
     DealerSale,
@@ -291,15 +293,42 @@ def dealer_customer_list(request):
     except DealerProfile.DoesNotExist:
         return redirect('login')
 
-    customers = DealerCustomer.objects.filter(
-        dealer=dealer
-    ).order_by('-id')
+    customers = (
+        DealerCustomer.objects
+        .filter(dealer=dealer)
+        .order_by('-id')
+    )
+
+    # ==========================================
+    # SEARCH
+    # ==========================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        customers = customers.filter(
+            Q(name__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    # ==========================================
+    # PAGINATION
+    # ==========================================
+
+    paginator = Paginator(customers, 15)
+
+    page_number = request.GET.get('page')
+
+    customers = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/customer_list.html',
         {
-            'customers': customers
+            'customers': customers,
+            'paginator': paginator,
+            'search': search,
         }
     )
 
@@ -1485,20 +1514,42 @@ def dealer_dispatch_list(request):
         admin_user=request.user
     )
 
-    dispatches = Dispatch.objects.filter(
-        dealer=profile.dealer
-    ).order_by(
-        '-id'
+    dispatches = (
+        Dispatch.objects
+        .filter(dealer=profile.dealer)
+        .order_by('-id')
     )
+
+    # ==========================================
+    # SEARCH BY DISPATCH NUMBER
+    # ==========================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        dispatches = dispatches.filter(
+            Q(dispatch_no__icontains=search)
+        )
+
+    # ==========================================
+    # PAGINATION
+    # ==========================================
+
+    paginator = Paginator(dispatches, 15)
+
+    page_number = request.GET.get('page')
+
+    dispatches = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/dispatch_list.html',
         {
-            'dispatches': dispatches
+            'dispatches': dispatches,
+            'paginator': paginator,
+            'search': search,
         }
     )
-
 
 @login_required
 def dealer_dispatch_detail(request, dispatch_id):
@@ -1891,17 +1942,43 @@ def dealer_sale_list(request):
         admin_user=request.user
     )
 
-    sales = DealerSale.objects.filter(
-        dealer=profile.dealer
-    ).order_by(
-        '-id'
+    sales = (
+        DealerSale.objects
+        .filter(dealer=profile.dealer)
+        .select_related('customer')
+        .order_by('-id')
     )
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        sales = sales.filter(
+            Q(invoice_no__icontains=search) |
+            Q(customer__name__icontains=search) |
+            Q(customer__phone__icontains=search)
+        )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(sales, 15)
+
+    page_number = request.GET.get('page')
+
+    sales = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/sale_list.html',
         {
-            'sales': sales
+            'sales': sales,
+            'paginator': paginator,
+            'search': search,
         }
     )
 
@@ -1913,18 +1990,49 @@ def dealer_sales_return_list(request):
         admin_user=request.user
     )
 
-    returns = DealerSalesReturn.objects.filter(
-        dealer=profile.dealer
-    ).order_by('-id')
+    returns = (
+        DealerSalesReturn.objects
+        .filter(dealer=profile.dealer)
+        .select_related(
+            'sale',
+            'sale__customer'
+        )
+        .order_by('-id')
+    )
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        returns = returns.filter(
+            Q(return_no__icontains=search) |
+            Q(sale__invoice_no__icontains=search) |
+            Q(sale__customer__name__icontains=search) |
+            Q(sale__customer__phone__icontains=search)
+        )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(returns, 15)
+
+    page_number = request.GET.get('page')
+
+    returns = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/sales_return_list.html',
         {
-            'returns': returns
+            'returns': returns,
+            'paginator': paginator,
+            'search': search,
         }
     )
-
 
 @login_required
 def dealer_sales_return_create(request):
@@ -2081,18 +2189,44 @@ def dealer_customer_payment_list(request):
         admin_user=request.user
     )
 
-    payments = DealerCustomerPayment.objects.filter(
-        dealer=profile.dealer
-    ).order_by('-id')
+    payments = (
+        DealerCustomerPayment.objects
+        .filter(dealer=profile.dealer)
+        .select_related('customer')
+        .order_by('-id')
+    )
+
+    # ==========================================
+    # SEARCH
+    # ==========================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        payments = payments.filter(
+            Q(customer__name__icontains=search) |
+            Q(customer__phone__icontains=search)
+        )
+
+    # ==========================================
+    # PAGINATION
+    # ==========================================
+
+    paginator = Paginator(payments, 15)
+
+    page_number = request.GET.get('page')
+
+    payments = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/customer_payment_list.html',
         {
-            'payments': payments
+            'payments': payments,
+            'paginator': paginator,
+            'search': search,
         }
     )
-
 @login_required
 def dealer_customer_payment_create(request):
 
@@ -2186,19 +2320,46 @@ def dealer_customer_ledger_list(request):
         admin_user=request.user
     )
 
+    # =====================================================
+    # CUSTOMERS
+    # =====================================================
+
     customers = DealerCustomer.objects.filter(
         dealer=profile.dealer,
         is_active=True
-    )
+    ).order_by('name')
+
+    # =====================================================
+    # SEARCH BY NAME OR PHONE
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        customers = customers.filter(
+            Q(name__icontains=search) |
+            Q(phone__icontains=search)
+        )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(customers, 15)
+
+    page_number = request.GET.get('page')
+
+    customers = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/customer_ledger_list.html',
         {
-            'customers': customers
+            'customers': customers,
+            'paginator': paginator,
+            'search': search,
         }
     )
-
 
 
 
@@ -2263,28 +2424,41 @@ def dealer_customer_ledger_detail(request, customer_id):
             }
         )
 
-    ledger_entries = (
+    # =====================================================
+    # LEDGER ENTRIES
+    # =====================================================
+
+    ledger_queryset = (
         DealerCustomerLedger.objects
         .filter(customer=customer)
         .order_by("id")
     )
 
+    # =====================================================
+    # TOTALS
+    # Keep existing calculations unchanged
+    # =====================================================
+
     total_debit = sum(
-        (entry.debit for entry in ledger_entries),
+        (entry.debit for entry in ledger_queryset),
         Decimal("0")
     )
 
     total_credit = sum(
-        (entry.credit for entry in ledger_entries),
+        (entry.credit for entry in ledger_queryset),
         Decimal("0")
     )
 
     total_bonus = sum(
-        (entry.bonus_quantity for entry in ledger_entries),
+        (entry.bonus_quantity for entry in ledger_queryset),
         Decimal("0")
     )
 
-    last_entry = ledger_entries.last()
+    # =====================================================
+    # BALANCE
+    # =====================================================
+
+    last_entry = ledger_queryset.last()
 
     balance = (
         last_entry.balance
@@ -2292,16 +2466,34 @@ def dealer_customer_ledger_detail(request, customer_id):
         else Decimal("0")
     )
 
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(ledger_queryset, 15)
+
+    page_number = request.GET.get("page")
+
+    ledger_entries = paginator.get_page(page_number)
+
+    # =====================================================
+    # RETURN
+    # =====================================================
+
     return render(
         request,
         "dealer_portal/customer_ledger_detail.html",
         {
             "customer": customer,
             "ledger_entries": ledger_entries,
+
             "total_debit": total_debit,
             "total_credit": total_credit,
             "total_bonus": total_bonus,
-            "balance": balance
+            "balance": balance,
+
+            # Pagination
+            "paginator": paginator,
         }
     )
 
@@ -2318,7 +2510,23 @@ def dealer_outstanding_report(request):
     customers = DealerCustomer.objects.filter(
         dealer=dealer,
         is_active=True
-    )
+    ).order_by('name')
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        customers = customers.filter(
+            Q(name__icontains=search) |
+            Q(phone__icontains=search)
+        )
+
+    # =====================================================
+    # BUILD REPORT
+    # =====================================================
 
     report = []
 
@@ -2365,11 +2573,23 @@ def dealer_outstanding_report(request):
             'outstanding': outstanding
         })
 
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(report, 15)
+
+    page_number = request.GET.get('page')
+
+    report = paginator.get_page(page_number)
+
     return render(
         request,
         'dealer_portal/outstanding_report.html',
         {
-            'report': report
+            'report': report,
+            'paginator': paginator,
+            'search': search,
         }
     )
 
@@ -2439,7 +2659,6 @@ def vehicle_create(request):
         }
     )
 
-
 @login_required
 def vehicle_dispatch_list(request):
 
@@ -2447,19 +2666,58 @@ def vehicle_dispatch_list(request):
         admin_user=request.user
     )
 
-    dispatches = VehicleDispatch.objects.filter(
-        dealer=profile.dealer
-    ).select_related(
-        'vehicle'
-    ).order_by(
-        '-id'
+    dispatches = (
+        VehicleDispatch.objects
+        .filter(
+            dealer=profile.dealer
+        )
+        .select_related(
+            'vehicle'
+        )
+        .order_by(
+            '-id'
+        )
+    )
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get(
+        'search',
+        ''
+    ).strip()
+
+    if search:
+        dispatches = dispatches.filter(
+            Q(dispatch_no__icontains=search) |
+            Q(vehicle__vehicle_no__icontains=search)
+        )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(
+        dispatches,
+        15
+    )
+
+    page_number = request.GET.get(
+        'page'
+    )
+
+    dispatches = paginator.get_page(
+        page_number
     )
 
     return render(
         request,
         'dealer_portal/vehicle_dispatch_list.html',
         {
-            'dispatches': dispatches
+            'dispatches': dispatches,
+            'paginator': paginator,
+            'search': search,
         }
     )
 
@@ -3520,10 +3778,6 @@ def vehicle_trip_create(request, dispatch_id):
 
 
 
-@transaction.atomic
-
-
-@login_required
 
 
 
@@ -4372,15 +4626,48 @@ def sponsor_list(request):
         admin_user=request.user
     )
 
-    sponsors = DealerSponsor.objects.filter(
-        dealer=profile.dealer
-    ).order_by('-id')
+    sponsors = (
+        DealerSponsor.objects
+        .filter(dealer=profile.dealer)
+        .select_related(
+            'vehicle',
+            'customer',
+            'product'
+        )
+        .order_by('-id')
+    )
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        sponsors = sponsors.filter(
+            Q(customer__name__icontains=search) |
+            Q(vehicle__vehicle_no__icontains=search) |
+            Q(product__name__icontains=search) |
+            Q(source__icontains=search)
+        )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(sponsors, 15)
+
+    page_number = request.GET.get('page')
+
+    sponsors = paginator.get_page(page_number)
 
     return render(
         request,
         'dealer_portal/sponsor_list.html',
         {
-            'sponsors': sponsors
+            'sponsors': sponsors,
+            'paginator': paginator,
+            'search': search,
         }
     )
 
@@ -4452,21 +4739,75 @@ def dealer_sales_report(request):
         admin_user=request.user
     )
 
-    sales = DealerSale.objects.filter(
-        dealer=profile.dealer
-    ).order_by('-sale_date')
+    sales = (
+        DealerSale.objects
+        .filter(dealer=profile.dealer)
+        .select_related('customer')
+        .order_by('-sale_date', '-id')
+    )
 
-    total_sales = sales.aggregate(
-        total=Sum('total_amount')
-    )['total'] or 0
+    # =====================================================
+    # SEARCH
+    # =====================================================
 
-    total_paid = sales.aggregate(
-        total=Sum('paid_amount')
-    )['total'] or 0
+    search = request.GET.get('search', '').strip()
 
-    total_due = sales.aggregate(
-        total=Sum('due_amount')
-    )['total'] or 0
+    if search:
+        sales = sales.filter(
+            Q(invoice_no__icontains=search) |
+            Q(customer__name__icontains=search) |
+            Q(customer__phone__icontains=search)
+        )
+
+    # =====================================================
+    # DATE FILTER
+    # =====================================================
+
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+
+    if date_from:
+        sales = sales.filter(
+            sale_date__gte=date_from
+        )
+
+    if date_to:
+        sales = sales.filter(
+            sale_date__lte=date_to
+        )
+
+    # =====================================================
+    # GRAND TOTAL
+    # Calculate BEFORE pagination
+    # =====================================================
+
+    total_sales = (
+        sales.aggregate(
+            total=Sum('total_amount')
+        )['total'] or 0
+    )
+
+    total_paid = (
+        sales.aggregate(
+            total=Sum('paid_amount')
+        )['total'] or 0
+    )
+
+    total_due = (
+        sales.aggregate(
+            total=Sum('due_amount')
+        )['total'] or 0
+    )
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(sales, 15)
+
+    page_number = request.GET.get('page')
+
+    sales = paginator.get_page(page_number)
 
     return render(
         request,
@@ -4475,33 +4816,64 @@ def dealer_sales_report(request):
             'sales': sales,
             'total_sales': total_sales,
             'total_paid': total_paid,
-            'total_due': total_due
+            'total_due': total_due,
+            'paginator': paginator,
+            'search': search,
+            'date_from': date_from,
+            'date_to': date_to,
         }
     )
 
-
 @login_required
 def dealer_stock_report(request):
-
 
     profile = DealerProfile.objects.get(
         admin_user=request.user
     )
 
-    stocks = DealerStock.objects.filter(
-        dealer=profile.dealer
-    ).select_related(
-        'product'
+    stocks = (
+        DealerStock.objects
+        .filter(dealer=profile.dealer)
+        .select_related('product')
+        .order_by('product__name')
     )
+
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        stocks = stocks.filter(
+            Q(product__name__icontains=search)
+        )
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    total_products = stocks.count()
+
+    low_stock_count = sum(
+        1
+        for stock in stocks
+        if stock.quantity <= stock.product.minimum_stock
+    )
+
+    available_count = total_products - low_stock_count
 
     return render(
         request,
         'dealer_portal/stock_report.html',
         {
-            'stocks': stocks
+            'stocks': stocks,
+            'search': search,
+            'total_products': total_products,
+            'low_stock_count': low_stock_count,
+            'available_count': available_count,
         }
     )
-
 
 @login_required
 def company_payment_create(request):
@@ -4565,6 +4937,15 @@ def company_payment_create(request):
     )
 
 
+from decimal import Decimal
+from django.core.paginator import Paginator
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta
+
+
 @login_required
 def company_ledger(request):
     profile = get_object_or_404(
@@ -4573,34 +4954,187 @@ def company_ledger(request):
     )
     dealer = profile.dealer
 
-    # Fetch ledger entries ordered by date and ID
-    ledger_entries = list(
+    # =====================================================
+    # BASE LEDGER QUERY
+    # =====================================================
+
+    all_ledger_entries = list(
         DealerCompanyLedger.objects
         .filter(dealer=dealer)
         .select_related('dispatch', 'payment')
         .order_by('transaction_date', 'id')
     )
 
-    # Totals
+    # =====================================================
+    # RUNNING BALANCE
+    # =====================================================
+
+    running_balance = Decimal('0')
+
+    for entry in all_ledger_entries:
+        running_balance += (entry.debit - entry.credit)
+        entry.running_balance = running_balance
+
+    # =====================================================
+    # TOTALS
+    # =====================================================
+
     total_debit = (
         DealerCompanyLedger.objects
         .filter(dealer=dealer)
         .aggregate(total=Sum('debit'))['total']
         or Decimal('0')
     )
+
     total_credit = (
         DealerCompanyLedger.objects
         .filter(dealer=dealer)
         .aggregate(total=Sum('credit'))['total']
         or Decimal('0')
     )
+
     outstanding = total_debit - total_credit
 
-    # Running balance calculation
-    running_balance = Decimal('0')
-    for entry in ledger_entries:
-        running_balance += (entry.debit - entry.credit)
-        entry.running_balance = running_balance
+    # =====================================================
+    # SEARCH
+    # =====================================================
+
+    search = request.GET.get('search', '').strip()
+
+    if search:
+        search_lower = search.lower()
+
+        filtered_entries = []
+
+        for entry in all_ledger_entries:
+
+            reference = ''
+
+            if entry.transaction_type == 'DISPATCH' and entry.dispatch:
+                reference = str(entry.dispatch.dispatch_no or '')
+
+            elif entry.transaction_type == 'PAYMENT' and entry.payment:
+                reference = str(
+                    entry.payment.reference_no or 'Payment'
+                )
+
+            payment_method = ''
+
+            if entry.payment:
+                payment_method = str(
+                    entry.payment.get_payment_method_display() or ''
+                )
+
+            particular = ''
+
+            if entry.transaction_type == 'DISPATCH':
+                particular = 'Company Dispatch'
+
+            elif entry.transaction_type == 'PAYMENT':
+                particular = 'Payment to Company'
+
+            elif entry.transaction_type == 'ADJUSTMENT':
+                particular = 'Adjustment'
+
+            else:
+                particular = str(entry.transaction_type or '')
+
+            searchable_text = ' '.join([
+                reference,
+                particular,
+                payment_method,
+                str(entry.transaction_type or ''),
+            ]).lower()
+
+            if search_lower in searchable_text:
+                filtered_entries.append(entry)
+
+        all_ledger_entries = filtered_entries
+
+    # =====================================================
+    # DATE FILTER
+    # =====================================================
+
+    period = request.GET.get('period', '').strip()
+
+    today = timezone.localdate()
+
+    if period == 'week':
+
+        # Monday of current week
+        start_date = today - timedelta(days=today.weekday())
+
+        all_ledger_entries = [
+            entry for entry in all_ledger_entries
+            if entry.transaction_date >= start_date
+            and entry.transaction_date <= today
+        ]
+
+    elif period == 'month':
+
+        # First day of current month
+        start_date = today.replace(day=1)
+
+        all_ledger_entries = [
+            entry for entry in all_ledger_entries
+            if entry.transaction_date >= start_date
+            and entry.transaction_date <= today
+        ]
+
+    elif period == 'year':
+
+        # First day of current year
+        start_date = today.replace(month=1, day=1)
+
+        all_ledger_entries = [
+            entry for entry in all_ledger_entries
+            if entry.transaction_date >= start_date
+            and entry.transaction_date <= today
+        ]
+
+    # =====================================================
+    # CUSTOM DATE RANGE
+    # =====================================================
+
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+
+    if date_from:
+        all_ledger_entries = [
+            entry for entry in all_ledger_entries
+            if entry.transaction_date.isoformat() >= date_from
+        ]
+
+    if date_to:
+        all_ledger_entries = [
+            entry for entry in all_ledger_entries
+            if entry.transaction_date.isoformat() <= date_to
+        ]
+
+    # =====================================================
+    # PAGINATION
+    # =====================================================
+
+    paginator = Paginator(all_ledger_entries, 15)
+
+    page_number = request.GET.get('page')
+
+    ledger_entries = paginator.get_page(page_number)
+
+    # =====================================================
+    # KEEP FILTERS WHEN CHANGING PAGE
+    # =====================================================
+
+    query_params = request.GET.copy()
+
+    if 'page' in query_params:
+        del query_params['page']
+
+    filter_query = query_params.urlencode()
+
+    # =====================================================
+    # CONTEXT
+    # =====================================================
 
     return render(
         request,
@@ -4608,9 +5142,20 @@ def company_ledger(request):
         {
             'dealer': dealer,
             'ledger_entries': ledger_entries,
+
             'total_debit': total_debit,
             'total_credit': total_credit,
             'outstanding': outstanding,
+
+            # Filters
+            'search': search,
+            'period': period,
+            'date_from': date_from,
+            'date_to': date_to,
+
+            # Pagination
+            'paginator': paginator,
+            'filter_query': filter_query,
         }
     )
 

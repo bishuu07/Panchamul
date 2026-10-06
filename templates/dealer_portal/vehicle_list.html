@@ -2,86 +2,448 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Vehicle List</h3>
+    .vehicle-page {
+        padding: 10px 0 30px;
+    }
 
-    <a href="{% url 'vehicle_create' %}"
-       class="btn btn-primary mb-3">
+    /* ================================
+       PAGE HEADER
+    ================================= */
 
-        Add Vehicle
+    .vehicle-header {
+        background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #0b5ed7
+        );
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 22px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+    }
 
-    </a>
+    .vehicle-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
 
-    <table class="table table-bordered">
+    .vehicle-header p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        opacity: 0.85;
+    }
 
-        <thead>
+    .add-vehicle-btn {
+        background: white;
+        color: #0d6efd;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: 0.2s ease;
+    }
 
-            <tr>
+    .add-vehicle-btn:hover {
+        background: #f1f5ff;
+        color: #0b5ed7;
+        transform: translateY(-1px);
+    }
 
-                <th>Vehicle No</th>
+    /* ================================
+       TABLE CARD
+    ================================= */
 
-                <th>Driver</th>
+    .vehicle-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+    }
 
-                <th>Phone</th>
+    .card-top {
+        padding: 17px 20px;
+        border-bottom: 1px solid #edf0f4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-                <th>Status</th>
+    .card-top h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #212529;
+    }
 
-            </tr>
+    .vehicle-count {
+        background: #e7f1ff;
+        color: #0d6efd;
+        padding: 5px 11px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 
-        </thead>
+    /* ================================
+       TABLE
+    ================================= */
 
-        <tbody>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 
-            {% for vehicle in vehicles %}
+    .vehicle-table {
+        min-width: 650px;
+        margin: 0;
+        vertical-align: middle;
+    }
 
-            <tr>
+    .vehicle-table thead th {
+        background: #212529;
+        color: white;
+        border: none;
+        padding: 14px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-                <td>
-                    {{ vehicle.vehicle_no }}
-                </td>
+    .vehicle-table tbody td {
+        padding: 15px 16px;
+        font-size: 13px;
+        border-color: #edf0f4;
+    }
 
-                <td>
-                    {{ vehicle.driver_name }}
-                </td>
+    .vehicle-table tbody tr {
+        transition: 0.15s ease;
+    }
 
-                <td>
-                    {{ vehicle.phone }}
-                </td>
+    .vehicle-table tbody tr:hover {
+        background: #f8fbff;
+    }
 
-                <td>
+    /* ================================
+       VEHICLE DETAILS
+    ================================= */
 
-                    {% if vehicle.is_active %}
+    .vehicle-number {
+        font-weight: 700;
+        color: #0d6efd;
+        font-size: 14px;
+    }
 
-                        Active
+    .driver-name {
+        font-weight: 600;
+        color: #212529;
+    }
 
-                    {% else %}
+    .phone-number {
+        color: #6c757d;
+    }
 
-                        Inactive
+    /* ================================
+       STATUS BADGES
+    ================================= */
 
-                    {% endif %}
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
 
-                </td>
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
 
-            </tr>
+    .status-active {
+        background: #e8f7ee;
+        color: #198754;
+    }
 
-            {% empty %}
+    .status-active .status-dot {
+        background: #198754;
+    }
 
-            <tr>
+    .status-inactive {
+        background: #ffe8e8;
+        color: #dc3545;
+    }
 
-                <td colspan="4">
+    .status-inactive .status-dot {
+        background: #dc3545;
+    }
 
-                    No vehicles found.
+    /* ================================
+       EMPTY STATE
+    ================================= */
 
-                </td>
+    .empty-state {
+        padding: 55px 20px !important;
+        text-align: center;
+        color: #6c757d;
+    }
 
-            </tr>
+    .empty-icon {
+        font-size: 42px;
+        opacity: 0.45;
+        margin-bottom: 10px;
+    }
 
-            {% endfor %}
+    .empty-state strong {
+        display: block;
+        color: #495057;
+        font-size: 15px;
+    }
 
-        </tbody>
+    /* ================================
+       MOBILE
+    ================================= */
 
-    </table>
+    @media (max-width: 768px) {
+
+        .vehicle-page {
+            padding: 5px 0 20px;
+        }
+
+        .vehicle-header {
+            padding: 18px;
+            border-radius: 13px;
+        }
+
+        .vehicle-header h3 {
+            font-size: 20px;
+        }
+
+        .vehicle-header p {
+            font-size: 12px;
+        }
+
+        .add-vehicle-btn {
+            padding: 9px 13px;
+            font-size: 13px;
+        }
+
+        .card-top {
+            padding: 14px;
+        }
+
+        .vehicle-table thead th,
+        .vehicle-table tbody td {
+            padding: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        .vehicle-header {
+            padding: 15px;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 13px;
+        }
+
+        .add-vehicle-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .card-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+    }
+
+</style>
+
+
+<div class="container-fluid vehicle-page">
+
+    <!-- ================================
+         PAGE HEADER
+    ================================= -->
+
+    <div class="vehicle-header">
+
+        <div class="header-content d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h3>
+                    Vehicle List
+                </h3>
+
+                <p>
+                    Manage your registered vehicles and driver information
+                </p>
+
+            </div>
+
+            <a
+                href="{% url 'vehicle_create' %}"
+                class="add-vehicle-btn"
+            >
+                <span>＋</span>
+                Add Vehicle
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================
+         VEHICLE TABLE
+    ================================= -->
+
+    <div class="vehicle-card">
+
+        <div class="card-top">
+
+            <h5>
+                Registered Vehicles
+            </h5>
+
+            <span class="vehicle-count">
+                {{ vehicles|length }} Vehicles
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table vehicle-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Vehicle No</th>
+
+                        <th>Driver</th>
+
+                        <th>Phone</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for vehicle in vehicles %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td>
+                            <span class="vehicle-number">
+                                {{ vehicle.vehicle_no }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="driver-name">
+                                {{ vehicle.driver_name }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="phone-number">
+                                {{ vehicle.phone }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            {% if vehicle.is_active %}
+
+                                <span class="status-badge status-active">
+
+                                    <span class="status-dot"></span>
+
+                                    Active
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-inactive">
+
+                                    <span class="status-dot"></span>
+
+                                    Inactive
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="empty-state"
+                        >
+
+                            <div class="empty-icon">
+                                🚗
+                            </div>
+
+                            <strong>
+                                No Vehicles Found
+                            </strong>
+
+                            <div class="mt-1">
+                                Add your first vehicle using the button above.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 

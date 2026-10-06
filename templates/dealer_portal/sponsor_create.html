@@ -2,71 +2,359 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Give Sponsor</h3>
+    .sponsor-wrapper {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
-    {% if error %}
+    .sponsor-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
 
-    <div class="alert alert-danger">
+    /* =========================
+       HEADER
+    ========================= */
 
-        {{ error }}
+    .sponsor-header {
+        padding: 22px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .sponsor-header h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+    .sponsor-header p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    /* =========================
+       FORM
+    ========================= */
+
+    .sponsor-form {
+        padding: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .sponsor-form select,
+    .sponsor-form input,
+    .sponsor-form textarea {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 9px;
+        padding: 11px 13px;
+        font-size: 14px;
+        color: #374151;
+        background: #ffffff;
+        outline: none;
+        transition: 0.2s ease;
+    }
+
+    .sponsor-form select {
+        min-height: 45px;
+    }
+
+    .sponsor-form input {
+        min-height: 45px;
+    }
+
+    .sponsor-form textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .sponsor-form select:focus,
+    .sponsor-form input:focus,
+    .sponsor-form textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    /* =========================
+       TWO COLUMN FORM
+    ========================= */
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 18px;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* =========================
+       ERROR
+    ========================= */
+
+    .error-box {
+        margin: 20px 25px 0;
+        padding: 12px 15px;
+        border-radius: 9px;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 14px;
+    }
+
+    /* =========================
+       BUTTON
+    ========================= */
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 5px;
+        margin-top: 5px;
+    }
+
+    .save-btn {
+        border: none;
+        border-radius: 9px;
+        padding: 11px 22px;
+        background: #16a34a;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .save-btn:hover {
+        background: #15803d;
+        transform: translateY(-1px);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 768px) {
+
+        .sponsor-wrapper {
+            max-width: 100%;
+        }
+
+        .sponsor-header {
+            padding: 19px;
+        }
+
+        .sponsor-header h3 {
+            font-size: 21px;
+        }
+
+        .sponsor-form {
+            padding: 20px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .full-width {
+            grid-column: auto;
+        }
+
+        .error-box {
+            margin: 18px 20px 0;
+        }
+
+        .form-actions {
+            justify-content: stretch;
+        }
+
+        .save-btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        .sponsor-header {
+            padding: 16px;
+        }
+
+        .sponsor-header h3 {
+            font-size: 20px;
+        }
+
+        .sponsor-header p {
+            font-size: 13px;
+        }
+
+        .sponsor-form {
+            padding: 16px;
+        }
+
+        .error-box {
+            margin: 16px 16px 0;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .sponsor-form select,
+        .sponsor-form input,
+        .sponsor-form textarea {
+            font-size: 14px;
+        }
+    }
+
+</style>
+
+
+<div class="sponsor-wrapper">
+
+    <div class="sponsor-card">
+
+        <!-- HEADER -->
+
+        <div class="sponsor-header">
+
+            <h3>
+                Give Sponsor
+            </h3>
+
+            <p>
+                Provide sponsored products to a customer
+            </p>
+
+        </div>
+
+
+        <!-- ERROR -->
+
+        {% if error %}
+
+            <div class="error-box">
+
+                <strong>Error:</strong>
+                {{ error }}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- FORM -->
+
+        <form method="POST" class="sponsor-form">
+
+            {% csrf_token %}
+
+            <div class="form-grid">
+
+                <!-- CUSTOMER -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Customer
+                    </label>
+
+                    {{ form.customer }}
+
+                </div>
+
+
+                <!-- PRODUCT -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Product
+                    </label>
+
+                    {{ form.product }}
+
+                </div>
+
+
+                <!-- QUANTITY -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Quantity
+                    </label>
+
+                    {{ form.quantity }}
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Date
+                    </label>
+
+                    {{ form.sponsor_date }}
+
+                </div>
+
+
+                <!-- REMARKS -->
+
+                <div class="form-group full-width">
+
+                    <label class="form-label">
+                        Remarks
+                    </label>
+
+                    {{ form.remarks }}
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTION -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                >
+                    ✓ Save Sponsor
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
-
-    {% endif %}
-
-    <form method="POST">
-
-        {% csrf_token %}
-
-        <div class="mb-3">
-
-            <label>Customer</label>
-
-            {{ form.customer }}
-
-        </div>
-
-        <div class="mb-3">
-
-            <label>Product</label>
-
-            {{ form.product }}
-
-        </div>
-
-        <div class="mb-3">
-
-            <label>Quantity</label>
-
-            {{ form.quantity }}
-
-        </div>
-
-        <div class="mb-3">
-
-            <label>Date</label>
-
-            {{ form.sponsor_date }}
-
-        </div>
-
-        <div class="mb-3">
-
-            <label>Remarks</label>
-
-            {{ form.remarks }}
-
-        </div>
-
-        <button class="btn btn-success">
-
-            Save Sponsor
-
-        </button>
-
-    </form>
 
 </div>
 

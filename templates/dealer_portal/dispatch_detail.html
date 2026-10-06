@@ -2,28 +2,393 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <!-- HEADER -->
+    /* =========================================
+       DISPATCH DETAIL
+    ========================================= */
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    .dispatch-page {
+        padding-bottom: 30px;
+    }
 
-        <div>
+    /* HEADER */
 
-            <h3 class="mb-1">
+    .dispatch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .dispatch-title h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .dispatch-title p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .back-btn {
+        white-space: nowrap;
+        border-radius: 8px;
+    }
+
+
+    /* =========================================
+       INFORMATION CARDS
+    ========================================= */
+
+    .info-card {
+        height: 100%;
+        padding: 18px;
+
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+
+        background: #ffffff;
+
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+
+        transition: 0.2s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    }
+
+    .info-label {
+        display: block;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .amount-value {
+        color: #198754;
+        font-size: 18px;
+    }
+
+
+    /* =========================================
+       REMARKS
+    ========================================= */
+
+    .remarks-box {
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #0d6efd;
+
+        background: #f8fafc;
+
+        border-radius: 10px;
+
+        padding: 15px 18px;
+
+        color: #374151;
+    }
+
+    .remarks-title {
+        font-weight: 700;
+        margin-right: 5px;
+    }
+
+
+    /* =========================================
+       SECTION HEADER
+    ========================================= */
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        margin-top: 28px;
+        margin-bottom: 15px;
+    }
+
+    .section-header h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-header span {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       PRODUCT TABLE
+    ========================================= */
+
+    .product-table-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+
+        background: #ffffff;
+
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .product-table {
+        margin-bottom: 0;
+    }
+
+    .product-table thead th {
+        background: #f8fafc;
+
+        color: #374151;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        padding: 13px 14px;
+
+        white-space: nowrap;
+
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .product-table tbody td {
+        padding: 14px;
+
+        vertical-align: middle;
+
+        color: #374151;
+
+        border-bottom: 1px solid #f1f5f9;
+
+        white-space: nowrap;
+    }
+
+    .product-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .product-index {
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .quantity {
+        font-weight: 600;
+    }
+
+    .rate {
+        color: #374151;
+    }
+
+    .total {
+        font-weight: 700;
+        color: #198754;
+    }
+
+
+    /* =========================================
+       QUANTITY BADGES
+    ========================================= */
+
+    .qty-badge {
+        display: inline-block;
+
+        padding: 5px 9px;
+
+        border-radius: 6px;
+
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .received {
+        background: #e8f7ee;
+        color: #198754;
+    }
+
+    .damaged {
+        background: #fde8e8;
+        color: #dc3545;
+    }
+
+    .returned {
+        background: #fff4d6;
+        color: #996c00;
+    }
+
+
+    /* =========================================
+       SUMMARY
+    ========================================= */
+
+    .summary-card {
+        height: 100%;
+
+        padding: 18px;
+
+        border-radius: 12px;
+
+        background: linear-gradient(
+            135deg,
+            #f8fbff,
+            #ffffff
+        );
+
+        border: 1px solid #e5e7eb;
+
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .summary-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .summary-value {
+        margin-top: 5px;
+
+        font-size: 22px;
+        font-weight: 700;
+
+        color: #1f2937;
+    }
+
+
+    /* =========================================
+       ACTION AREA
+    ========================================= */
+
+    .action-area {
+        margin-top: 28px;
+
+        padding-top: 20px;
+
+        border-top: 1px solid #e5e7eb;
+
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .action-area .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 9px 16px;
+    }
+
+
+    /* =========================================
+       MOBILE
+    ========================================= */
+
+    @media (max-width: 768px) {
+
+        .dispatch-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .back-btn {
+            width: 100%;
+        }
+
+        .section-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .action-area {
+            flex-direction: column;
+        }
+
+        .action-area .btn {
+            width: 100%;
+        }
+
+    }
+
+
+    @media (max-width: 576px) {
+
+        .dispatch-title h3 {
+            font-size: 22px;
+        }
+
+        .dispatch-title p {
+            font-size: 13px;
+        }
+
+        .info-card {
+            padding: 15px;
+        }
+
+        .product-table {
+            min-width: 900px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .summary-card {
+            padding: 15px;
+        }
+
+    }
+
+</style>
+
+
+<div class="card-box dispatch-page">
+
+
+    <!-- =========================================
+         HEADER
+    ========================================= -->
+
+    <div class="dispatch-header">
+
+        <div class="dispatch-title">
+
+            <h3>
                 Dispatch Details
             </h3>
 
-            <div class="text-muted">
+            <p>
                 Dispatch No:
                 <strong>{{ dispatch.dispatch_no }}</strong>
-            </div>
+            </p>
 
         </div>
 
+
         <a
             href="{% url 'dealer_dispatch_list' %}"
-            class="btn btn-secondary btn-sm"
+            class="btn btn-outline-secondary btn-sm back-btn"
         >
             ← Back to Dispatches
         </a>
@@ -31,19 +396,24 @@
     </div>
 
 
-    <!-- DISPATCH INFORMATION -->
+    <!-- =========================================
+         DISPATCH INFORMATION
+    ========================================= -->
 
     <div class="row g-3 mb-4">
 
-        <div class="col-md-3">
 
-            <div class="border rounded p-3 h-100">
+        <!-- DISPATCH NUMBER -->
 
-                <small class="text-muted">
-                    Dispatch No
-                </small>
+        <div class="col-12 col-sm-6 col-lg-3">
 
-                <div class="fw-bold mt-1">
+            <div class="info-card">
+
+                <span class="info-label">
+                    Dispatch Number
+                </span>
+
+                <div class="info-value">
                     {{ dispatch.dispatch_no }}
                 </div>
 
@@ -52,16 +422,18 @@
         </div>
 
 
-        <div class="col-md-3">
+        <!-- DATE -->
 
-            <div class="border rounded p-3 h-100">
+        <div class="col-12 col-sm-6 col-lg-3">
 
-                <small class="text-muted">
+            <div class="info-card">
+
+                <span class="info-label">
                     Dispatch Date
-                </small>
+                </span>
 
-                <div class="fw-bold mt-1">
-                    {{ dispatch.dispatch_date|date:"Y-m-d" }}
+                <div class="info-value">
+                    {{ dispatch.dispatch_date|date:"d M Y" }}
                 </div>
 
             </div>
@@ -69,37 +441,39 @@
         </div>
 
 
-        <div class="col-md-3">
+        <!-- STATUS -->
 
-            <div class="border rounded p-3 h-100">
+        <div class="col-12 col-sm-6 col-lg-3">
 
-                <small class="text-muted">
+            <div class="info-card">
+
+                <span class="info-label">
                     Status
-                </small>
+                </span>
 
-                <div class="mt-1">
+                <div class="mt-2">
 
                     {% if dispatch.status == 'PENDING' %}
 
-                        <span class="badge bg-warning text-dark">
+                        <span class="badge bg-warning text-dark px-3 py-2">
                             Pending
                         </span>
 
                     {% elif dispatch.status == 'APPROVED' %}
 
-                        <span class="badge bg-success">
+                        <span class="badge bg-success px-3 py-2">
                             Approved
                         </span>
 
                     {% elif dispatch.status == 'PARTIAL' %}
 
-                        <span class="badge bg-info text-dark">
+                        <span class="badge bg-info text-dark px-3 py-2">
                             Partially Received
                         </span>
 
                     {% else %}
 
-                        <span class="badge bg-secondary">
+                        <span class="badge bg-secondary px-3 py-2">
                             {{ dispatch.status }}
                         </span>
 
@@ -112,16 +486,21 @@
         </div>
 
 
-        <div class="col-md-3">
+        <!-- AMOUNT -->
 
-            <div class="border rounded p-3 h-100">
+        <div class="col-12 col-sm-6 col-lg-3">
 
-                <small class="text-muted">
+            <div class="info-card">
+
+                <span class="info-label">
                     Total Amount
-                </small>
+                </span>
 
-                <div class="fw-bold mt-1">
-                    Rs. {{ dispatch.total_amount|default:"0.00" }}
+                <div class="info-value amount-value">
+
+                    Rs.
+                    {{ dispatch.total_amount|default:"0.00"|floatformat:2 }}
+
                 </div>
 
             </div>
@@ -131,13 +510,17 @@
     </div>
 
 
-    <!-- REMARKS -->
+    <!-- =========================================
+         REMARKS
+    ========================================= -->
 
     {% if dispatch.remarks %}
 
-    <div class="alert alert-light border mb-4">
+    <div class="remarks-box mb-4">
 
-        <strong>Remarks:</strong>
+        <span class="remarks-title">
+            Remarks:
+        </span>
 
         {{ dispatch.remarks }}
 
@@ -146,159 +529,212 @@
     {% endif %}
 
 
-    <!-- PRODUCT DETAILS -->
-
-    <h5 class="mb-3">
-        Dispatch Products
-    </h5>
-
-
-    <div class="table-responsive">
-
-        <table class="table table-bordered table-hover align-middle">
-
-            <thead class="table-light">
-
-                <tr>
-
-                    <th>#</th>
-
-                    <th>Product</th>
-
-                    <th>Dispatched</th>
-
-                    <th>Received</th>
-
-                    <th>Damaged</th>
-
-                    <th>Returned</th>
-
-                    <th>Rate</th>
-
-                    <th>Total</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for item in items %}
-
-                <tr>
-
-                    <td>
-                        {{ forloop.counter }}
-                    </td>
-
-
-                    <td>
-
-                        <strong>
-                            {{ item.product.name }}
-                        </strong>
-
-                    </td>
-
-
-                    <!-- DISPATCHED -->
-
-                    <td>
-                        {{ item.dispatched_qty|default:"0.00" }}
-                    </td>
-
-
-                    <!-- RECEIVED -->
-
-                    <td>
-
-                        {{ item.received_qty|default:"0.00" }}
-
-                    </td>
-
-
-                    <!-- DAMAGED -->
-
-                    <td>
-
-                        {{ item.damaged_qty|default:"0.00" }}
-
-                    </td>
-
-
-                    <!-- RETURNED -->
-
-                    <td>
-
-                        {{ item.returned_qty|default:"0.00" }}
-
-                    </td>
-
-
-                    <!-- RATE -->
-
-                    <td>
-
-                        Rs.
-                        {{ item.rate|default:"0.00" }}
-
-                    </td>
-
-
-                    <!-- TOTAL -->
-
-                    <td>
-
-                        Rs.
-                        {{ item.amount|default:"0.00" }}
-
-                    </td>
-
-                </tr>
-
-
-                {% empty %}
-
-                <tr>
-
-                    <td
-                        colspan="8"
-                        class="text-center text-muted py-4"
-                    >
-
-                        No products found for this dispatch.
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+    <!-- =========================================
+         PRODUCTS HEADER
+    ========================================= -->
+
+    <div class="section-header">
+
+        <h5>
+            Dispatch Products
+        </h5>
+
+        <span>
+            {{ items|length }} product{{ items|length|pluralize }}
+        </span>
 
     </div>
 
 
-    <!-- RECEIVING SUMMARY -->
+    <!-- =========================================
+         PRODUCTS TABLE
+    ========================================= -->
+
+    <div class="product-table-card">
+
+        <div class="table-responsive">
+
+            <table class="table product-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Product</th>
+
+                        <th>Dispatched</th>
+
+                        <th>Received</th>
+
+                        <th>Damaged</th>
+
+                        <th>Returned</th>
+
+                        <th>Rate</th>
+
+                        <th>Total</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for item in items %}
+
+                    <tr>
+
+                        <td class="product-index">
+                            {{ forloop.counter }}
+                        </td>
+
+
+                        <td class="product-name">
+                            {{ item.product.name }}
+                        </td>
+
+
+                        <td class="quantity">
+
+                            {{ item.dispatched_qty|default:"0.00" }}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="qty-badge received">
+
+                                {{ item.received_qty|default:"0.00" }}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if item.damaged_qty > 0 %}
+
+                                <span class="qty-badge damaged">
+
+                                    {{ item.damaged_qty }}
+
+                                </span>
+
+                            {% else %}
+
+                                0.00
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if item.returned_qty > 0 %}
+
+                                <span class="qty-badge returned">
+
+                                    {{ item.returned_qty }}
+
+                                </span>
+
+                            {% else %}
+
+                                0.00
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="rate">
+
+                            Rs.
+                            {{ item.rate|default:"0.00"|floatformat:2 }}
+
+                        </td>
+
+
+                        <td class="total">
+
+                            Rs.
+                            {{ item.amount|default:"0.00"|floatformat:2 }}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="8"
+                            class="text-center text-muted py-5">
+
+                            No products found for this dispatch.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         SUMMARY
+    ========================================= -->
 
     <div class="row g-3 mt-3">
 
-        <div class="col-md-3">
 
-            <div class="border rounded p-3">
+        <div class="col-12 col-sm-6 col-md-4">
 
-                <small class="text-muted">
-                    Total Dispatched
-                </small>
+            <div class="summary-card">
 
-                <h5 class="mb-0 mt-1">
+                <div class="summary-label">
+                    Total Products
+                </div>
+
+                <div class="summary-value">
 
                     {{ items|length }}
 
-                </h5>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-12 col-sm-6 col-md-4">
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    Dispatch Amount
+                </div>
+
+                <div class="summary-value">
+
+                    Rs.
+                    {{ dispatch.total_amount|default:"0.00"|floatformat:2 }}
+
+                </div>
 
             </div>
 
@@ -307,9 +743,11 @@
     </div>
 
 
-    <!-- ACTION -->
+    <!-- =========================================
+         ACTIONS
+    ========================================= -->
 
-    <div class="mt-4">
+    <div class="action-area">
 
         {% if dispatch.status == 'PENDING' %}
 
@@ -317,7 +755,7 @@
                 href="{% url 'dealer_dispatch_approval' dispatch.id %}"
                 class="btn btn-success"
             >
-                Approve / Receive Dispatch
+                ✓ Approve / Receive Dispatch
             </a>
 
         {% elif dispatch.status == 'APPROVED' or dispatch.status == 'PARTIAL' %}
@@ -326,12 +764,13 @@
                 href="{% url 'dealer_dispatch_edit' dispatch.id %}"
                 class="btn btn-primary"
             >
-                Edit Dispatch
+                ✎ Edit Dispatch
             </a>
 
         {% endif %}
 
     </div>
+
 
 </div>
 

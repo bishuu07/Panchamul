@@ -2,35 +2,608 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Customers</h3>
+    .customer-page {
+        padding-bottom: 30px;
+    }
 
-    <a href="{% url 'dealer_customer_create' %}" class="btn btn-primary btn-sm">
-        Add Customer
-    </a>
+    /* =========================
+       HEADER
+    ========================= */
 
-    <hr>
+    .customer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
 
-    <table class="table table-bordered">
+    .customer-title h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
 
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-        </tr>
+    .customer-title p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
 
-        {% for c in customers %}
+    .add-customer-btn {
+        white-space: nowrap;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+    }
 
-        <tr>
-            <td>{{ c.name }}</td>
-            <td>{{ c.phone }}</td>
-            <td>{{ c.email }}</td>
-        </tr>
+    /* =========================
+       SEARCH BOX
+    ========================= */
 
-        {% endfor %}
+    .search-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
 
-    </table>
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0 14px;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .search-btn {
+        height: 42px;
+        border-radius: 8px;
+        padding: 0 18px;
+        font-weight: 600;
+    }
+
+    .clear-btn {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        padding: 0 15px;
+    }
+
+    /* =========================
+       TABLE CARD
+    ========================= */
+
+    .customer-table-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 15px 18px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header strong {
+        color: #1f2937;
+    }
+
+    .customer-count {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .customer-table {
+        margin-bottom: 0;
+    }
+
+    .customer-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 13px 15px;
+        white-space: nowrap;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .customer-table tbody td {
+        padding: 14px 15px;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    .customer-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .customer-number {
+        color: #6b7280;
+        font-size: 13px;
+        width: 60px;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .customer-phone {
+        color: #374151;
+        white-space: nowrap;
+    }
+
+    .customer-email {
+        color: #6b7280;
+    }
+
+    /* =========================
+       EMPTY STATE
+    ========================= */
+
+    .empty-state {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+    .empty-icon {
+        width: 55px;
+        height: 55px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .empty-state p {
+        margin-bottom: 18px;
+        color: #6b7280;
+    }
+
+    /* =========================
+       PAGINATION
+    ========================= */
+
+    .pagination-wrapper {
+        padding: 15px 18px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .page-info {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 7px;
+        margin: 0 2px;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 768px) {
+
+        .customer-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .add-customer-btn {
+            width: 100%;
+        }
+
+        .search-form {
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            width: 100%;
+            flex-basis: 100%;
+        }
+
+        .search-btn,
+        .clear-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .table-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .pagination-wrapper {
+            flex-direction: column;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        .customer-title h3 {
+            font-size: 22px;
+        }
+
+        .customer-table {
+            min-width: 650px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pagination .page-link {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+    }
+
+</style>
+
+
+<div class="card-box customer-page">
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <div class="customer-header">
+
+        <div class="customer-title">
+
+            <h3>
+                Customers
+            </h3>
+
+            <p>
+                Manage your dealer customers and contact information.
+            </p>
+
+        </div>
+
+        <a href="{% url 'dealer_customer_create' %}"
+           class="btn btn-primary add-customer-btn">
+
+            + Add Customer
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================
+         SEARCH
+    ========================= -->
+
+    <div class="search-box">
+
+        <form method="GET"
+              action=""
+              class="search-form">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                class="search-input"
+                placeholder="Search by name, phone or email..."
+                autocomplete="off"
+            >
+
+            <button
+                type="submit"
+                class="btn btn-primary search-btn">
+
+                Search
+
+            </button>
+
+            {% if search %}
+
+                <a href="{% url 'dealer_customer_list' %}"
+                   class="btn btn-outline-secondary clear-btn">
+
+                    Clear
+
+                </a>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================
+         CUSTOMER TABLE
+    ========================= -->
+
+    <div class="customer-table-card">
+
+        <div class="table-header">
+
+            <strong>
+                Customer List
+            </strong>
+
+            <span class="customer-count">
+
+                {% if paginator.count == 1 %}
+                    1 customer
+                {% else %}
+                    {{ paginator.count }} customers
+                {% endif %}
+
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table customer-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Name</th>
+
+                        <th>Phone</th>
+
+                        <th>Email</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for c in customers %}
+
+                    <tr>
+
+                        <td class="customer-number">
+                            {{ forloop.counter0|add:customers.start_index }}
+                        </td>
+
+                        <td class="customer-name">
+                            {{ c.name }}
+                        </td>
+
+                        <td class="customer-phone">
+                            {% if c.phone %}
+                                {{ c.phone }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="customer-email">
+
+                            {% if c.email %}
+                                {{ c.email }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    👤
+                                </div>
+
+                                {% if search %}
+
+                                    <h5>
+                                        No customers found
+                                    </h5>
+
+                                    <p>
+                                        No customer matches
+                                        "<strong>{{ search }}</strong>".
+                                    </p>
+
+                                    <a href="{% url 'dealer_customer_list' %}"
+                                       class="btn btn-outline-primary btn-sm">
+
+                                        Clear Search
+
+                                    </a>
+
+                                {% else %}
+
+                                    <h5>
+                                        No customers yet
+                                    </h5>
+
+                                    <p>
+                                        Start by adding your first customer.
+                                    </p>
+
+                                    <a href="{% url 'dealer_customer_create' %}"
+                                       class="btn btn-primary btn-sm">
+
+                                        + Add Customer
+
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =========================
+             PAGINATION
+        ========================= -->
+
+        {% if customers.has_other_pages %}
+
+        <div class="pagination-wrapper">
+
+            <div class="page-info">
+
+                Page {{ customers.number }}
+                of {{ customers.paginator.num_pages }}
+
+            </div>
+
+
+            <nav aria-label="Customer pagination">
+
+                <ul class="pagination">
+
+                    {% if customers.has_previous %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ customers.previous_page_number }}">
+
+                            Previous
+
+                        </a>
+
+                    </li>
+
+                    {% endif %}
+
+
+                    {% for num in customers.paginator.page_range %}
+
+                        {% if customers.number == num %}
+
+                            <li class="page-item active">
+
+                                <span class="page-link">
+                                    {{ num }}
+                                </span>
+
+                            </li>
+
+                        {% elif num > customers.number|add:'-3'
+                           and num < customers.number|add:'3' %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}">
+
+                                    {{ num }}
+
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% if customers.has_next %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ customers.next_page_number }}">
+
+                            Next
+
+                        </a>
+
+                    </li>
+
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 

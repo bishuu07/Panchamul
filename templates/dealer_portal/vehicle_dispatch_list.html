@@ -2,128 +2,809 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
+    .dispatch-page {
+        padding: 10px 0;
+    }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    /* =========================
+       HEADER
+    ========================= */
 
-        <h3>Vehicle Dispatches</h3>
+    .dispatch-header {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: #fff;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.18);
+    }
 
-        <a href="{% url 'vehicle_dispatch_create' %}"
-           class="btn btn-primary">
+    .dispatch-header h3 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 24px;
+    }
 
-            + New Dispatch
+    .dispatch-header p {
+        margin: 5px 0 0;
+        opacity: .9;
+        font-size: 14px;
+    }
 
-        </a>
+    .new-dispatch-btn {
+        background: #fff;
+        color: #0d6efd;
+        border: none;
+        border-radius: 9px;
+        padding: 10px 17px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: .2s ease;
+        white-space: nowrap;
+    }
+
+    .new-dispatch-btn:hover {
+        background: #f1f5ff;
+        color: #084298;
+        transform: translateY(-1px);
+    }
+
+
+    /* =========================
+       SEARCH
+    ========================= */
+
+    .search-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 20px;
+        border: 1px solid #e8edf5;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, .05);
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box input {
+        height: 44px;
+        padding-left: 42px;
+        border-radius: 9px;
+        border: 1px solid #dce2eb;
+        box-shadow: none;
+    }
+
+    .search-box input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .10);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 11px;
+        font-size: 17px;
+        color: #6c757d;
+        z-index: 2;
+    }
+
+    .search-btn {
+        height: 44px;
+        border-radius: 9px;
+        font-weight: 600;
+        padding: 0 20px;
+    }
+
+    .clear-btn {
+        height: 44px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        padding: 0 18px;
+        font-weight: 600;
+        border: 1px solid #dce2eb;
+        color: #495057;
+        background: #fff;
+    }
+
+    .clear-btn:hover {
+        background: #f5f6f8;
+        color: #212529;
+    }
+
+
+    /* =========================
+       TABLE
+    ========================= */
+
+    .dispatch-table-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #e8edf5;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, .05);
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dispatch-table {
+        margin: 0;
+        min-width: 720px;
+        vertical-align: middle;
+    }
+
+    .dispatch-table thead th {
+        background: #172033;
+        color: #fff;
+        border: none;
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .dispatch-table tbody td {
+        padding: 14px 16px;
+        border-color: #edf0f5;
+        color: #343a40;
+        font-size: 14px;
+    }
+
+    .dispatch-table tbody tr {
+        transition: background .15s ease;
+    }
+
+    .dispatch-table tbody tr:hover {
+        background: #f7faff;
+    }
+
+    .dispatch-number {
+        font-weight: 700;
+        color: #0d6efd;
+    }
+
+    .vehicle-number {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+
+    /* =========================
+       STATUS
+    ========================= */
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 11px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+    .status-badge.open {
+        background: #e8f8ef;
+        color: #198754;
+    }
+
+    .status-badge.closed {
+        background: #fdebec;
+        color: #dc3545;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+
+    /* =========================
+       ACTIONS
+    ========================= */
+
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 7px 13px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: .2s ease;
+    }
+
+    .open-btn {
+        background: #eaf2ff;
+        color: #0d6efd;
+    }
+
+    .open-btn:hover {
+        background: #0d6efd;
+        color: #fff;
+    }
+
+    .report-btn {
+        background: #e8f8ef;
+        color: #198754;
+    }
+
+    .report-btn:hover {
+        background: #198754;
+        color: #fff;
+    }
+
+
+    /* =========================
+       EMPTY STATE
+    ========================= */
+
+    .empty-state {
+        padding: 55px 20px !important;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        background: #eef5ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+    }
+
+    .empty-state h5 {
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .empty-state p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 14px;
+    }
+
+
+    /* =========================
+       PAGINATION
+    ========================= */
+
+    .pagination-wrapper {
+        padding: 18px;
+        border-top: 1px solid #edf0f5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 7px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+        color: #0d6efd;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+        background: #f8f9fa;
+    }
+
+
+    /* =========================
+       TABLET
+    ========================= */
+
+    @media (max-width: 768px) {
+
+        .dispatch-header {
+            padding: 18px;
+        }
+
+        .dispatch-header h3 {
+            font-size: 21px;
+        }
+
+        .new-dispatch-btn {
+            padding: 9px 13px;
+            font-size: 13px;
+        }
+
+        .dispatch-table thead th,
+        .dispatch-table tbody td {
+            padding: 12px;
+        }
+
+        .pagination-wrapper {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 576px) {
+
+        .dispatch-page {
+            padding: 5px 0;
+        }
+
+        .dispatch-header {
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .dispatch-header .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            align-items: stretch !important;
+        }
+
+        .dispatch-header h3 {
+            font-size: 19px;
+        }
+
+        .dispatch-header p {
+            font-size: 12px;
+        }
+
+        .new-dispatch-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .search-card {
+            padding: 12px;
+        }
+
+        .search-btn,
+        .clear-btn {
+            width: 100%;
+        }
+
+        .dispatch-table-card {
+            border-radius: 12px;
+        }
+
+        .dispatch-table {
+            min-width: 650px;
+        }
+
+        .action-buttons {
+            flex-direction: row;
+        }
+
+        .action-btn {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+
+        .pagination {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+
+<div class="dispatch-page">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <div class="dispatch-header">
+
+        <div class="header-content d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h3>
+                    🚚 Vehicle Dispatches
+                </h3>
+
+                <p>
+                    Manage and monitor all vehicle dispatch records
+                </p>
+
+            </div>
+
+            <a href="{% url 'vehicle_dispatch_create' %}"
+               class="new-dispatch-btn">
+
+                + New Dispatch
+
+            </a>
+
+        </div>
 
     </div>
 
-    <table class="table table-bordered table-hover">
 
-        <thead class="table-dark">
+    <!-- =========================
+         SEARCH
+    ========================== -->
 
-            <tr>
+    <div class="search-card">
 
-                <th>Dispatch No</th>
+        <form method="get">
 
-                <th>Date</th>
+            <div class="row g-2 align-items-center">
 
-                <th>Vehicle</th>
+                <div class="col-12 col-md">
 
-                <th>Status</th>
+                    <div class="search-box">
 
-                <th width="220">Action</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            {% for dispatch in dispatches %}
-
-            <tr>
-
-                <td>
-
-                    <strong>{{ dispatch.dispatch_no }}</strong>
-
-                </td>
-
-                <td>
-
-                    {{ dispatch.dispatch_date }}
-
-                </td>
-
-                <td>
-
-                    {{ dispatch.vehicle.vehicle_no }}
-
-                </td>
-
-                <td>
-
-                    {% if dispatch.status == "OPEN" %}
-
-                        <span class="badge bg-success">
-
-                            OPEN
-
+                        <span class="search-icon">
+                            🔎
                         </span>
 
-                    {% else %}
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Search dispatch number or vehicle number..."
+                        >
 
-                        <span class="badge bg-danger">
+                    </div>
 
-                            CLOSED
+                </div>
 
-                        </span>
+                <div class="col-12 col-sm-auto">
 
-                    {% endif %}
+                    <button
+                        type="submit"
+                        class="btn btn-primary search-btn">
 
-                </td>
+                        Search
 
-                <td>
+                    </button>
 
-                    <a href="{% url 'vehicle_dispatch_detail' dispatch.id %}"
-                       class="btn btn-primary btn-sm">
+                </div>
 
-                        Open
+                {% if search %}
+
+                <div class="col-12 col-sm-auto">
+
+                    <a
+                        href="{% url 'vehicle_dispatch_list' %}"
+                        class="clear-btn">
+
+                        Clear
 
                     </a>
 
-                    {% if dispatch.status == "CLOSED" %}
+                </div>
 
-                        <a href="{% url 'vehicle_dispatch_report' dispatch.id %}"
-                           class="btn btn-success btn-sm">
+                {% endif %}
 
-                            Report
+            </div>
 
-                        </a>
+        </form>
+
+    </div>
+
+
+    <!-- =========================
+         TABLE
+    ========================== -->
+
+    <div class="dispatch-table-card">
+
+        <div class="table-wrapper">
+
+            <table class="table dispatch-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Dispatch No
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Vehicle
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th width="220">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for dispatch in dispatches %}
+
+                    <tr>
+
+                        <td>
+
+                            <span class="dispatch-number">
+                                {{ dispatch.dispatch_no }}
+                            </span>
+
+                        </td>
+
+                        <td>
+                            {{ dispatch.dispatch_date }}
+                        </td>
+
+                        <td>
+
+                            <span class="vehicle-number">
+                                🚛 {{ dispatch.vehicle.vehicle_no }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            {% if dispatch.status == "OPEN" %}
+
+                                <span class="status-badge open">
+
+                                    <span class="status-dot"></span>
+
+                                    OPEN
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge closed">
+
+                                    <span class="status-dot"></span>
+
+                                    CLOSED
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <div class="action-buttons">
+
+                                <a
+                                    href="{% url 'vehicle_dispatch_detail' dispatch.id %}"
+                                    class="action-btn open-btn">
+
+                                    Open
+
+                                </a>
+
+                                {% if dispatch.status == "CLOSED" %}
+
+                                    <a
+                                        href="{% url 'vehicle_dispatch_report' dispatch.id %}"
+                                        class="action-btn report-btn">
+
+                                        Report
+
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5" class="empty-state">
+
+                            <div class="empty-icon">
+                                🚚
+                            </div>
+
+                            <h5>
+                                No Vehicle Dispatches Found
+                            </h5>
+
+                            <p>
+                                {% if search %}
+                                    No dispatches match your search.
+                                {% else %}
+                                    Create your first vehicle dispatch to see it here.
+                                {% endif %}
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =========================
+             PAGINATION
+        ========================== -->
+
+        {% if dispatches.has_other_pages %}
+
+        <div class="pagination-wrapper">
+
+            <div class="pagination-info">
+
+                Showing
+                <strong>{{ dispatches.start_index }}</strong>
+                –
+                <strong>{{ dispatches.end_index }}</strong>
+                of
+                <strong>{{ dispatches.paginator.count }}</strong>
+                dispatches
+
+            </div>
+
+
+            <nav aria-label="Vehicle dispatch pagination">
+
+                <ul class="pagination">
+
+                    {% if dispatches.has_previous %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page={{ dispatches.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}">
+
+                                &laquo;
+
+                            </a>
+
+                        </li>
+
+                    {% else %}
+
+                        <li class="page-item disabled">
+
+                            <span class="page-link">
+                                &laquo;
+                            </span>
+
+                        </li>
 
                     {% endif %}
 
-                </td>
 
-            </tr>
+                    {% for num in dispatches.paginator.page_range %}
 
-            {% empty %}
+                        {% if num == dispatches.number %}
 
-            <tr>
+                            <li class="page-item active">
 
-                <td colspan="5" class="text-center">
+                                <span class="page-link">
+                                    {{ num }}
+                                </span>
 
-                    No Vehicle Dispatches Found
+                            </li>
 
-                </td>
+                        {% elif num > dispatches.number|add:'-2' and num < dispatches.number|add:'2' %}
 
-            </tr>
+                            <li class="page-item">
 
-            {% endfor %}
+                                <a
+                                    class="page-link"
+                                    href="?page={{ num }}{% if search %}&search={{ search|urlencode }}{% endif %}">
 
-        </tbody>
+                                    {{ num }}
 
-    </table>
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% if dispatches.has_next %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page={{ dispatches.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}">
+
+                                &raquo;
+
+                            </a>
+
+                        </li>
+
+                    {% else %}
+
+                        <li class="page-item disabled">
+
+                            <span class="page-link">
+                                &raquo;
+                            </span>
+
+                        </li>
+
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 

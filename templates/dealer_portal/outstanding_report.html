@@ -2,83 +2,534 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Outstanding Report</h3>
+    .report-wrapper {
+        width: 100%;
+    }
 
-    <table class="table table-bordered">
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
 
-        <thead>
+    .report-title h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
 
-            <tr>
+    .report-title p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
 
-                <th>Customer</th>
+    .search-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
 
-                <th>Total Sales</th>
+    .search-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
 
-                <th>Total Returns</th>
+    .search-input {
+        flex: 1;
+        min-width: 0;
+        height: 44px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0 14px;
+        outline: none;
+        font-size: 14px;
+    }
 
-                <th>Total Payments</th>
+    .search-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
 
-                <th>Outstanding</th>
+    .search-btn {
+        height: 44px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+    }
 
-            </tr>
+    .clear-btn {
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: #f3f4f6;
+        color: #374151;
+        font-weight: 600;
+    }
 
-        </thead>
+    .report-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    }
 
-        <tbody>
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
 
-            {% for row in report %}
+    .report-table {
+        width: 100%;
+        min-width: 800px;
+        margin: 0;
+        border-collapse: collapse;
+    }
 
-            <tr>
+    .report-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 15px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
 
-                <td>
-                    {{ row.customer.name }}
-                </td>
+    .report-table tbody td {
+        padding: 15px 14px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+        color: #374151;
+        font-size: 14px;
+    }
 
-                <td>
-                    {{ row.sales }}
-                </td>
+    .report-table tbody tr:hover {
+        background: #f8fbff;
+    }
 
-                <td>
-                    {{ row.returns }}
-                </td>
+    .customer-name {
+        font-weight: 700;
+        color: #111827;
+    }
 
-                <td>
-                    {{ row.payments }}
-                </td>
+    .customer-phone {
+        display: block;
+        margin-top: 3px;
+        color: #6b7280;
+        font-size: 12px;
+    }
 
-                <td>
+    .amount {
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-                    {% if row.outstanding > 0 %}
-                        <b style="color:red">
-                            {{ row.outstanding }}
-                        </b>
+    .outstanding-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 7px;
+        background: #fee2e2;
+        color: #dc2626;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .paid-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 7px;
+        background: #dcfce7;
+        color: #15803d;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .report-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        flex-wrap: wrap;
+        background: #ffffff;
+    }
+
+    .result-count {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .pagination {
+        margin: 0;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .pagination a,
+    .pagination span {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #e5e7eb;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pagination a {
+        background: #ffffff;
+        color: #374151;
+    }
+
+    .pagination a:hover {
+        background: #eff6ff;
+        border-color: #2563eb;
+        color: #2563eb;
+    }
+
+    .pagination .active {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+    }
+
+    .empty-state {
+        padding: 45px 20px !important;
+        text-align: center;
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+
+        .report-header {
+            align-items: flex-start;
+        }
+
+        .report-title h3 {
+            font-size: 22px;
+        }
+
+        .search-form {
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            width: 100%;
+            flex: 100%;
+        }
+
+        .search-btn,
+        .clear-btn {
+            flex: 1;
+        }
+
+        .report-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .pagination {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        .report-title h3 {
+            font-size: 20px;
+        }
+
+        .report-title p {
+            font-size: 13px;
+        }
+
+        .search-box {
+            padding: 12px;
+        }
+
+        .search-btn,
+        .clear-btn {
+            font-size: 13px;
+        }
+
+        .report-footer {
+            padding: 12px;
+        }
+    }
+
+</style>
+
+
+<div class="report-wrapper">
+
+    <!-- HEADER -->
+    <div class="report-header">
+
+        <div class="report-title">
+
+            <h3>
+                Outstanding Report
+            </h3>
+
+            <p>
+                Customer-wise sales, returns, payments and outstanding balance
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEARCH -->
+    <div class="search-box">
+
+        <form method="GET" class="search-form">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                class="search-input"
+                placeholder="Search customer name or phone..."
+            >
+
+            <button type="submit" class="search-btn">
+                🔍 Search
+            </button>
+
+            {% if search %}
+                <a href="{% url 'dealer_outstanding_report' %}"
+                   class="clear-btn">
+                    Clear
+                </a>
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- REPORT TABLE -->
+    <div class="report-card">
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Customer</th>
+
+                        <th>Total Sales</th>
+
+                        <th>Total Returns</th>
+
+                        <th>Total Payments</th>
+
+                        <th>Outstanding</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in report %}
+
+                    <tr>
+
+                        <td>
+
+                            <span class="customer-name">
+                                {{ row.customer.name }}
+                            </span>
+
+                            {% if row.customer.phone %}
+
+                                <span class="customer-phone">
+                                    {{ row.customer.phone }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="amount">
+                                Rs. {{ row.sales|floatformat:2 }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="amount">
+                                Rs. {{ row.returns|floatformat:2 }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="amount">
+                                Rs. {{ row.payments|floatformat:2 }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if row.outstanding > 0 %}
+
+                                <span class="outstanding-badge">
+                                    Rs. {{ row.outstanding|floatformat:2 }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="paid-badge">
+                                    Rs. 0.00
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5" class="empty-state">
+
+                            <div class="empty-icon">
+                                📊
+                            </div>
+
+                            <strong>No outstanding data found</strong>
+
+                            <div>
+                                Try another customer name or phone number.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- FOOTER / PAGINATION -->
+        {% if paginator.num_pages > 0 %}
+
+        <div class="report-footer">
+
+            <div class="result-count">
+
+                Showing
+                <strong>{{ report.start_index }}</strong>
+                –
+                <strong>{{ report.end_index }}</strong>
+                of
+                <strong>{{ paginator.count }}</strong>
+                customers
+
+            </div>
+
+
+            {% if paginator.num_pages > 1 %}
+
+            <div class="pagination">
+
+                {% if report.has_previous %}
+
+                    <a href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ report.previous_page_number }}">
+                        ‹
+                    </a>
+
+                {% endif %}
+
+
+                {% for num in paginator.page_range %}
+
+                    {% if num == report.number %}
+
+                        <span class="active">
+                            {{ num }}
+                        </span>
+
                     {% else %}
-                        0
+
+                        <a href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}">
+                            {{ num }}
+                        </a>
+
                     {% endif %}
 
-                </td>
+                {% endfor %}
 
-            </tr>
 
-            {% empty %}
+                {% if report.has_next %}
 
-            <tr>
+                    <a href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ report.next_page_number }}">
+                        ›
+                    </a>
 
-                <td colspan="5">
+                {% endif %}
 
-                    No data found.
+            </div>
 
-                </td>
+            {% endif %}
 
-            </tr>
+        </div>
 
-            {% endfor %}
+        {% endif %}
 
-        </tbody>
-
-    </table>
+    </div>
 
 </div>
 

@@ -2,127 +2,912 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Dispatches</h3>
+    /* =========================================
+       DISPATCH PAGE
+    ========================================= */
+
+    .dispatch-page {
+        padding-bottom: 30px;
+    }
+
+
+    /* =========================================
+       HEADER
+    ========================================= */
+
+    .dispatch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        margin-bottom: 20px;
+        gap: 15px;
+    }
+
+    .dispatch-title h3 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .dispatch-title p {
+        margin: 5px 0 0;
+
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    /* =========================================
+       SEARCH
+    ========================================= */
+
+    .search-box {
+        background: #f8fafc;
+
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+
+        padding: 16px;
+
+        margin-bottom: 20px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+
+        min-width: 0;
+
+        height: 42px;
+
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+
+        padding: 0 14px;
+
+        outline: none;
+
+        transition: 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: #0d6efd;
+
+        box-shadow:
+            0 0 0 3px
+            rgba(13, 110, 253, 0.1);
+    }
+
+    .search-btn {
+        height: 42px;
+
+        border-radius: 8px;
+
+        padding: 0 20px;
+
+        font-weight: 600;
+    }
+
+    .clear-btn {
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+
+        border-radius: 8px;
+
+        padding: 0 16px;
+    }
+
+
+    /* =========================================
+       TABLE CARD
+    ========================================= */
+
+    .dispatch-table-card {
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 14px;
+
+        overflow: hidden;
+
+        box-shadow:
+            0 4px 15px
+            rgba(0, 0, 0, 0.04);
+    }
+
+    .table-top {
+        padding: 16px 20px;
+
+        border-bottom: 1px solid #e5e7eb;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 10px;
+    }
+
+    .table-top-title {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .dispatch-count {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       TABLE
+    ========================================= */
+
+    .dispatch-table {
+        margin-bottom: 0;
+    }
+
+    .dispatch-table thead th {
+        background: #f8fafc;
+
+        color: #374151;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        padding: 14px 16px;
+
+        white-space: nowrap;
+
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .dispatch-table tbody td {
+        padding: 15px 16px;
+
+        vertical-align: middle;
+
+        color: #374151;
+
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .dispatch-table tbody tr {
+        transition: 0.2s ease;
+    }
+
+    .dispatch-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+
+    /* =========================================
+       DISPATCH NUMBER
+    ========================================= */
+
+    .dispatch-number {
+        color: #0d6efd;
+
+        font-weight: 700;
+
+        text-decoration: none;
+
+        white-space: nowrap;
+    }
+
+    .dispatch-number:hover {
+        text-decoration: underline;
+    }
+
+
+    /* =========================================
+       DATE
+    ========================================= */
+
+    .dispatch-date {
+        color: #4b5563;
+
+        white-space: nowrap;
+
+        font-size: 14px;
+    }
+
+
+    /* =========================================
+       AMOUNT
+    ========================================= */
+
+    .dispatch-amount {
+        font-weight: 700;
+
+        color: #198754;
+
+        white-space: nowrap;
+    }
+
+
+    /* =========================================
+       STATUS
+    ========================================= */
+
+    .status-badge {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 5px;
+
+        padding: 6px 10px;
+
+        border-radius: 20px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        white-space: nowrap;
+    }
+
+    .status-pending {
+        background: #fff4d6;
+        color: #946200;
+    }
+
+    .status-approved {
+        background: #e8f7ee;
+        color: #198754;
+    }
+
+    .status-partial {
+        background: #e4f4fb;
+        color: #087990;
+    }
+
+    .status-other {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+
+    /* =========================================
+       ACTION BUTTONS
+    ========================================= */
+
+    .action-buttons {
+        display: flex;
+
+        gap: 7px;
+
+        flex-wrap: wrap;
+    }
+
+    .action-buttons .btn {
+        border-radius: 7px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        white-space: nowrap;
+    }
+
+
+    /* =========================================
+       EMPTY STATE
+    ========================================= */
+
+    .empty-state {
+        text-align: center;
+
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 65px;
+        height: 65px;
+
+        margin: 0 auto 16px;
+
+        border-radius: 50%;
+
+        background: #f1f5f9;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 28px;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 7px;
+
+        font-weight: 600;
+
+        color: #374151;
+    }
+
+    .empty-state p {
+        margin-bottom: 18px;
+
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       PAGINATION
+    ========================================= */
+
+    .pagination-wrapper {
+        padding: 15px 20px;
+
+        border-top: 1px solid #e5e7eb;
+
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        gap: 15px;
+    }
+
+    .page-info {
+        color: #6b7280;
+
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 7px;
+
+        margin: 0 2px;
+
+        color: #374151;
+
+        border: 1px solid #e5e7eb;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+
+        border-color: #0d6efd;
+
+        color: white;
+    }
+
+
+    /* =========================================
+       MOBILE
+    ========================================= */
+
+    @media (max-width: 768px) {
+
+        .dispatch-header {
+            align-items: flex-start;
+
+            flex-direction: column;
+        }
+
+        .dispatch-title h3 {
+            font-size: 23px;
+        }
+
+        .search-form {
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex-basis: 100%;
+
+            width: 100%;
+        }
+
+        .search-btn,
+        .clear-btn {
+            flex: 1;
+
+            justify-content: center;
+        }
+
+        .table-top {
+            align-items: flex-start;
+
+            flex-direction: column;
+        }
+
+        .pagination-wrapper {
+            flex-direction: column;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+
+            justify-content: center;
+        }
+
+    }
+
+
+    /* =========================================
+       SMALL MOBILE
+    ========================================= */
+
+    @media (max-width: 576px) {
+
+        .dispatch-title h3 {
+            font-size: 21px;
+        }
+
+        .dispatch-title p {
+            font-size: 13px;
+        }
+
+        .dispatch-table {
+            min-width: 850px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dispatch-table thead th,
+        .dispatch-table tbody td {
+            padding: 12px 13px;
+        }
+
+        .pagination .page-link {
+            padding: 6px 10px;
+
+            font-size: 13px;
+        }
+
+    }
+
+</style>
+
+
+<div class="card-box dispatch-page">
+
+
+    <!-- =========================================
+         HEADER
+    ========================================= -->
+
+    <div class="dispatch-header">
+
+        <div class="dispatch-title">
+
+            <h3>
+                Dispatches
+            </h3>
+
+            <p>
+                View and manage all company dispatches received by your dealership.
+            </p>
+
+        </div>
+
     </div>
 
-    <div class="table-responsive">
 
-        <table class="table table-bordered table-hover align-middle">
+    <!-- =========================================
+         SEARCH
+    ========================================= -->
 
-            <thead class="table-light">
-                <tr>
-                    <th>Dispatch No</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Total Amount</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+    <div class="search-box">
 
-            <tbody>
+        <form
+            method="GET"
+            action=""
+            class="search-form"
+        >
 
-                {% for dispatch in dispatches %}
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                class="search-input"
+                placeholder="Search by dispatch number..."
+                autocomplete="off"
+            >
 
-                <tr>
 
-                    <!-- CLICKABLE DISPATCH NUMBER -->
-                    <td>
+            <button
+                type="submit"
+                class="btn btn-primary search-btn"
+            >
+                🔎 Search
+            </button>
+
+
+            {% if search %}
+
+                <a
+                    href="{% url 'dealer_dispatch_list' %}"
+                    class="btn btn-outline-secondary clear-btn"
+                >
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================
+         TABLE
+    ========================================= -->
+
+    <div class="dispatch-table-card">
+
+
+        <div class="table-top">
+
+            <div class="table-top-title">
+                Dispatch History
+            </div>
+
+
+            <div class="dispatch-count">
+
+                {% if paginator.count == 1 %}
+
+                    1 dispatch
+
+                {% else %}
+
+                    {{ paginator.count }} dispatches
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table dispatch-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Dispatch No
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-end">
+                            Total Amount
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                    {% for dispatch in dispatches %}
+
+                    <tr>
+
+
+                        <!-- DISPATCH NUMBER -->
+
+                        <td>
+
+                            <a
+                                href="{% url 'dealer_dispatch_detail' dispatch.id %}"
+                                class="dispatch-number"
+                            >
+                                {{ dispatch.dispatch_no }}
+                            </a>
+
+                        </td>
+
+
+                        <!-- DATE -->
+
+                        <td class="dispatch-date">
+
+                            {{ dispatch.dispatch_date|date:"d M Y" }}
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            {% if dispatch.status == 'PENDING' %}
+
+                                <span class="status-badge status-pending">
+                                    ● Pending
+                                </span>
+
+                            {% elif dispatch.status == 'APPROVED' %}
+
+                                <span class="status-badge status-approved">
+                                    ● Approved
+                                </span>
+
+                            {% elif dispatch.status == 'PARTIAL' %}
+
+                                <span class="status-badge status-partial">
+                                    ● Partially Received
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-other">
+                                    ● {{ dispatch.status }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- AMOUNT -->
+
+                        <td class="dispatch-amount text-end">
+
+                            Rs.
+                            {{ dispatch.total_amount|default:"0.00"|floatformat:2 }}
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td>
+
+                            <div class="action-buttons">
+
+
+                                <!-- VIEW -->
+
+                                <a
+                                    href="{% url 'dealer_dispatch_detail' dispatch.id %}"
+                                    class="btn btn-outline-primary btn-sm"
+                                >
+                                    View
+                                </a>
+
+
+                                {% if dispatch.status == 'PENDING' %}
+
+                                    <a
+                                        href="{% url 'dealer_dispatch_approval' dispatch.id %}"
+                                        class="btn btn-success btn-sm"
+                                    >
+                                        Approve / Receive
+                                    </a>
+
+
+                                {% elif dispatch.status == 'APPROVED' or dispatch.status == 'PARTIAL' %}
+
+                                    <a
+                                        href="{% url 'dealer_dispatch_edit' dispatch.id %}"
+                                        class="btn btn-primary btn-sm"
+                                    >
+                                        Edit
+                                    </a>
+
+
+                                {% else %}
+
+                                    <span class="text-muted small">
+                                        No Action
+                                    </span>
+
+                                {% endif %}
+
+
+                            </div>
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    📦
+                                </div>
+
+
+                                {% if search %}
+
+                                    <h5>
+                                        No dispatches found
+                                    </h5>
+
+                                    <p>
+                                        No dispatch matches
+                                        "<strong>{{ search }}</strong>".
+                                    </p>
+
+
+                                    <a
+                                        href="{% url 'dealer_dispatch_list' %}"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+                                        Clear Search
+                                    </a>
+
+
+                                {% else %}
+
+                                    <h5>
+                                        No dispatches yet
+                                    </h5>
+
+                                    <p>
+                                        No company dispatches are available for your dealership.
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =========================================
+             PAGINATION
+        ========================================= -->
+
+        {% if dispatches.has_other_pages %}
+
+        <div class="pagination-wrapper">
+
+
+            <div class="page-info">
+
+                Page
+                {{ dispatches.number }}
+                of
+                {{ dispatches.paginator.num_pages }}
+
+            </div>
+
+
+            <nav aria-label="Dispatch pagination">
+
+                <ul class="pagination">
+
+
+                    {% if dispatches.has_previous %}
+
+                    <li class="page-item">
+
                         <a
-                            href="{% url 'dealer_dispatch_detail' dispatch.id %}"
-                            class="text-decoration-none fw-bold"
+                            class="page-link"
+                            href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ dispatches.previous_page_number }}"
                         >
-                            {{ dispatch.dispatch_no }}
+                            Previous
                         </a>
-                    </td>
 
-                    <td>
-                        {{ dispatch.dispatch_date|date:"Y-m-d" }}
-                    </td>
+                    </li>
 
-                    <td>
+                    {% endif %}
 
-                        {% if dispatch.status == 'PENDING' %}
 
-                            <span class="badge bg-warning text-dark">
-                                Pending
-                            </span>
+                    {% for num in dispatches.paginator.page_range %}
 
-                        {% elif dispatch.status == 'APPROVED' %}
 
-                            <span class="badge bg-success">
-                                Approved
-                            </span>
+                        {% if dispatches.number == num %}
 
-                        {% elif dispatch.status == 'PARTIAL' %}
+                            <li class="page-item active">
 
-                            <span class="badge bg-info text-dark">
-                                Partially Received
-                            </span>
+                                <span class="page-link">
+                                    {{ num }}
+                                </span>
 
-                        {% else %}
+                            </li>
 
-                            <span class="badge bg-secondary">
-                                {{ dispatch.status }}
-                            </span>
 
-                        {% endif %}
+                        {% elif num > dispatches.number|add:'-3'
+                           and num < dispatches.number|add:'3' %}
 
-                    </td>
+                            <li class="page-item">
 
-                    <td>
-                        Rs. {{ dispatch.total_amount|default:0 }}
-                    </td>
+                                <a
+                                    class="page-link"
+                                    href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}"
+                                >
+                                    {{ num }}
+                                </a>
 
-                    <td>
-
-                        {% if dispatch.status == 'PENDING' %}
-
-                            <a
-                                href="{% url 'dealer_dispatch_approval' dispatch.id %}"
-                                class="btn btn-success btn-sm"
-                            >
-                                Approve / Receive
-                            </a>
-
-                        {% elif dispatch.status == 'APPROVED' or dispatch.status == 'PARTIAL' %}
-
-                            <a
-                                href="{% url 'dealer_dispatch_edit' dispatch.id %}"
-                                class="btn btn-primary btn-sm"
-                            >
-                                Edit
-                            </a>
-
-                        {% else %}
-
-                            <span class="text-muted">
-                                No Action
-                            </span>
+                            </li>
 
                         {% endif %}
 
-                    </td>
 
-                </tr>
+                    {% endfor %}
 
-                {% empty %}
 
-                <tr>
-                    <td colspan="5" class="text-center text-muted">
-                        No dispatches found.
-                    </td>
-                </tr>
+                    {% if dispatches.has_next %}
 
-                {% endfor %}
+                    <li class="page-item">
 
-            </tbody>
+                        <a
+                            class="page-link"
+                            href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ dispatches.next_page_number }}"
+                        >
+                            Next
+                        </a>
 
-        </table>
+                    </li>
+
+                    {% endif %}
+
+
+                </ul>
+
+            </nav>
+
+
+        </div>
+
+        {% endif %}
+
 
     </div>
+
 
 </div>
 

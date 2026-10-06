@@ -2,50 +2,548 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Dealer Stock</h3>
+    /* =========================================
+       DEALER STOCK PAGE
+    ========================================= */
 
-    <table class="table table-bordered">
+    .stock-page {
+        padding-bottom: 30px;
+    }
 
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Available Stock</th>
-            </tr>
-        </thead>
+    /* =========================================
+       HEADER
+    ========================================= */
 
-        <tbody>
+    .stock-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 15px;
+    }
 
-            {% for stock in stocks %}
+    .stock-title h3 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #1f2937;
+    }
 
-            <tr>
+    .stock-title p {
+        margin: 6px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
 
-                <td>
-                    {{ stock.product.name }}
-                </td>
+    .stock-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
 
-                <td>
-                    {{ stock.quantity }}
-                </td>
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-            </tr>
+        background: #e8f1ff;
+        color: #0d6efd;
 
-            {% empty %}
+        font-size: 23px;
+        margin-right: 13px;
+    }
 
-            <tr>
+    .stock-title-wrapper {
+        display: flex;
+        align-items: center;
+    }
 
-                <td colspan="2">
-                    No stock available.
-                </td>
 
-            </tr>
+    /* =========================================
+       SUMMARY CARD
+    ========================================= */
 
-            {% endfor %}
+    .stock-summary {
+        border: 1px solid #e5e7eb;
+        background: linear-gradient(
+            135deg,
+            #f8fbff,
+            #ffffff
+        );
 
-        </tbody>
+        border-radius: 14px;
+        padding: 20px;
 
-    </table>
+        margin-bottom: 22px;
+
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .summary-label {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .summary-subtext {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       STOCK TABLE CARD
+    ========================================= */
+
+    .stock-table-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    }
+
+    .stock-table-header {
+        padding: 18px 20px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .stock-table-header h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .stock-table-header span {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       TABLE
+    ========================================= */
+
+    .stock-table {
+        margin: 0;
+    }
+
+    .stock-table thead th {
+        background: #f8fafc;
+        color: #374151;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        padding: 14px 20px;
+
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .stock-table tbody td {
+        padding: 16px 20px;
+
+        vertical-align: middle;
+
+        color: #374151;
+
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .stock-table tbody tr {
+        transition: 0.2s ease;
+    }
+
+    .stock-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+
+    /* =========================================
+       PRODUCT
+    ========================================= */
+
+    .product-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .product-number {
+        width: 60px;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+
+    /* =========================================
+       STOCK BADGES
+    ========================================= */
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        padding: 6px 11px;
+
+        border-radius: 20px;
+
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .stock-good {
+        background: #e8f7ee;
+        color: #198754;
+    }
+
+    .stock-low {
+        background: #fff4d6;
+        color: #a66a00;
+    }
+
+    .stock-out {
+        background: #fde8e8;
+        color: #dc3545;
+    }
+
+    .stock-number {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+
+    /* =========================================
+       EMPTY STATE
+    ========================================= */
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 65px;
+        height: 65px;
+
+        margin: 0 auto 18px;
+
+        border-radius: 50%;
+
+        background: #f1f5f9;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 28px;
+    }
+
+    .empty-state h5 {
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        margin: 0;
+    }
+
+
+    /* =========================================
+       MOBILE
+    ========================================= */
+
+    @media (max-width: 768px) {
+
+        .stock-header {
+            align-items: flex-start;
+        }
+
+        .stock-title h3 {
+            font-size: 23px;
+        }
+
+        .stock-table-header {
+            padding: 15px;
+        }
+
+        .stock-table thead th,
+        .stock-table tbody td {
+            padding: 13px 15px;
+        }
+
+    }
+
+
+    @media (max-width: 576px) {
+
+        .stock-title-wrapper {
+            align-items: flex-start;
+        }
+
+        .stock-icon {
+            width: 42px;
+            height: 42px;
+
+            font-size: 20px;
+
+            margin-right: 10px;
+        }
+
+        .stock-title h3 {
+            font-size: 21px;
+        }
+
+        .stock-title p {
+            font-size: 13px;
+        }
+
+        .stock-summary {
+            padding: 17px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+        }
+
+        .stock-table {
+            min-width: 500px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+    }
+
+</style>
+
+
+<div class="card-box stock-page">
+
+
+    <!-- =========================================
+         HEADER
+    ========================================= -->
+
+    <div class="stock-header">
+
+        <div class="stock-title-wrapper">
+
+            <div class="stock-icon">
+                📦
+            </div>
+
+            <div class="stock-title">
+
+                <h3>
+                    Dealer Stock
+                </h3>
+
+                <p>
+                    Monitor your current inventory and available products.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         SUMMARY
+    ========================================= -->
+
+    <div class="stock-summary">
+
+        <div class="summary-label">
+            Total Products in Stock
+        </div>
+
+        <div class="summary-value">
+
+            {{ stocks|length }}
+
+        </div>
+
+        <div class="summary-subtext">
+
+            Products currently available in your inventory
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         STOCK TABLE
+    ========================================= -->
+
+    <div class="stock-table-card">
+
+
+        <div class="stock-table-header">
+
+            <h5>
+                Inventory Overview
+            </h5>
+
+            <span>
+                Current Stock
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table stock-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            S.N
+                        </th>
+
+                        <th>
+                            Product
+                        </th>
+
+                        <th class="text-end">
+                            Available Stock
+                        </th>
+
+                        <th class="text-center">
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for stock in stocks %}
+
+                    <tr>
+
+                        <td class="product-number">
+
+                            {{ forloop.counter }}
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="product-name">
+
+                                {{ stock.product.name }}
+
+                            </div>
+
+                        </td>
+
+
+                        <td class="text-end">
+
+                            <span class="stock-number">
+
+                                {{ stock.quantity }}
+
+                            </span>
+
+                        </td>
+
+
+                        <td class="text-center">
+
+                            {% if stock.quantity <= 0 %}
+
+                                <span class="stock-badge stock-out">
+
+                                    ● Out of Stock
+
+                                </span>
+
+                            {% elif stock.quantity <= 10 %}
+
+                                <span class="stock-badge stock-low">
+
+                                    ● Low Stock
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="stock-badge stock-good">
+
+                                    ● In Stock
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    📦
+                                </div>
+
+                                <h5>
+                                    No Stock Available
+                                </h5>
+
+                                <p>
+                                    Your inventory is currently empty.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 

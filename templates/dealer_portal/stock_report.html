@@ -2,65 +2,622 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-<h3>Stock Report</h3>
+    .stock-page {
+        padding: 10px 0 30px;
+    }
 
-<table class="table table-bordered">
+    /* ================================
+       HEADER
+    ================================= */
 
-<thead>
+    .stock-header {
+        background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #0b5ed7
+        );
+        color: white;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+    }
 
-<tr>
+    .stock-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
 
-<th>Product</th>
+    .stock-header p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        opacity: 0.85;
+    }
 
-<th>Current Stock</th>
+    /* ================================
+       SUMMARY CARDS
+    ================================= */
 
-<th>Minimum Stock</th>
+    .summary-card {
+        background: white;
+        border-radius: 14px;
+        padding: 18px;
+        height: 100%;
+        border: 1px solid #edf0f4;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
 
-<th>Status</th>
+    .summary-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
 
-</tr>
+    .summary-value {
+        font-size: 25px;
+        font-weight: 700;
+        color: #212529;
+    }
 
-</thead>
+    .summary-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
 
-<tbody>
+    .icon-blue {
+        background: #e7f1ff;
+        color: #0d6efd;
+    }
 
-{% for stock in stocks %}
+    .icon-red {
+        background: #ffe8e8;
+        color: #dc3545;
+    }
 
-<tr>
+    .icon-green {
+        background: #e8f7ee;
+        color: #198754;
+    }
 
-<td>{{ stock.product.name }}</td>
+    /* ================================
+       SEARCH
+    ================================= */
 
-<td>{{ stock.quantity }}</td>
+    .search-card {
+        background: white;
+        border-radius: 14px;
+        padding: 16px;
+        margin: 20px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
 
-<td>{{ stock.product.minimum_stock }}</td>
+    .search-box {
+        position: relative;
+    }
 
-<td>
+    .search-box input {
+        height: 46px;
+        border-radius: 10px;
+        border: 1px solid #dce2ea;
+        padding-left: 42px;
+        font-size: 14px;
+    }
 
-{% if stock.quantity <= stock.product.minimum_stock %}
+    .search-box input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
 
-<span class="badge bg-danger">
-Low Stock
-</span>
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        pointer-events: none;
+    }
 
-{% else %}
+    .search-btn,
+    .clear-btn {
+        height: 46px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
 
-<span class="badge bg-success">
-Available
-</span>
+    .clear-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
 
-{% endif %}
+    /* ================================
+       TABLE
+    ================================= */
 
-</td>
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+    }
 
-</tr>
+    .table-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #edf0f4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-{% endfor %}
+    .table-card-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
 
-</tbody>
+    .record-badge {
+        background: #e7f1ff;
+        color: #0d6efd;
+        padding: 5px 11px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 
-</table>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .stock-table {
+        min-width: 650px;
+        margin: 0;
+        vertical-align: middle;
+    }
+
+    .stock-table thead th {
+        background: #212529;
+        color: white;
+        padding: 13px 15px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        border: none;
+    }
+
+    .stock-table tbody td {
+        padding: 14px 15px;
+        font-size: 13px;
+        border-color: #edf0f4;
+    }
+
+    .stock-table tbody tr {
+        transition: 0.15s ease;
+    }
+
+    .stock-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .stock-number {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .minimum-stock {
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-low {
+        background: #ffe8e8;
+        color: #dc3545;
+    }
+
+    .status-available {
+        background: #e8f7ee;
+        color: #198754;
+    }
+
+    .empty-state {
+        padding: 55px 20px !important;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        font-size: 40px;
+        opacity: 0.45;
+        margin-bottom: 10px;
+    }
+
+    /* ================================
+       MOBILE
+    ================================= */
+
+    @media (max-width: 768px) {
+
+        .stock-page {
+            padding: 5px 0 20px;
+        }
+
+        .stock-header {
+            padding: 18px;
+            border-radius: 13px;
+        }
+
+        .stock-header h3 {
+            font-size: 20px;
+        }
+
+        .stock-header p {
+            font-size: 12px;
+        }
+
+        .summary-card {
+            padding: 15px;
+        }
+
+        .summary-value {
+            font-size: 22px;
+        }
+
+        .search-card {
+            padding: 12px;
+        }
+
+        .search-btn,
+        .clear-btn {
+            width: 100%;
+        }
+
+        .table-card-header {
+            padding: 14px;
+        }
+    }
+
+</style>
+
+
+<div class="container-fluid stock-page">
+
+    <!-- ================================
+         HEADER
+    ================================= -->
+
+    <div class="stock-header">
+
+        <h3>
+            Stock Report
+        </h3>
+
+        <p>
+            Monitor current inventory levels and stock availability
+        </p>
+
+    </div>
+
+
+    <!-- ================================
+         SUMMARY
+    ================================= -->
+
+    <div class="row g-3">
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+
+            <div class="summary-card">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <div class="summary-label">
+                            Total Products
+                        </div>
+
+                        <div class="summary-value">
+                            {{ total_products }}
+                        </div>
+
+                    </div>
+
+                    <div class="summary-icon icon-blue">
+                        📦
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+
+            <div class="summary-card">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <div class="summary-label">
+                            Low Stock
+                        </div>
+
+                        <div class="summary-value text-danger">
+                            {{ low_stock_count }}
+                        </div>
+
+                    </div>
+
+                    <div class="summary-icon icon-red">
+                        ⚠
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-4 col-md-4 col-sm-12">
+
+            <div class="summary-card">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <div class="summary-label">
+                            Available
+                        </div>
+
+                        <div class="summary-value text-success">
+                            {{ available_count }}
+                        </div>
+
+                    </div>
+
+                    <div class="summary-icon icon-green">
+                        ✓
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================
+         SEARCH
+    ================================= -->
+
+    <div class="search-card">
+
+        <form method="GET">
+
+            <div class="row g-2">
+
+                <div class="col-md-9">
+
+                    <div class="search-box">
+
+                        <span class="search-icon">
+                            🔍
+                        </span>
+
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Search product..."
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-1">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary search-btn w-100"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    {% if search %}
+
+                    <a
+                        href="{% url 'dealer_stock_report' %}"
+                        class="btn btn-outline-secondary clear-btn w-100"
+                    >
+                        Clear
+                    </a>
+
+                    {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary search-btn w-100"
+                    >
+                        Search
+                    </button>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ================================
+         TABLE
+    ================================= -->
+
+    <div class="table-card">
+
+        <div class="table-card-header">
+
+            <h5>
+                Inventory Details
+            </h5>
+
+            <span class="record-badge">
+                {{ total_products }} Products
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table stock-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Product</th>
+
+                        <th>Current Stock</th>
+
+                        <th>Minimum Stock</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for stock in stocks %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td>
+                            <span class="product-name">
+                                {{ stock.product.name }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            <span class="stock-number">
+                                {{ stock.quantity }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="minimum-stock">
+                                {{ stock.product.minimum_stock }}
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            {% if stock.quantity <= stock.product.minimum_stock %}
+
+                                <span class="status-badge status-low">
+                                    Low Stock
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-available">
+                                    Available
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5" class="empty-state">
+
+                            <div class="empty-icon">
+                                📦
+                            </div>
+
+                            <strong>
+                                No Stock Records Found
+                            </strong>
+
+                            <div class="mt-1">
+
+                                {% if search %}
+                                    Try changing your product search.
+                                {% else %}
+                                    No stock records are currently available.
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 

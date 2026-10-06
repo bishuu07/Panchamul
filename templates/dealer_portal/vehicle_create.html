@@ -2,23 +2,369 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3>Add Vehicle</h3>
+    .vehicle-page {
+        padding: 10px 0 30px;
+    }
 
-    <form method="POST">
+    /* ================================
+       HEADER
+    ================================= */
 
-        {% csrf_token %}
+    .vehicle-header {
+        background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #0b5ed7
+        );
+        color: white;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+    }
 
-        {{ form.as_p }}
+    .vehicle-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
 
-        <button class="btn btn-success">
+    .vehicle-header p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        opacity: 0.85;
+    }
 
-            Save Vehicle
+    /* ================================
+       FORM CARD
+    ================================= */
 
-        </button>
+    .vehicle-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
 
-    </form>
+    .form-header {
+        padding: 18px 22px;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .form-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .form-header p {
+        margin: 4px 0 0;
+        color: #6c757d;
+        font-size: 13px;
+    }
+
+    .form-body {
+        padding: 24px;
+    }
+
+    /* ================================
+       DJANGO FORM
+    ================================= */
+
+    .form-body p {
+        margin-bottom: 18px;
+    }
+
+    .form-body label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    .form-body input,
+    .form-body select,
+    .form-body textarea {
+        width: 100%;
+        border: 1px solid #dce2ea;
+        border-radius: 10px;
+        padding: 11px 13px;
+        font-size: 14px;
+        background: #fff;
+        color: #212529;
+        transition: 0.2s ease;
+    }
+
+    .form-body input:focus,
+    .form-body select:focus,
+    .form-body textarea:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .form-body textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    /* Django required field */
+
+    .form-body label.required:after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    /* ================================
+       ERRORS
+    ================================= */
+
+    .error-box {
+        background: #fff0f0;
+        border: 1px solid #f5c2c7;
+        color: #842029;
+        border-radius: 10px;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .error-box ul {
+        margin: 5px 0 0;
+        padding-left: 20px;
+    }
+
+    .field-error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    /* ================================
+       ACTIONS
+    ================================= */
+
+    .form-actions {
+        padding: 18px 24px;
+        border-top: 1px solid #edf0f4;
+        background: #fafbfc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .save-btn {
+        border: none;
+        background: #198754;
+        color: white;
+        padding: 10px 22px;
+        border-radius: 9px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .save-btn:hover {
+        background: #157347;
+        transform: translateY(-1px);
+    }
+
+    .back-btn {
+        padding: 10px 20px;
+        border-radius: 9px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* ================================
+       MOBILE
+    ================================= */
+
+    @media (max-width: 768px) {
+
+        .vehicle-page {
+            padding: 5px 0 20px;
+        }
+
+        .vehicle-header {
+            padding: 18px;
+            border-radius: 13px;
+        }
+
+        .vehicle-header h3 {
+            font-size: 20px;
+        }
+
+        .vehicle-header p {
+            font-size: 12px;
+        }
+
+        .vehicle-card {
+            border-radius: 13px;
+        }
+
+        .form-header {
+            padding: 16px;
+        }
+
+        .form-body {
+            padding: 18px;
+        }
+
+        .form-actions {
+            padding: 15px;
+            flex-direction: column-reverse;
+        }
+
+        .save-btn,
+        .back-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+</style>
+
+
+<div class="container-fluid vehicle-page">
+
+    <!-- ================================
+         PAGE HEADER
+    ================================= -->
+
+    <div class="vehicle-header">
+
+        <h3>
+            Add Vehicle
+        </h3>
+
+        <p>
+            Register a new vehicle for your dealership
+        </p>
+
+    </div>
+
+
+    <!-- ================================
+         FORM CARD
+    ================================= -->
+
+    <div class="vehicle-card">
+
+        <div class="form-header">
+
+            <h5>
+                Vehicle Information
+            </h5>
+
+            <p>
+                Enter the vehicle details below.
+            </p>
+
+        </div>
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <div class="form-body">
+
+                <!-- Non-field errors -->
+
+                {% if form.non_field_errors %}
+
+                <div class="error-box">
+
+                    <strong>
+                        Please correct the following:
+                    </strong>
+
+                    {{ form.non_field_errors }}
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- Form Fields -->
+
+                {% for field in form %}
+
+                <div class="mb-3">
+
+                    <label
+                        for="{{ field.id_for_label }}"
+                        {% if field.field.required %}
+                        class="required"
+                        {% endif %}
+                    >
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+
+                    <div class="text-muted mt-1"
+                         style="font-size:12px;">
+                        {{ field.help_text }}
+                    </div>
+
+                    {% endif %}
+
+
+                    {% if field.errors %}
+
+                    {% for error in field.errors %}
+
+                    <div class="field-error">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- ================================
+                 ACTIONS
+            ================================= -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{% url 'vehicle_list' %}"
+                    class="btn btn-outline-secondary back-btn"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                >
+                    ✓ Save Vehicle
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 

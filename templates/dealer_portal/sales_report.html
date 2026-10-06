@@ -2,65 +2,791 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-<h3>Sales Report</h3>
+    .report-wrapper {
+        width: 100%;
+    }
 
-<table class="table table-bordered">
+    /* =========================
+       HEADER
+    ========================= */
 
-<thead>
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
-<tr>
+    .report-title h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
 
-<th>Date</th>
-<th>Invoice</th>
-<th>Customer</th>
-<th>Total</th>
-<th>Paid</th>
-<th>Due</th>
+    .report-title p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
 
-</tr>
 
-</thead>
+    /* =========================
+       SUMMARY CARDS
+    ========================= */
 
-<tbody>
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
 
-{% for sale in sales %}
+    .summary-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
 
-<tr>
+    .summary-label {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
+    }
 
-<td>{{ sale.sale_date }}</td>
-<td>{{ sale.invoice_no }}</td>
-<td>{{ sale.customer.name }}</td>
-<td>{{ sale.total_amount }}</td>
-<td>{{ sale.paid_amount }}</td>
-<td>{{ sale.due_amount }}</td>
+    .summary-value {
+        margin-top: 6px;
+        font-size: 23px;
+        font-weight: 700;
+    }
 
-</tr>
+    .sales-value {
+        color: #2563eb;
+    }
 
-{% endfor %}
+    .paid-value {
+        color: #15803d;
+    }
 
-</tbody>
+    .due-value {
+        color: #dc2626;
+    }
 
-<tfoot>
 
-<tr>
+    /* =========================
+       FILTER
+    ========================= */
 
-<th colspan="3">
-Grand Total
-</th>
+    .filter-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
 
-<th>{{ total_sales }}</th>
+    .filter-form {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        gap: 10px;
+        align-items: end;
+    }
 
-<th>{{ total_paid }}</th>
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
-<th>{{ total_due }}</th>
+    .filter-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #4b5563;
+    }
 
-</tr>
+    .filter-input {
+        height: 43px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 14px;
+        outline: none;
+        background: #ffffff;
+    }
 
-</tfoot>
+    .filter-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
 
-</table>
+    .filter-btn {
+        height: 43px;
+        padding: 0 18px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .clear-btn {
+        height: 43px;
+        padding: 0 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #374151;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+
+    /* =========================
+       TABLE
+    ========================= */
+
+    .table-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .report-table {
+        width: 100%;
+        min-width: 850px;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .report-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 15px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .report-table tbody td {
+        padding: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+        color: #374151;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .report-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+    .report-table tfoot {
+        background: #f8fafc;
+    }
+
+    .report-table tfoot th {
+        padding: 15px 14px;
+        font-weight: 700;
+        border-top: 2px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+
+    /* =========================
+       CONTENT STYLING
+    ========================= */
+
+    .invoice {
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .customer-phone {
+        display: block;
+        margin-top: 3px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .amount {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .paid-amount {
+        color: #15803d;
+        font-weight: 700;
+    }
+
+    .due-amount {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .paid-badge {
+        display: inline-flex;
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: #dcfce7;
+        color: #15803d;
+        font-weight: 700;
+    }
+
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .report-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        flex-wrap: wrap;
+    }
+
+    .result-count {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    /* =========================
+       PAGINATION
+    ========================= */
+
+    .pagination {
+        margin: 0;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .pagination a,
+    .pagination span {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pagination a {
+        background: #ffffff;
+        color: #374151;
+    }
+
+    .pagination a:hover {
+        background: #eff6ff;
+        border-color: #2563eb;
+        color: #2563eb;
+    }
+
+    .pagination .active {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+    }
+
+
+    /* =========================
+       EMPTY
+    ========================= */
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px !important;
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 38px;
+        margin-bottom: 10px;
+    }
+
+
+    /* =========================
+       TABLET
+    ========================= */
+
+    @media (max-width: 900px) {
+
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr 1fr;
+        }
+
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+        .report-title h3 {
+            font-size: 21px;
+        }
+
+        .report-title p {
+            font-size: 13px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-value {
+            font-size: 21px;
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-btn,
+        .clear-btn {
+            width: 100%;
+        }
+
+        .report-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .pagination {
+            justify-content: center;
+        }
+
+    }
+
+</style>
+
+
+<div class="report-wrapper">
+
+    <!-- HEADER -->
+
+    <div class="report-header">
+
+        <div class="report-title">
+
+            <h3>
+                Sales Report
+            </h3>
+
+            <p>
+                Overview of dealer sales, payments and outstanding amounts
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUMMARY -->
+
+    <div class="summary-grid">
+
+        <div class="summary-card">
+
+            <div class="summary-label">
+                Total Sales
+            </div>
+
+            <div class="summary-value sales-value">
+                Rs. {{ total_sales|floatformat:2 }}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-label">
+                Total Paid
+            </div>
+
+            <div class="summary-value paid-value">
+                Rs. {{ total_paid|floatformat:2 }}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-label">
+                Total Due
+            </div>
+
+            <div class="summary-value due-value">
+                Rs. {{ total_due|floatformat:2 }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILTER -->
+
+    <div class="filter-box">
+
+        <form method="GET" class="filter-form">
+
+            <div class="filter-group">
+
+                <label>
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    class="filter-input"
+                    placeholder="Invoice number, customer name or phone..."
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label>
+                    From Date
+                </label>
+
+                <input
+                    type="date"
+                    name="date_from"
+                    value="{{ date_from }}"
+                    class="filter-input"
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label>
+                    To Date
+                </label>
+
+                <input
+                    type="date"
+                    name="date_to"
+                    value="{{ date_to }}"
+                    class="filter-input"
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label>
+                    &nbsp;
+                </label>
+
+                <button
+                    type="submit"
+                    class="filter-btn"
+                >
+                    🔍 Filter
+                </button>
+
+            </div>
+
+
+            {% if search or date_from or date_to %}
+
+                <div class="filter-group">
+
+                    <label>
+                        &nbsp;
+                    </label>
+
+                    <a
+                        href="{% url 'dealer_sales_report' %}"
+                        class="clear-btn"
+                    >
+                        Clear
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-card">
+
+        <div class="table-wrapper">
+
+            <table class="report-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+
+                        <th>Invoice</th>
+
+                        <th>Customer</th>
+
+                        <th>Total</th>
+
+                        <th>Paid</th>
+
+                        <th>Due</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for sale in sales %}
+
+                    <tr>
+
+                        <td>
+                            {{ sale.sale_date|date:"d M Y" }}
+                        </td>
+
+
+                        <td>
+                            <span class="invoice">
+                                {{ sale.invoice_no }}
+                            </span>
+                        </td>
+
+
+                        <td>
+
+                            <span class="customer-name">
+                                {{ sale.customer.name }}
+                            </span>
+
+                            {% if sale.customer.phone %}
+
+                                <span class="customer-phone">
+                                    {{ sale.customer.phone }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="amount">
+                                Rs. {{ sale.total_amount|floatformat:2 }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="paid-amount">
+                                Rs. {{ sale.paid_amount|floatformat:2 }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if sale.due_amount > 0 %}
+
+                                <span class="due-amount">
+                                    Rs. {{ sale.due_amount|floatformat:2 }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="paid-badge">
+                                    Paid
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="empty-state"
+                        >
+
+                            <div class="empty-icon">
+                                📊
+                            </div>
+
+                            <strong>
+                                No sales found
+                            </strong>
+
+                            <div>
+                                Try changing your search or date filters.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+
+                <!-- GRAND TOTAL -->
+
+                <tfoot>
+
+                    <tr>
+
+                        <th colspan="3">
+                            Grand Total
+                        </th>
+
+                        <th>
+                            Rs. {{ total_sales|floatformat:2 }}
+                        </th>
+
+                        <th>
+                            Rs. {{ total_paid|floatformat:2 }}
+                        </th>
+
+                        <th>
+                            Rs. {{ total_due|floatformat:2 }}
+                        </th>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+
+        <!-- PAGINATION -->
+
+        {% if paginator.num_pages > 0 %}
+
+        <div class="report-footer">
+
+            <div class="result-count">
+
+                Showing
+                <strong>{{ sales.start_index }}</strong>
+                –
+                <strong>{{ sales.end_index }}</strong>
+                of
+                <strong>{{ paginator.count }}</strong>
+                sales
+
+            </div>
+
+
+            {% if paginator.num_pages > 1 %}
+
+            <div class="pagination">
+
+                {% if sales.has_previous %}
+
+                    <a href="?search={{ search|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ sales.previous_page_number }}">
+                        ‹
+                    </a>
+
+                {% endif %}
+
+
+                {% for num in paginator.page_range %}
+
+                    {% if num == sales.number %}
+
+                        <span class="active">
+                            {{ num }}
+                        </span>
+
+                    {% else %}
+
+                        <a href="?search={{ search|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ num }}">
+                            {{ num }}
+                        </a>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                {% if sales.has_next %}
+
+                    <a href="?search={{ search|urlencode }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ sales.next_page_number }}">
+                        ›
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 

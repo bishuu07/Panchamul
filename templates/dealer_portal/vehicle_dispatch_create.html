@@ -2,177 +2,575 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <h3 class="mb-4">
-        Create Vehicle Dispatch
-    </h3>
+    .dispatch-create-page {
+        padding: 10px 0 30px;
+    }
 
-    {% if error %}
+    /* ================================
+       PAGE HEADER
+    ================================= */
 
-        <div class="alert alert-danger">
-            {{ error }}
+    .dispatch-header {
+        background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #0b5ed7
+        );
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 22px;
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+    }
+
+    .dispatch-header h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .dispatch-header p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        opacity: 0.85;
+    }
+
+    /* ================================
+       FORM CARD
+    ================================= */
+
+    .dispatch-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-heading {
+        padding: 18px 22px;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .card-heading h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .card-heading p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .dispatch-form {
+        padding: 24px;
+    }
+
+    /* ================================
+       FORM GROUP
+    ================================= */
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 7px;
+    }
+
+    .required-star {
+        color: #dc3545;
+    }
+
+    .form-control {
+        min-height: 46px;
+        border: 1px solid #dce2ea;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 14px;
+        color: #212529;
+        transition: 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    select.form-control {
+        cursor: pointer;
+        background-color: white;
+    }
+
+    input[readonly] {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .help-text {
+        display: block;
+        margin-top: 6px;
+        color: #6c757d;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* ================================
+       INFO FIELDS
+    ================================= */
+
+    .readonly-field {
+        position: relative;
+    }
+
+    .readonly-badge {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #e9ecef;
+        color: #6c757d;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    /* ================================
+       ERROR
+    ================================= */
+
+    .error-alert {
+        border: none;
+        border-left: 4px solid #dc3545;
+        background: #fff1f1;
+        color: #842029;
+        border-radius: 9px;
+        padding: 13px 15px;
+        margin-bottom: 22px;
+        font-size: 13px;
+    }
+
+    /* ================================
+       SECTION DIVIDER
+    ================================= */
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .section-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: #e7f1ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .section-title strong {
+        font-size: 14px;
+        color: #212529;
+    }
+
+    /* ================================
+       ACTIONS
+    ================================= */
+
+    .form-actions {
+        padding: 18px 24px;
+        background: #fafbfc;
+        border-top: 1px solid #edf0f4;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .create-btn {
+        background: #198754;
+        border: none;
+        color: white;
+        min-height: 44px;
+        padding: 10px 22px;
+        border-radius: 9px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .create-btn:hover {
+        background: #157347;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .cancel-btn {
+        min-height: 44px;
+        padding: 10px 20px;
+        border-radius: 9px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* ================================
+       MOBILE
+    ================================= */
+
+    @media (max-width: 768px) {
+
+        .dispatch-create-page {
+            padding: 5px 0 20px;
+        }
+
+        .dispatch-header {
+            padding: 18px;
+            border-radius: 13px;
+        }
+
+        .dispatch-header h3 {
+            font-size: 20px;
+        }
+
+        .dispatch-header p {
+            font-size: 12px;
+        }
+
+        .dispatch-card {
+            border-radius: 13px;
+        }
+
+        .card-heading {
+            padding: 16px;
+        }
+
+        .dispatch-form {
+            padding: 18px;
+        }
+
+        .form-actions {
+            padding: 15px;
+            flex-direction: column-reverse;
+        }
+
+        .create-btn,
+        .cancel-btn {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+
+<div class="container-fluid dispatch-create-page">
+
+    <!-- ================================
+         PAGE HEADER
+    ================================= -->
+
+    <div class="dispatch-header">
+
+        <h3>
+            Create Vehicle Dispatch
+        </h3>
+
+        <p>
+            Create a new dispatch and assign a vehicle and driver
+        </p>
+
+    </div>
+
+
+    <!-- ================================
+         FORM CARD
+    ================================= -->
+
+    <div class="dispatch-card">
+
+        <div class="card-heading">
+
+            <h5>
+                Dispatch Information
+            </h5>
+
+            <p>
+                Select the vehicle and confirm the driver details.
+            </p>
+
         </div>
 
-    {% endif %}
+
+        <form method="POST">
+
+            {% csrf_token %}
 
 
-    <form method="POST">
+            <div class="dispatch-form">
 
-        {% csrf_token %}
+                <!-- Error -->
+
+                {% if error %}
+
+                <div class="error-alert">
+
+                    <strong>
+                        Unable to create dispatch:
+                    </strong>
+
+                    {{ error }}
+
+                </div>
+
+                {% endif %}
 
 
-        <!-- ============================= -->
-        <!-- Vehicle -->
-        <!-- ============================= -->
+                <!-- ================================
+                     VEHICLE INFORMATION
+                ================================= -->
 
-        <div class="mb-3">
+                <div class="section-title">
 
-            <label class="form-label">
-                Vehicle
-            </label>
+                    <div class="section-icon">
+                        🚚
+                    </div>
 
-            <select
-                name="vehicle"
-                id="vehicle"
-                class="form-control"
-                required
-            >
+                    <strong>
+                        Vehicle Information
+                    </strong>
 
-                <option value="">
-                    Select Vehicle
-                </option>
+                </div>
 
-                {% for vehicle in vehicles %}
 
-                    <option
-                        value="{{ vehicle.id }}"
-                        data-driver="{{ vehicle.driver_name|default:'' }}"
+                <!-- Vehicle -->
+
+                <div class="form-group">
+
+                    <label
+                        for="vehicle"
+                        class="form-label"
+                    >
+                        Vehicle
+                        <span class="required-star">*</span>
+                    </label>
+
+                    <select
+                        name="vehicle"
+                        id="vehicle"
+                        class="form-control"
+                        required
                     >
 
-                        {{ vehicle.vehicle_no }}
+                        <option value="">
+                            Select Vehicle
+                        </option>
 
-                        {% if vehicle.driver_name %}
+                        {% for vehicle in vehicles %}
 
-                            - {{ vehicle.driver_name }}
+                        <option
+                            value="{{ vehicle.id }}"
+                            data-driver="{{ vehicle.driver_name|default:'' }}"
+                        >
 
-                        {% endif %}
+                            {{ vehicle.vehicle_no }}
 
-                    </option>
+                            {% if vehicle.driver_name %}
+                                - {{ vehicle.driver_name }}
+                            {% endif %}
 
-                {% endfor %}
+                        </option>
 
-            </select>
+                        {% endfor %}
 
-        </div>
+                    </select>
 
+                    <small class="help-text">
+                        Select the active vehicle that will be used for this dispatch.
+                    </small>
 
-        <!-- ============================= -->
-        <!-- Driver Name -->
-        <!-- ============================= -->
-
-        <div class="mb-3">
-
-            <label class="form-label">
-                Driver Name
-            </label>
-
-            <input
-                type="text"
-                name="driver_name"
-                id="driver_name"
-                class="form-control"
-                placeholder="Enter driver name"
-                maxlength="150"
-                required
-            >
-
-            <small class="text-muted">
-                Driver name can be changed for this dispatch if required.
-            </small>
-
-        </div>
+                </div>
 
 
-        <!-- ============================= -->
-        <!-- Dispatch Date -->
-        <!-- ============================= -->
+                <!-- Driver -->
 
-        <div class="mb-3">
+                <div class="form-group">
 
-            <label class="form-label">
-                Dispatch Date
-            </label>
+                    <label
+                        for="driver_name"
+                        class="form-label"
+                    >
+                        Driver Name
+                        <span class="required-star">*</span>
+                    </label>
 
-            <input
-                type="text"
-                class="form-control"
-                value="{% now 'Y-m-d' %}"
-                readonly
-            >
+                    <input
+                        type="text"
+                        name="driver_name"
+                        id="driver_name"
+                        class="form-control"
+                        placeholder="Enter driver name"
+                        maxlength="150"
+                        required
+                    >
 
-        </div>
+                    <small class="help-text">
+                        The driver's name is filled automatically from the selected
+                        vehicle. You can change it for this dispatch if required.
+                    </small>
 
-
-        <!-- ============================= -->
-        <!-- Dispatch Time -->
-        <!-- ============================= -->
-
-        <div class="mb-3">
-
-            <label class="form-label">
-                Dispatch Time
-            </label>
-
-            <input
-                type="text"
-                class="form-control"
-                value="{% now 'H:i' %}"
-                readonly
-            >
-
-            <small class="text-muted">
-                The actual dispatch time will be saved automatically
-                when the dispatch is created.
-            </small>
-
-        </div>
+                </div>
 
 
-        <!-- ============================= -->
-        <!-- Buttons -->
-        <!-- ============================= -->
+                <!-- ================================
+                     DISPATCH INFORMATION
+                ================================= -->
 
-        <button
-            type="submit"
-            class="btn btn-success"
-        >
-            Create Dispatch
-        </button>
+                <div class="section-title mt-4">
+
+                    <div class="section-icon">
+                        📋
+                    </div>
+
+                    <strong>
+                        Dispatch Information
+                    </strong>
+
+                </div>
 
 
-        <a
-            href="{% url 'vehicle_dispatch_list' %}"
-            class="btn btn-secondary"
-        >
-            Cancel
-        </a>
+                <div class="row g-3">
 
-    </form>
+                    <!-- Dispatch Date -->
+
+                    <div class="col-md-6">
+
+                        <div class="form-group mb-0">
+
+                            <label class="form-label">
+                                Dispatch Date
+                            </label>
+
+                            <div class="readonly-field">
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    value="{% now 'Y-m-d' %}"
+                                    readonly
+                                >
+
+                                <span class="readonly-badge">
+                                    AUTO
+                                </span>
+
+                            </div>
+
+                            <small class="help-text">
+                                Date is saved automatically when the dispatch is created.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Dispatch Time -->
+
+                    <div class="col-md-6">
+
+                        <div class="form-group mb-0">
+
+                            <label class="form-label">
+                                Dispatch Time
+                            </label>
+
+                            <div class="readonly-field">
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    value="{% now 'H:i' %}"
+                                    readonly
+                                >
+
+                                <span class="readonly-badge">
+                                    AUTO
+                                </span>
+
+                            </div>
+
+                            <small class="help-text">
+                                The actual time is saved automatically.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================
+                 ACTION BUTTONS
+            ================================= -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{% url 'vehicle_dispatch_list' %}"
+                    class="btn btn-outline-secondary cancel-btn"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="create-btn"
+                >
+                    ✓ Create Dispatch
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 
 
-<!-- ============================= -->
-<!-- Auto Driver Name -->
-<!-- ============================= -->
+<!-- ================================
+     AUTO DRIVER NAME
+================================= -->
 
 <script>
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    const vehicleSelect = document.getElementById("vehicle");
-    const driverInput = document.getElementById("driver_name");
+    const vehicleSelect =
+        document.getElementById("vehicle");
+
+    const driverInput =
+        document.getElementById("driver_name");
+
 
     vehicleSelect.addEventListener("change", function () {
 
@@ -183,6 +581,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const driver =
             selectedOption.getAttribute("data-driver");
+
 
         if (driver) {
 

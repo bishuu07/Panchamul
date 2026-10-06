@@ -1,57 +1,387 @@
+
 {% extends 'dashboard/dealer_base.html' %}
 
 {% block content %}
 
 <div class="card-box">
 
-    <h3>Customer Ledger</h3>
+    <!-- HEADER -->
 
-    <table class="table table-bordered">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <thead>
+        <div>
+            <h3 class="mb-1">
+                Customer Ledger
+            </h3>
 
-            <tr>
+            <p class="text-muted mb-0">
+                Search customers and view their transaction ledger.
+            </p>
+        </div>
 
-                <th>Customer</th>
-                <th>Phone</th>
-                <th>Action</th>
+    </div>
 
-            </tr>
 
-        </thead>
+    <!-- SEARCH -->
 
-        <tbody>
+    <div class="card border-0 shadow-sm mb-4">
 
-            {% for customer in customers %}
+        <div class="card-body">
 
-            <tr>
+            <form method="GET">
 
-                <td>
-                    {{ customer.name }}
-                </td>
+                <div class="row g-2 align-items-end">
 
-                <td>
-                    {{ customer.phone }}
-                </td>
+                    <!-- SEARCH INPUT -->
 
-                <td>
+                    <div class="col-md-10">
 
-                    <a href="{% url 'dealer_customer_ledger_detail' customer.id %}"
-                       class="btn btn-primary btn-sm">
+                        <label class="form-label fw-semibold">
+                            Search Customer
+                        </label>
 
-                        View Ledger
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Search by customer name or phone number..."
+                        >
 
-                    </a>
+                    </div>
 
-                </td>
 
-            </tr>
+                    <!-- SEARCH BUTTON -->
 
-            {% endfor %}
+                    <div class="col-md-2">
 
-        </tbody>
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
+                            🔍 Search
+                        </button>
 
-    </table>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEARCH RESULT INFO -->
+
+    {% if search %}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div class="text-muted">
+
+                Search results for:
+
+                <strong>
+                    "{{ search }}"
+                </strong>
+
+            </div>
+
+            <a
+                href="{% url 'dealer_customer_ledger_list' %}"
+                class="btn btn-sm btn-outline-danger"
+            >
+                Clear Search
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- CUSTOMER TABLE -->
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-hover align-middle">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th style="width: 60px;">
+                        #
+                    </th>
+
+                    <th>
+                        Customer
+                    </th>
+
+                    <th>
+                        Phone
+                    </th>
+
+                    <th style="width: 160px;">
+                        Action
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for customer in customers %}
+
+                <tr>
+
+                    <!-- NUMBER -->
+
+                    <td>
+                        {{ forloop.counter0|add:customers.start_index }}
+                    </td>
+
+
+                    <!-- CUSTOMER -->
+
+                    <td>
+
+                        <strong>
+                            {{ customer.name }}
+                        </strong>
+
+                    </td>
+
+
+                    <!-- PHONE -->
+
+                    <td>
+
+                        {% if customer.phone %}
+
+                            {{ customer.phone }}
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                Not provided
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- ACTION -->
+
+                    <td>
+
+                        <a
+                            href="{% url 'dealer_customer_ledger_detail' customer.id %}"
+                            class="btn btn-primary btn-sm"
+                        >
+                            View Ledger
+                        </a>
+
+                    </td>
+
+                </tr>
+
+
+                {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="text-center text-muted py-5"
+                    >
+
+                        {% if search %}
+
+                            No customers found matching
+                            <strong>"{{ search }}"</strong>.
+
+                        {% else %}
+
+                            No active customers found.
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- PAGINATION -->
+
+    {% if paginator.num_pages > 1 %}
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+
+
+        <!-- RESULT COUNT -->
+
+        <div class="text-muted small">
+
+            Showing
+
+            <strong>
+                {{ customers.start_index }}
+            </strong>
+
+            to
+
+            <strong>
+                {{ customers.end_index }}
+            </strong>
+
+            of
+
+            <strong>
+                {{ paginator.count }}
+            </strong>
+
+            customers
+
+        </div>
+
+
+        <!-- PAGINATION -->
+
+        <nav aria-label="Customer pagination">
+
+            <ul class="pagination mb-0">
+
+
+                <!-- PREVIOUS -->
+
+                {% if customers.has_previous %}
+
+                    <li class="page-item">
+
+                        <a
+                            class="page-link"
+                            href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ customers.previous_page_number }}"
+                        >
+                            Previous
+                        </a>
+
+                    </li>
+
+                {% else %}
+
+                    <li class="page-item disabled">
+
+                        <span class="page-link">
+                            Previous
+                        </span>
+
+                    </li>
+
+                {% endif %}
+
+
+                <!-- PAGE NUMBERS -->
+
+                {% for num in paginator.page_range %}
+
+                    {% if num == customers.number %}
+
+                        <li class="page-item active">
+
+                            <span class="page-link">
+                                {{ num }}
+                            </span>
+
+                        </li>
+
+                    {% elif num == 1 or num == paginator.num_pages %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}"
+                            >
+                                {{ num }}
+                            </a>
+
+                        </li>
+
+                    {% elif num >= customers.number|add:'-2' and num <= customers.number|add:'2' %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}"
+                            >
+                                {{ num }}
+                            </a>
+
+                        </li>
+
+                    {% elif num == 2 or num == paginator.num_pages|add:'-1' %}
+
+                        <li class="page-item disabled">
+
+                            <span class="page-link">
+                                ...
+                            </span>
+
+                        </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                <!-- NEXT -->
+
+                {% if customers.has_next %}
+
+                    <li class="page-item">
+
+                        <a
+                            class="page-link"
+                            href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ customers.next_page_number }}"
+                        >
+                            Next
+                        </a>
+
+                    </li>
+
+                {% else %}
+
+                    <li class="page-item disabled">
+
+                        <span class="page-link">
+                            Next
+                        </span>
+
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </nav>
+
+    </div>
+
+    {% endif %}
 
 </div>
 

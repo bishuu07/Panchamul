@@ -2,68 +2,670 @@
 
 {% block content %}
 
-<div class="card-box">
+<style>
 
-    <div class="d-flex justify-content-between mb-3">
+    .payment-page {
+        padding-bottom: 30px;
+    }
 
-        <h3>Customer Payments</h3>
+    /* =========================
+       HEADER
+    ========================= */
+
+    .payment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .payment-title h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .payment-title p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .add-payment-btn {
+        white-space: nowrap;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+    }
+
+
+    /* =========================
+       SEARCH
+    ========================= */
+
+    .search-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0 14px;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .search-btn {
+        height: 42px;
+        border-radius: 8px;
+        padding: 0 18px;
+        font-weight: 600;
+    }
+
+    .clear-btn {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        padding: 0 15px;
+    }
+
+
+    /* =========================
+       TABLE CARD
+    ========================= */
+
+    .payment-table-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 15px 18px;
+        border-bottom: 1px solid #e5e7eb;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header strong {
+        color: #1f2937;
+    }
+
+    .payment-count {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+
+    /* =========================
+       TABLE
+    ========================= */
+
+    .payment-table {
+        margin-bottom: 0;
+    }
+
+    .payment-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 13px 15px;
+        white-space: nowrap;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .payment-table tbody td {
+        padding: 14px 15px;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    .payment-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .payment-number {
+        color: #6b7280;
+        font-size: 13px;
+        width: 60px;
+    }
+
+    .payment-date {
+        white-space: nowrap;
+        color: #4b5563;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .customer-phone {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .payment-amount {
+        font-weight: 700;
+        color: #198754;
+        white-space: nowrap;
+    }
+
+
+    /* =========================
+       EMPTY STATE
+    ========================= */
+
+    .empty-state {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+    .empty-icon {
+        width: 55px;
+        height: 55px;
+        margin: 0 auto 15px;
+
+        border-radius: 50%;
+        background: #f1f5f9;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 24px;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .empty-state p {
+        margin-bottom: 18px;
+        color: #6b7280;
+    }
+
+
+    /* =========================
+       PAGINATION
+    ========================= */
+
+    .pagination-wrapper {
+        padding: 15px 18px;
+
+        border-top: 1px solid #e5e7eb;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 15px;
+    }
+
+    .page-info {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 7px;
+        margin: 0 2px;
+
+        color: #374151;
+        border: 1px solid #e5e7eb;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 768px) {
+
+        .payment-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .add-payment-btn {
+            width: 100%;
+        }
+
+        .search-form {
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            width: 100%;
+            flex-basis: 100%;
+        }
+
+        .search-btn,
+        .clear-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .table-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .pagination-wrapper {
+            flex-direction: column;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+
+
+    @media (max-width: 576px) {
+
+        .payment-title h3 {
+            font-size: 22px;
+        }
+
+        .payment-table {
+            min-width: 650px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pagination .page-link {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+    }
+
+</style>
+
+
+<div class="card-box payment-page">
+
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <div class="payment-header">
+
+        <div class="payment-title">
+
+            <h3>
+                Customer Payments
+            </h3>
+
+            <p>
+                View and manage payments received from your customers.
+            </p>
+
+        </div>
+
 
         <a href="{% url 'dealer_customer_payment_create' %}"
-           class="btn btn-primary">
-            Add Payment
+           class="btn btn-primary add-payment-btn">
+
+            + Add Payment
+
         </a>
 
     </div>
 
-    <table class="table table-bordered">
 
-        <thead>
+    <!-- =========================
+         SEARCH
+    ========================= -->
 
-            <tr>
+    <div class="search-box">
 
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Amount</th>
+        <form method="GET"
+              action=""
+              class="search-form">
 
-            </tr>
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                class="search-input"
+                placeholder="Search by customer name or phone number..."
+                autocomplete="off"
+            >
 
-        </thead>
+            <button
+                type="submit"
+                class="btn btn-primary search-btn">
 
-        <tbody>
+                Search
 
-            {% for payment in payments %}
+            </button>
 
-            <tr>
 
-                <td>
-                    {{ payment.payment_date }}
-                </td>
+            {% if search %}
 
-                <td>
-                    {{ payment.customer.name }}
-                </td>
+                <a href="{% url 'dealer_customer_payment_list' %}"
+                   class="btn btn-outline-secondary clear-btn">
 
-                <td>
-                    {{ payment.amount }}
-                </td>
+                    Clear
 
-            </tr>
+                </a>
 
-            {% empty %}
+            {% endif %}
 
-            <tr>
+        </form>
 
-                <td colspan="3">
-                    No payments found.
-                </td>
+    </div>
 
-            </tr>
 
-            {% endfor %}
+    <!-- =========================
+         PAYMENT TABLE
+    ========================= -->
 
-        </tbody>
+    <div class="payment-table-card">
 
-    </table>
+
+        <div class="table-header">
+
+            <strong>
+                Payment History
+            </strong>
+
+            <span class="payment-count">
+
+                {% if paginator.count == 1 %}
+                    1 payment
+                {% else %}
+                    {{ paginator.count }} payments
+                {% endif %}
+
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table payment-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Date</th>
+
+                        <th>Customer</th>
+
+                        <th>Phone</th>
+
+                        <th class="text-end">
+                            Amount
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for payment in payments %}
+
+                    <tr>
+
+                        <td class="payment-number">
+
+                            {{ forloop.counter0|add:payments.start_index }}
+
+                        </td>
+
+
+                        <td class="payment-date">
+
+                            {{ payment.payment_date|date:"d M Y" }}
+
+                        </td>
+
+
+                        <td class="customer-name">
+
+                            {{ payment.customer.name }}
+
+                        </td>
+
+
+                        <td class="customer-phone">
+
+                            {% if payment.customer.phone %}
+
+                                {{ payment.customer.phone }}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="payment-amount text-end">
+
+                            Rs. {{ payment.amount|floatformat:2 }}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    💰
+                                </div>
+
+
+                                {% if search %}
+
+                                    <h5>
+                                        No payments found
+                                    </h5>
+
+                                    <p>
+                                        No payment matches
+                                        "<strong>{{ search }}</strong>".
+                                    </p>
+
+
+                                    <a href="{% url 'dealer_customer_payment_list' %}"
+                                       class="btn btn-outline-primary btn-sm">
+
+                                        Clear Search
+
+                                    </a>
+
+                                {% else %}
+
+                                    <h5>
+                                        No payments yet
+                                    </h5>
+
+                                    <p>
+                                        Customer payments will appear here.
+                                    </p>
+
+
+                                    <a href="{% url 'dealer_customer_payment_create' %}"
+                                       class="btn btn-primary btn-sm">
+
+                                        + Add Payment
+
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =========================
+             PAGINATION
+        ========================= -->
+
+        {% if payments.has_other_pages %}
+
+        <div class="pagination-wrapper">
+
+
+            <div class="page-info">
+
+                Page {{ payments.number }}
+                of {{ payments.paginator.num_pages }}
+
+            </div>
+
+
+            <nav aria-label="Customer payment pagination">
+
+                <ul class="pagination">
+
+
+                    {% if payments.has_previous %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ payments.previous_page_number }}">
+
+                            Previous
+
+                        </a>
+
+                    </li>
+
+                    {% endif %}
+
+
+                    {% for num in payments.paginator.page_range %}
+
+                        {% if payments.number == num %}
+
+                            <li class="page-item active">
+
+                                <span class="page-link">
+                                    {{ num }}
+                                </span>
+
+                            </li>
+
+
+                        {% elif num > payments.number|add:'-3'
+                           and num < payments.number|add:'3' %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ num }}">
+
+                                    {{ num }}
+
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% if payments.has_next %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?{% if search %}search={{ search|urlencode }}&{% endif %}page={{ payments.next_page_number }}">
+
+                            Next
+
+                        </a>
+
+                    </li>
+
+                    {% endif %}
+
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+        {% endif %}
+
+
+    </div>
 
 </div>
 
