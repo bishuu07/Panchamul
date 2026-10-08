@@ -135,6 +135,10 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'accounts.User'
 
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+
 TIME_ZONE = 'Asia/Kathmandu'
 
 USE_TZ = True

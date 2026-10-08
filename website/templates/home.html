@@ -1,0 +1,559 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if company %}{{ company.company_name }}{% else %}Panchamul{% endif %} – Nature's Purest Spring, Bottled For You</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@400;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --p-50:#e8f1f8;--p-100:#b6d3e9;--p-200:#93bede;--p-300:#62a0cf;--p-400:#438dc5;
+    --p-500:#1471b7;--p-600:#1267a7;--p-700:#0e5082;--p-800:#0b3e65;--p-900:#082f4d;
+    --s-50:#fafdfe;--s-100:#f1f9fd;--s-200:#eaf6fc;--s-300:#e0f2fb;--s-400:#daf0fa;--s-500:#d1ecf9;
+    --b-50:#ecf6fe;--b-100:#c4e3fc;--b-200:#a8d6fa;--b-300:#80c3f8;--b-500:#42a5f5;--b-700:#2f75ae;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--s-200);color:var(--p-500);overflow-x:hidden}
+h1,h2,h3,.nav-link,.btn-pill{font-family:'Lato',sans-serif}
+img{max-width:100%}
+.ph{background:linear-gradient(145deg,var(--p-100),var(--p-300));display:block}
+
+/* ================= HERO ================= */
+.hero{position:relative;min-height:760px;color:#fff;background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 55%,var(--p-100) 100%);padding-bottom:140px;overflow:hidden}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:160px;background:var(--s-200);clip-path:ellipse(75% 100% at 50% 100%)}
+.navbar{position:relative;z-index:5;padding-top:1.2rem}
+.navbar .nav-link{color:#fff;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;padding:.4rem .2rem;margin:0 1.4rem;border-bottom:2px solid transparent;transition:.3s}
+.navbar .nav-link:hover,.navbar .nav-link.active{color:#fff;border-bottom-color:#fff}
+.brand-logo{height:78px;width:auto;display:block;margin:0 auto}
+.navbar-toggler{border-color:rgba(255,255,255,.6)}
+.navbar-toggler-icon{filter:invert(1)}
+.hero-copy{position:relative;z-index:3;padding-top:5rem}
+.hero h1{font-weight:700;font-size:clamp(2rem,4vw,2.9rem);line-height:1.2;max-width:420px}
+.hero p{font-size:.85rem;font-weight:300;color:var(--p-50);max-width:420px;margin-top:1.4rem;opacity:.9}
+.hero-bottles{position:absolute;right:4%;top:60px;width:min(46%,560px);z-index:2;animation:float 6s ease-in-out infinite}
+.hero-bottles img{width:100%}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-16px) rotate(1.5deg)}}
+.hero .intro{opacity:0;transform:translateY(24px);animation:intro .9s .2s forwards}
+.hero .intro.d2{animation-delay:.5s}
+@keyframes intro{to{opacity:1;transform:none}}
+.bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);animation:rise linear infinite}
+@keyframes rise{from{transform:translateY(0);opacity:.7}to{transform:translateY(-700px);opacity:0}}
+
+/* ================= COMMON ================= */
+section{position:relative}
+.sec-title{font-family:'Lato',sans-serif;font-weight:700;color:var(--p-600);font-size:clamp(1.7rem,3vw,2.2rem)}
+.lead-text{font-size:.85rem;line-height:1.9;color:var(--p-500)}
+.btn-pill{border:1px solid var(--p-500);color:var(--p-500);border-radius:50px;padding:.25rem 1.6rem;font-size:.75rem;background:transparent;transition:.3s}
+.btn-pill:hover{background:var(--p-500);color:#fff;transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,113,183,.3)}
+.btn-pill.light{border-color:#fff;color:#fff}
+.btn-pill.light:hover{background:#fff;color:var(--p-600)}
+.splash{position:absolute;left:0;width:100%;pointer-events:none;z-index:0}
+.splash img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease,transform .9s ease;transition-delay:var(--d,0s)}
+.reveal.left{transform:translateX(-60px)}
+.reveal.right{transform:translateX(60px)}
+.reveal.show{opacity:1;transform:none}
+@keyframes pop{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
+.btn-pill:active{transform:scale(.95)}
+
+/* ================= ABOUT ================= */
+.about{padding:80px 0 160px}
+.about-img{width:100%;aspect-ratio:1/.93;border-radius:18px;object-fit:cover;box-shadow:0 18px 40px rgba(8,47,77,.25);transition:transform .6s}
+.about-img:hover{transform:scale(1.03) rotate(-1deg)}
+.about .text{text-align:center;padding-left:2rem}
+.about .lead-text{text-align:left}
+
+/* ================= PRODUCTS ================= */
+.products{padding:60px 0 80px;text-align:center}
+.products .lead-text{max-width:620px;margin:1rem auto 1.4rem}
+.product{padding:1rem;transition:transform .5s}
+.product:hover{transform:translateY(-12px)}
+.product .bottle{height:300px;display:flex;align-items:flex-end;justify-content:center;background:radial-gradient(ellipse at 50% 60%,#fff 0%,transparent 70%)}
+.product .bottle .ph{width:90px;height:260px;border-radius:30px 30px 14px 14px}
+.product .bottle img{max-height:300px}
+.product h3{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.5rem;color:var(--p-600);margin-top:1rem}
+
+/* ================= JOURNEY ================= */
+.journey{background:var(--p-300);padding:70px 0 90px;color:#fff;overflow:hidden}
+.journey h2{font-weight:700;font-size:clamp(1.6rem,3vw,2.2rem);display:inline-block;padding-bottom:.5rem;border-bottom:2px solid;border-image:linear-gradient(90deg,#fff,transparent) 1}
+.wheel{position:relative;max-width:420px;margin:0 auto;aspect-ratio:1/1.15}
+.wheel .big{position:absolute;left:0;top:0;width:55%;height:100%;border-radius:40px;background:linear-gradient(145deg,var(--b-100),var(--p-100));box-shadow:0 0 60px rgba(255,255,255,.4)}
+.wheel .big img{width:100%;height:100%;object-fit:contain}
+.wheel .seg{position:absolute;width:34%;aspect-ratio:1/.9;border-radius:6px;overflow:hidden;box-shadow:0 8px 20px rgba(8,47,77,.4);transition:transform .4s}
+.wheel .seg:hover{transform:scale(1.1)}
+.wheel .seg img{width:100%;height:100%;object-fit:cover}
+.wheel .s1{left:50%;top:6%;border-radius:10px 60px 10px 10px}
+.wheel .s2{left:66%;top:30%}
+.wheel .s3{left:62%;top:54%}
+.wheel .s4{left:44%;top:76%;border-radius:10px 10px 60px 10px}
+.step{margin-bottom:1.6rem;transition:transform .4s}
+.step:nth-child(even){padding-left:2.5rem}
+.step:hover{transform:translateX(8px)}
+.step h3{font-size:1rem;font-weight:400;margin-bottom:.4rem}
+.step p{font-size:.72rem;max-width:380px;margin:0;color:var(--p-50)}
+
+/* ================= CERTIFICATIONS ================= */
+.certs{position:relative;z-index:2;padding:90px 0 60px}   /* z-index keeps badges above the wave */
+.certs .lead-text{max-width:420px}
+.cert-board{position:relative;height:380px}
+.cert-board .ph{position:absolute;width:120px;height:100px;border-radius:6px;box-shadow:0 8px 18px rgba(8,47,77,.25);animation:bob 5s ease-in-out infinite}
+.cert-board .ph:nth-child(1){left:28%;top:0;height:110px;animation-delay:0s}
+.cert-board .ph:nth-child(2){left:0;top:130px;animation-delay:.6s}
+.cert-board .ph:nth-child(3){left:33%;top:130px;animation-delay:1.2s}
+.cert-board .ph:nth-child(4){right:0;top:60px;height:105px;animation-delay:1.8s}
+.cert-board .ph:nth-child(5){left:20%;top:260px;width:110px;animation-delay:2.4s}
+.cert-board .ph:nth-child(6){right:6%;top:240px;width:110px;animation-delay:3s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ================= FUTURE ================= */
+.future{position:relative;z-index:1;padding:clamp(170px,22vw,340px) 0 120px;overflow-x:clip}
+.future-wave{position:absolute;left:0;top:-9vw;width:100%;height:auto;z-index:0;pointer-events:none}   /* more negative top = wave moves up */
+.future .container{position:relative;z-index:2}
+.future-bottle{width:100%;max-width:340px;margin-left:-40px;animation:float 7s ease-in-out infinite}
+.future-bottle img{width:100%;display:block}
+.future h2{font-weight:700;color:var(--p-600);font-size:clamp(1.7rem,3vw,2.2rem)}
+.grid-ph{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;margin-top:2rem}
+.grid-ph div{aspect-ratio:1/.9;background:#d9d9d9;border-radius:2px;transition:transform .4s,background .4s}
+.grid-ph div:hover{transform:scale(1.06);background:var(--p-100)}
+
+/* ================= FOOTER ================= */
+footer{background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 55%,var(--p-200) 100%);color:#fff;padding:50px 0 24px}
+footer small.by{font-size:.55rem;font-weight:700;display:block;letter-spacing:.02em}
+footer .f-logo{height:90px;margin-top:.8rem}
+footer ul{list-style:none;padding:0;margin:0}
+footer li{margin-bottom:1.1rem;font-size:.75rem}
+footer a{color:#fff;text-decoration:none;transition:.3s}
+footer a:hover{opacity:.7}
+.social a{display:inline-flex;width:38px;height:38px;border-radius:50%;background:#fff;color:var(--p-500);align-items:center;justify-content:center;margin-right:.9rem;font-size:1.1rem;transition:.3s}
+.social a:hover{transform:translateY(-4px) rotate(8deg);opacity:1;background:var(--b-100)}
+.contact li{display:flex;gap:.8rem;align-items:center;font-size:.72rem}
+.copy{margin-top:70px;text-align:center;font-size:.7rem;border-top:1px solid rgba(255,255,255,.2);padding-top:1.4rem}
+.copy a{font-weight:700}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width:991.98px){
+    .navbar-collapse{background:rgba(8,47,77,.92);border-radius:12px;padding:1rem;margin-top:.8rem;text-align:center}
+    .navbar .nav-link{margin:.2rem 0;display:inline-block}
+    .navbar .container{position:relative}
+    .brand-logo{height:62px}
+    .hero{min-height:auto;padding-bottom:120px}
+    .hero-bottles{position:relative;right:auto;top:auto;width:80%;max-width:380px;margin:2rem auto 0}
+    .hero-copy{padding-top:2.5rem;text-align:center}
+    .hero h1,.hero p{margin-left:auto;margin-right:auto}
+    .about{padding:50px 0 100px}
+    .about .text{padding:2rem 0 0}
+    .journey .step:nth-child(even){padding-left:0}
+    .wheel{margin-bottom:2rem}
+    .cert-board{height:340px;margin-top:2rem}
+
+    .future{padding-top:clamp(120px,28vw,220px)}
+    .future-wave{width:200%;max-width:none;left:-50%;top:-14vw}   /* crops the sides so the wave stays big on phones */
+    .future-bottle{margin:0 auto 2rem}
+
+    footer{text-align:center}
+    .social,.contact li{justify-content:center}
+
+    /* ---- mobile animation ---- */
+    /* slide up instead of sideways so nothing overflows the screen */
+    .reveal.left:not(.show),.reveal.right:not(.show){transform:translateY(40px)}
+
+    /* staggered pop-in for repeated items */
+    .reveal .step,.reveal .grid-ph div,.reveal .wheel .seg{opacity:0}
+    .reveal.show .step,.reveal.show .grid-ph div,.reveal.show .wheel .seg{
+        animation:pop .7s ease forwards;
+        animation-delay:calc(var(--i,0) * .12s);
+    }
+
+    /* gentle continuous motion */
+    .product .bottle img{animation:float 5s ease-in-out infinite}
+    .col-md-4:nth-child(2) .product .bottle img{animation-delay:.8s}
+    .col-md-4:nth-child(3) .product .bottle img{animation-delay:1.6s}
+    .future-wave,.about .splash img{animation:drift 10s ease-in-out infinite alternate}
+}
+@media (max-width:575.98px){
+    .grid-ph{grid-template-columns:repeat(2,1fr)}
+    .cert-board .ph{width:90px;height:80px}
+    .cert-board .ph:nth-child(1){left:35%}
+    .product .bottle{height:240px}
+    .product .bottle .ph{height:210px}
+    .about .lead-text,.step p{font-size:.8rem}
+}
+@media (prefers-reduced-motion:reduce){
+    /* only the looping motion is switched off; scroll reveals still play */
+    .bubble,.hero-bottles,.future-bottle,.cert-board .ph,
+    .product .bottle img,.future-wave,.about .splash img{animation:none!important}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero" id="home">
+
+    <span class="bubble" style="left:8%;bottom:20%;width:14px;height:14px;animation-duration:9s"></span>
+    <span class="bubble" style="left:30%;bottom:10%;width:8px;height:8px;animation-duration:7s;animation-delay:2s"></span>
+    <span class="bubble" style="left:55%;bottom:15%;width:18px;height:18px;animation-duration:11s;animation-delay:1s"></span>
+    <span class="bubble" style="left:90%;bottom:5%;width:10px;height:10px;animation-duration:8s;animation-delay:3s"></span>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container position-relative">
+
+            <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- LOGO (mobile / tablet only) -->
+            <a class="navbar-brand mx-auto order-2 d-lg-none" href="{% url 'website:home' %}">
+                <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="Panchamul">
+            </a>
+
+            <!-- NAVIGATION -->
+            <div class="collapse navbar-collapse order-3 align-items-lg-center" id="nav">
+
+                <ul class="navbar-nav justify-content-lg-end" style="flex:1 1 0">
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'website:home' %}">Home</a></li>
+                   <li class="nav-item"><a class="nav-link" href="{% url 'website:about' %}">About Us</a></li>
+                </ul>
+
+                <!-- LOGO (desktop, centered) -->
+                <a class="navbar-brand d-none d-lg-block" style="margin:0 2rem" href="{% url 'website:home' %}">
+                    <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="Panchamul">
+                </a>
+
+                <ul class="navbar-nav justify-content-lg-start" style="flex:1 1 0">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'website:services' %}">Our Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'website:contact' %}">Contact Us</a></li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 hero-copy">
+                <h1 class="intro">Nature's Purest Spring, Bottled For You</h1>
+                <p class="intro d2">
+                    {% if company and company.tagline %}
+                        {{ company.tagline }}
+                    {% else %}
+                        Enjoy fresh, natural spring water sourced from nature and delivered with purity you can trust.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-bottles">
+        <img src="{% static 'website/images/hero-bottle.png' %}" alt="Panchamul water bottles in a splash">
+    </div>
+
+</header>
+
+
+<!-- ===================== ABOUT ===================== -->
+<section class="about" id="about">
+
+    <div class="splash" style="bottom:-60px;height:380px">
+        <img src="{% static 'website/images/splash-1st.png' %}" alt="" aria-hidden="true">
+    </div>
+
+    <div class="container position-relative" style="z-index:2">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-5 reveal left">
+                <img class="about-img ph" src="{% static 'website/images/hero-bottle.png' %}" alt="Panchamul water bottles">
+            </div>
+
+            <div class="col-lg-6 offset-lg-1 text reveal right">
+                <h2 class="sec-title mb-4">
+                    {% if company and company.about_title %}{{ company.about_title }}{% else %}About Us{% endif %}
+                </h2>
+
+                <p class="lead-text">
+                    {% if company and company.about_description %}
+                        {{ company.about_description }}
+                    {% else %}
+                        We are dedicated to delivering naturally sourced spring water that is pure, refreshing, and rich in natural minerals.
+                        Every bottle reflects our commitment to quality, safety, and providing healthy hydration you can trust.
+                        Driven by a passion for purity, we provide premium spring water sourced from nature and bottled with care.
+                    {% endif %}
+                </p>
+
+                <a href="{% url 'website:contact' %}" class="btn btn-pill">Contact Us</a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ===================== PRODUCTS ===================== -->
+<section class="products" id="products">
+    <div class="container">
+
+        <h2 class="sec-title reveal">Our Products</h2>
+
+        <p class="lead-text reveal">
+            We are dedicated to delivering naturally sourced spring water that is pure, refreshing, and rich in natural minerals.
+            Every bottle reflects our commitment to quality, safety, and providing healthy hydration you can trust.
+        </p>
+
+        <a href="{% url 'website:contact' %}" class="btn btn-pill reveal">Contact Us</a>
+
+        <div class="row mt-5 g-4">
+
+            <div class="col-md-4 reveal">
+                <div class="product">
+                    <div class="bottle"><img src="{% static 'website/images/product.png' %}" alt="500 ml Panchamul water bottle"></div>
+                    <h3>500 ml</h3>
+                </div>
+            </div>
+
+            <div class="col-md-4 reveal" style="transition-delay:.15s">
+                <div class="product">
+                    <div class="bottle"><img src="{% static 'website/images/product.png' %}" alt="500 ml Panchamul water bottle"></div>
+                    <h3>500 ml</h3>
+                </div>
+            </div>
+
+            <div class="col-md-4 reveal" style="transition-delay:.3s">
+                <div class="product">
+                    <div class="bottle"><img src="{% static 'website/images/product.png' %}" alt="1 litre Panchamul water bottle"></div>
+                    <h3>1 Litre</h3>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ===================== WATER JOURNEY ===================== -->
+<section class="journey">
+    <div class="container">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-5 reveal left">
+                <div class="wheel">
+                    <div class="big"><img src="{% static 'website/images/full-bottle.png' %}" alt="Panchamul bottle"></div>
+                    <div class="seg ph s1"><img src="{% static 'website/images/step1.jpg' %}" alt="Water source"></div>
+                    <div class="seg ph s2"><img src="{% static 'website/images/step2.jpg' %}" alt="Water filtration"></div>
+                    <div class="seg ph s3"><img src="{% static 'website/images/step3.jpg' %}" alt="Water testing"></div>
+                    <div class="seg ph s4"><img src="{% static 'website/images/step4.jpg' %}" alt="Water packaging"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 reveal right">
+
+                <h2 class="mb-5">Panchamul's Water Journey</h2>
+
+                <div class="step">
+                    <h3>1. Source of Water</h3>
+                    <p>Pure spring water is sourced from protected natural springs, preserving its freshness and natural minerals.</p>
+                </div>
+
+                <div class="step">
+                    <h3>2. Water Filtration</h3>
+                    <p>The water is carefully filtered to remove impurities while maintaining its natural purity and clean taste.</p>
+                </div>
+
+                <div class="step">
+                    <h3>3. Quality Testing</h3>
+                    <p>Every batch is thoroughly tested to ensure it meets the highest standards of safety and quality.</p>
+                </div>
+
+                <div class="step">
+                    <h3>4. Packaging &amp; Delivery</h3>
+                    <p>The water is hygienically bottled, securely sealed, and delivered with care to ensure every bottle reaches you fresh and ready to enjoy.</p>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'website:contact' %}" class="btn btn-pill light">Contact Us</a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ===================== CERTIFICATIONS ===================== -->
+<section class="certs">
+    <div class="container">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-6 reveal left">
+                <h2 class="sec-title mb-4">Certifications</h2>
+                <p class="lead-text">
+                    We are dedicated to delivering naturally sourced spring water that is pure, refreshing, and rich in natural minerals.
+                    Every bottle reflects our commitment to quality, safety, and providing healthy hydration you can trust.
+                </p>
+            </div>
+
+            <div class="col-lg-6 reveal right">
+                <div class="cert-board">
+                    <span class="ph"></span>
+                    <span class="ph"></span>
+                    <span class="ph"></span>
+                    <span class="ph"></span>
+                    <span class="ph"></span>
+                    <span class="ph"></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ===================== FUTURE PLAN ===================== -->
+<section class="future">
+
+    <!-- wave belongs to this section, sits behind the content -->
+    <img class="future-wave" src="{% static 'website/images/water-splash.png' %}" alt="" aria-hidden="true">
+
+    <div class="container">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-4 reveal left">
+                <div class="future-bottle">
+                    <img src="{% static 'website/images/full-bottle.png' %}" alt="Panchamul bottle">
+                </div>
+            </div>
+
+            <div class="col-lg-8 reveal right">
+
+                <h2 class="mb-4">Future Plan</h2>
+
+                <p class="lead-text" style="max-width:420px">
+                    To bring safe, refreshing spring water to more communities through innovation, quality, and responsible practices.
+                </p>
+
+                <div class="grid-ph">
+                    <div></div><div></div><div></div><div></div>
+                    <div></div><div></div><div></div><div></div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+    <div class="container">
+        <div class="row g-4 align-items-start">
+
+            <div class="col-lg-4">
+                <small class="by">
+                    Processed by:<br>
+                    {% if company %}{{ company.company_name }}{% else %}RAJBHANDARI AND SONS BEVERAGES COMPANY{% endif %}
+                </small>
+                <img class="f-logo" src="{% static 'website/images/logo.png' %}" alt="Panchamul">
+            </div>
+
+            <div class="col-lg-3 offset-lg-1">
+                <ul>
+                    <li><a href="{% url 'website:home' %}">Home</a></li>
+                    <li><a href="{% url 'website:home' %}#about">About Us</a></li>
+                    <li><a href="{% url 'website:home' %}#products">Our Products</a></li>
+                    <li><a href="{% url 'website:contact' %}">Contact Us</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="social mb-4">
+                    {% if company and company.facebook_url %}
+                        <a href="{{ company.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    {% endif %}
+                    {% if company and company.instagram_url %}
+                        <a href="{{ company.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    {% endif %}
+                    {% if company and company.youtube_url %}
+                        <a href="{{ company.youtube_url }}" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    {% endif %}
+                </div>
+
+                <ul class="contact">
+                    <li>
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{% if company and company.address %}{{ company.address }}{% else %}Rametar-04, Baglung, Gandaki Province{% endif %}</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-telephone"></i>
+                        <span>{% if company and company.phone %}{{ company.phone }}{% else %}+977 - 12345678901{% endif %}</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-envelope"></i>
+                        <span>{% if company and company.email %}{{ company.email }}{% else %}email@gmail.com{% endif %}</span>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+        <div class="copy">
+            © {% now "Y" %} {% if company %}{{ company.company_name }}{% else %}Panchamul{% endif %} – Developed by <a href="#">Fusion IT Solutions</a>
+        </div>
+    </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    /* ---------- SCROLL REVEAL ---------- */
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("show");
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: "0px 0px -8% 0px" });
+
+    document.querySelectorAll(".reveal").forEach((el) => {
+        // index used for the staggered delays on mobile
+        el.querySelectorAll(".step, .grid-ph div, .wheel .seg")
+          .forEach((child, i) => child.style.setProperty("--i", i));
+        io.observe(el);
+    });
+
+    /* ---------- ACTIVE NAVIGATION ---------- */
+    const links = document.querySelectorAll(".navbar .nav-link");
+
+    window.addEventListener("scroll", () => {
+        let current = "home";
+
+        document.querySelectorAll("#home,#about,#products").forEach((section) => {
+            if (window.scrollY >= section.offsetTop - 200) {
+                current = section.id;
+            }
+        });
+
+        links.forEach((link) => {
+            const href = link.getAttribute("href");
+            link.classList.toggle(
+                "active",
+                href === "{% url 'website:home' %}#" + current ||
+                (current === "home" && href === "{% url 'website:home' %}")
+            );
+        });
+    });
+</script>
+
+</body>
+</html>

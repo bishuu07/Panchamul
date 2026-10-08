@@ -1,0 +1,439 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact Us – {{ company.company_name|default:"Panchamul" }}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --p-50:#e8f1f8;--p-100:#b6d3e9;--p-200:#93bede;--p-300:#62a0cf;--p-400:#438dc5;
+  --p-500:#1471b7;--p-600:#1267a7;--p-700:#0e5082;--p-800:#0b3e65;--p-900:#082f4d;
+  --s-200:#eaf6fc;--s-500:#d1ecf9;
+  --b-50:#ecf6fe;--b-100:#c4e3fc;--b-300:#80c3f8;--b-500:#42a5f5;--b-600:#3c96df;
+  --form-bg:#dfeeff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--s-200);color:var(--p-500);overflow-x:hidden}
+h1,h2,h3,.nav-link{font-family:'Lato',sans-serif}
+img{max-width:100%}
+
+/* ================= HERO ================= */
+.hero{position:relative;color:#fff;height:620px;background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 55%,var(--p-100) 100%);overflow:hidden}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:170px;background:var(--s-200);clip-path:ellipse(80% 100% at 70% 100%)}
+.navbar{position:relative;z-index:5;padding-top:1.2rem}
+.navbar .nav-link{color:#fff;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;padding:.4rem .2rem;margin:0 1.4rem;border-bottom:2px solid transparent;transition:.3s}
+.navbar .nav-link:hover,.navbar .nav-link.active{color:#fff;border-bottom-color:#fff}
+.brand-logo{height:78px;width:auto;display:block;margin:0 auto}
+.navbar-toggler{border-color:rgba(255,255,255,.6)}
+.navbar-toggler-icon{filter:invert(1)}
+.hero h1{position:absolute;left:0;right:0;top:250px;text-align:center;font-weight:700;font-size:clamp(2.2rem,6vw,4rem);text-transform:uppercase;letter-spacing:.01em;z-index:3;margin:0}
+.drop{position:absolute;border-radius:50%;background:rgba(255,255,255,.18);animation:rise linear infinite}
+@keyframes rise{from{transform:translateY(0);opacity:.8}to{transform:translateY(-600px);opacity:0}}
+
+/* load sequence */
+.in{opacity:0;transform:translateY(26px);animation:in .9s forwards}
+.in.d1{animation-delay:.15s}
+@keyframes in{to{opacity:1;transform:none}}
+
+/* ================= CONTACT CARD ================= */
+.contact-wrap{position:relative;margin-top:-110px;padding-bottom:140px;z-index:4}
+
+/* water splash in the background (behind the card) */
+.splash{position:absolute;left:0;bottom:0;width:100%;height:560px;overflow:hidden;pointer-events:none;z-index:0}
+.splash img{display:block;width:104%;max-width:none;height:100%;margin-left:-2%;object-fit:cover;object-position:left bottom;animation:drift 10s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
+
+.contact-card{position:relative;z-index:1;background:#fff;border-radius:10px;padding:32px;box-shadow:0 18px 50px rgba(8,47,77,.14)}
+.info{padding:2.5rem 1rem 1rem 1rem}
+.info h2{font-weight:700;color:var(--p-600);font-size:clamp(1.8rem,3vw,2.3rem);margin-bottom:1.4rem}
+.info .intro{font-size:.95rem;color:var(--p-400);max-width:480px;line-height:1.4}
+.info .intro b{color:var(--p-500);font-weight:500}
+.item{display:flex;gap:1rem;align-items:flex-start;margin-top:1.4rem;transition:transform .3s}
+.item:hover{transform:translateX(6px)}
+.item i{font-size:1.25rem;color:var(--p-500);margin-top:.15rem}
+.item small{display:block;color:var(--p-400);font-size:.85rem}
+.item span{font-size:.9rem;color:var(--p-600)}
+.item .big{font-size:1.02rem}
+.social-row{display:flex;align-items:center;gap:.9rem;margin-top:3.2rem;font-size:.9rem;color:var(--p-600);flex-wrap:wrap}
+.social-row a{width:48px;height:48px;border-radius:50%;background:var(--b-50);display:inline-flex;align-items:center;justify-content:center;font-size:1.25rem;text-decoration:none;transition:.3s}
+.social-row a:hover{transform:translateY(-5px) rotate(8deg);box-shadow:0 8px 16px rgba(20,113,183,.25)}
+.fb{color:#1877f2}.ig{color:#e1306c}.tk{color:#000}
+
+/* ================= FORM ================= */
+.form-box{background:var(--form-bg);border-radius:6px;padding:50px 34px 28px;height:100%}
+.field{position:relative;margin-bottom:1.35rem}
+.form-box .form-control,.form-box .input-group-text{border:0;border-radius:8px;background:#fff;font-size:.75rem;color:var(--p-700);padding:.85rem .8rem}
+.form-box .form-control::placeholder{color:var(--p-300)}
+.form-box .form-control:focus{box-shadow:0 0 0 3px rgba(66,165,245,.4)}
+.form-box .input-group-text{color:var(--p-300);margin-right:.7rem;border-radius:8px!important}
+.form-box .input-group>.form-control{border-radius:8px!important}
+.hint{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--p-300);pointer-events:none}
+.field input:not(:placeholder-shown)~.hint{opacity:0}
+textarea.form-control{min-height:160px;resize:vertical}
+.btn-submit{width:100%;background:var(--b-500);color:#fff;border:0;border-radius:8px;padding:.7rem;font-size:.95rem;transition:.3s}
+.btn-submit:hover{background:var(--b-600);transform:translateY(-2px);box-shadow:0 10px 20px rgba(66,165,245,.4);color:#fff}
+.btn-submit:active{transform:scale(.95)}
+.terms{text-align:center;font-size:.72rem;color:var(--b-500);margin:1.6rem auto 0;max-width:340px}
+.terms a{color:var(--p-600);text-decoration:none;font-weight:500}
+.terms a:hover{text-decoration:underline}
+.was-validated .form-control:invalid{box-shadow:0 0 0 2px #f1a0a0}
+
+/* ================= MAP ================= */
+.map{width:100%;height:530px;border:0;display:block;filter:saturate(.9);position:relative;z-index:1}
+
+/* ================= FOOTER ================= */
+footer{background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 55%,#7bbcf2 100%);color:#fff;padding:36px 0 24px}
+footer small.by{font-size:.62rem;font-weight:500;display:block}
+footer .f-logo{height:110px;margin-top:.8rem}
+footer ul{list-style:none;padding:0;margin:0}
+footer li{margin-bottom:1.1rem;font-size:.85rem}
+footer a{color:#fff;text-decoration:none;transition:.3s}
+footer a:hover{opacity:.7}
+.f-social a{display:inline-flex;width:48px;height:48px;border-radius:50%;background:#fff;align-items:center;justify-content:center;margin-right:1rem;font-size:1.2rem;transition:.3s}
+.f-social a:hover{transform:translateY(-4px) rotate(8deg);opacity:1}
+.f-contact li{display:flex;gap:.9rem;align-items:center;font-size:.85rem}
+.copy{margin-top:90px;text-align:center;font-size:.8rem}
+.copy a{color:var(--b-100);font-weight:500}
+
+/* ================= SCROLL REVEAL ================= */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease,transform .9s ease}
+.reveal.show{opacity:1;transform:none}
+@keyframes pop{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width:991.98px){
+  .navbar-collapse{background:rgba(8,47,77,.92);border-radius:12px;padding:1rem;margin-top:.8rem;text-align:center}
+  .navbar .nav-link{margin:.2rem 0;display:inline-block}
+  .navbar .container{position:relative}
+  .brand-logo{height:62px}
+  .hero{height:520px}
+  .hero h1{top:210px}
+  .contact-wrap{margin-top:-90px}
+  .info{padding:1rem .5rem 2rem}
+  .social-row{margin-top:2rem}
+  .splash{height:380px}
+  footer{text-align:center}
+  .f-social,.f-contact li{justify-content:center}
+  .f-social a{margin:0 .5rem}
+
+  /* ---- mobile animation ---- */
+  .reveal .info h2,.reveal .info .intro,.reveal .item,.reveal .social-row,
+  .reveal .field,.reveal .btn-submit,.reveal .terms{opacity:0}
+  .reveal.show .info h2,.reveal.show .info .intro,.reveal.show .item,.reveal.show .social-row,
+  .reveal.show .field,.reveal.show .btn-submit,.reveal.show .terms{
+    animation:pop .7s ease forwards;
+    animation-delay:calc(var(--i,0) * .1s);
+  }
+  .social-row a{animation:float 4s ease-in-out infinite}
+  .social-row a:nth-of-type(2){animation-delay:.5s}
+  .social-row a:nth-of-type(3){animation-delay:1s}
+}
+@media (max-width:575.98px){
+  .contact-card{padding:14px}
+  .form-box{padding:28px 16px 22px}
+  .splash{height:300px}
+  .map{height:380px}
+  .item .big{font-size:.9rem;word-break:break-all}
+  .copy{margin-top:50px}
+}
+@media (prefers-reduced-motion:reduce){
+  /* only looping motion is switched off; reveals still play */
+  .drop,.splash img,.social-row a{animation:none!important}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+
+  <span class="drop" style="left:6%;bottom:30%;width:16px;height:16px;animation-duration:10s"></span>
+  <span class="drop" style="left:28%;bottom:15%;width:9px;height:9px;animation-duration:7s;animation-delay:2s"></span>
+  <span class="drop" style="left:62%;bottom:20%;width:20px;height:20px;animation-duration:12s;animation-delay:1s"></span>
+  <span class="drop" style="left:88%;bottom:10%;width:11px;height:11px;animation-duration:8s;animation-delay:3s"></span>
+
+  <nav class="navbar navbar-expand-lg">
+    <div class="container position-relative">
+
+      <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- LOGO (mobile / tablet only) -->
+      <a class="navbar-brand mx-auto order-2 d-lg-none" href="{% url 'website:home' %}">
+        <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+      </a>
+
+      <!-- NAVIGATION -->
+      <div class="collapse navbar-collapse order-3 align-items-lg-center" id="nav">
+
+        <ul class="navbar-nav justify-content-lg-end" style="flex:1 1 0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:home' %}#about">About Us</a></li>
+        </ul>
+
+        <!-- LOGO (desktop, centered) -->
+        <a class="navbar-brand d-none d-lg-block" style="margin:0 2rem" href="{% url 'website:home' %}">
+          <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+        </a>
+
+        <ul class="navbar-nav justify-content-lg-start" style="flex:1 1 0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:services' %}">Our Products</a></li>
+          <li class="nav-item"><a class="nav-link active" href="{% url 'website:contact' %}">Contact Us</a></li>
+        </ul>
+
+      </div>
+    </div>
+  </nav>
+
+  <h1 class="in d1">Contact Us</h1>
+
+</header>
+
+
+<!-- ===================== CONTACT ===================== -->
+<section class="contact-wrap">
+
+  <!-- water splash background -->
+  <div class="splash" aria-hidden="true">
+    <img src="{% static 'website/images/splash-1st.png' %}" alt="">
+  </div>
+
+  <div class="container">
+    <div class="contact-card reveal">
+      <div class="row g-4 align-items-stretch">
+
+        <!-- ===== CONTACT INFORMATION ===== -->
+        <div class="col-lg-6 d-flex">
+          <div class="info align-self-center w-100">
+
+            <h2 style="--i:0">Get in Touch</h2>
+
+            <p class="intro" style="--i:1">
+              Have questions or need assistance? Contact
+              <b>{{ company.company_name|default:"Panchamul" }}</b>
+              — we're here to help.
+            </p>
+
+            <!-- LOCATION -->
+            <div class="item" style="--i:2">
+              <i class="bi bi-geo-alt"></i>
+              <div>
+                <small>Location</small>
+                <span>{{ company.address|default:"Rametar - 04, Baglung, Gandaki Province" }}</span>
+              </div>
+            </div>
+
+            <!-- PHONE -->
+            <div class="item" style="--i:3">
+              <i class="bi bi-telephone-outbound"></i>
+              <div>
+                <small>Phone number</small>
+                <span class="big">
+                  {% if company.phone %}
+                    <a href="tel:{{ company.phone }}" class="text-reset text-decoration-none">{{ company.phone }}</a>
+                  {% else %}
+                    +977 - 222-487-1382
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="item" style="--i:4">
+              <i class="bi bi-envelope"></i>
+              <div>
+                <small>Email</small>
+                <span class="big">
+                  {% if company.email %}
+                    <a href="mailto:{{ company.email }}" class="text-reset text-decoration-none">{{ company.email }}</a>
+                  {% else %}
+                    rajbhandariandsonsbeverage@gmail.com
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <!-- SOCIAL MEDIA -->
+            <div class="social-row" style="--i:5">
+              <span>Social media :</span>
+
+              {% if company.facebook_url %}
+                <a href="{{ company.facebook_url }}" class="fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook"></i></a>
+              {% endif %}
+
+              {% if company.instagram_url %}
+                <a href="{{ company.instagram_url }}" class="ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>
+              {% endif %}
+
+              {% if company.youtube_url %}
+                <a href="{{ company.youtube_url }}" class="tk" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- ===== CONTACT FORM ===== -->
+        <div class="col-lg-6">
+          <div class="form-box">
+
+            <!-- DJANGO MESSAGES -->
+            {% if messages %}
+              <div class="mb-4">
+                {% for message in messages %}
+                  <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <form id="contactForm" class="needs-validation" method="POST" action="{% url 'website:contact' %}" novalidate>
+              {% csrf_token %}
+
+              <!-- FULL NAME -->
+              <div class="field" style="--i:0">
+                <input type="text" class="form-control" name="full_name" placeholder="Full Name" value="{{ request.POST.full_name|default:'' }}" required>
+                <div class="invalid-feedback">Please enter your full name.</div>
+              </div>
+
+              <!-- EMAIL -->
+              <div class="field" style="--i:1">
+                <input type="email" class="form-control" name="email" placeholder="Your email" value="{{ request.POST.email|default:'' }}" required>
+                <span class="hint">@gmail.com</span>
+                <div class="invalid-feedback">Please enter a valid email address.</div>
+              </div>
+
+              <!-- PHONE -->
+              <div class="field" style="--i:2">
+                <div class="input-group flex-nowrap">
+                  <span class="input-group-text">+977</span>
+                  <input type="tel" class="form-control" name="phone" placeholder="Phone Number" value="{{ request.POST.phone|default:'' }}" pattern="[0-9]{7,12}" maxlength="12" required>
+                </div>
+                <div class="invalid-feedback">Please enter a valid phone number.</div>
+              </div>
+
+              <!-- MESSAGE -->
+              <div class="field" style="--i:3">
+                <textarea class="form-control" name="message" placeholder="Leave a message...." required>{{ request.POST.message|default:'' }}</textarea>
+                <div class="invalid-feedback">Please enter your message.</div>
+              </div>
+
+              <button type="submit" class="btn-submit" style="--i:4">Submit</button>
+
+              <p class="terms" style="--i:5">
+                By contacting us you agree to our
+                <a href="#">Terms Of Services</a> and <a href="#">Privacy Policies</a>
+              </p>
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== MAP ===================== -->
+<iframe class="map" title="Panchamul location" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+  src="https://www.google.com/maps?q=Rametar,+Baglung,+Nepal&amp;z=13&amp;output=embed"></iframe>
+
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="container">
+    <div class="row g-4 align-items-start">
+
+      <div class="col-lg-4">
+        <small class="by">
+          Processed by :<br>
+          {{ company.company_name|default:"RAJBHANDARI AND SONS BEVERAGES COMPANY" }}
+        </small>
+        <img class="f-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+      </div>
+
+      <div class="col-lg-4 col-xl-3 offset-xl-1">
+        <ul>
+          <li><a href="{% url 'website:home' %}">Home</a></li>
+          <li><a href="{% url 'website:home' %}#about">About Us</a></li>
+          <li><a href="{% url 'website:home' %}#products">Our Products</a></li>
+          <li><a href="{% url 'website:contact' %}">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-4">
+
+        <div class="f-social mb-4">
+          {% if company.facebook_url %}
+            <a href="{{ company.facebook_url }}" class="fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook"></i></a>
+          {% endif %}
+          {% if company.instagram_url %}
+            <a href="{{ company.instagram_url }}" class="ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>
+          {% endif %}
+          {% if company.youtube_url %}
+            <a href="{{ company.youtube_url }}" class="tk" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>
+          {% endif %}
+        </div>
+
+        <ul class="f-contact">
+          <li><i class="bi bi-geo-alt"></i> {{ company.address|default:"Rametar-04, Baglung, Gandaki Province" }}</li>
+          <li><i class="bi bi-telephone-outbound"></i> {% if company.phone %}{{ company.phone }}{% else %}+977 - 222-487-1382{% endif %}</li>
+          <li><i class="bi bi-envelope"></i> {% if company.email %}{{ company.email }}{% else %}rajbhandariandsonsbeverage@gmail.com{% endif %}</li>
+        </ul>
+
+      </div>
+    </div>
+
+    <div class="copy">
+      <i class="bi bi-c-circle"></i> {{ company.company_name|default:"Panchamul" }} {% now "Y" %} – Developed By <a href="#">Fusion IT Solutions</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  /* ---------- SCROLL REVEAL ---------- */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -8% 0px" });
+
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+  /* ---------- BOOTSTRAP FORM VALIDATION ---------- */
+  (() => {
+    "use strict";
+    document.querySelectorAll(".needs-validation").forEach(form => {
+      form.addEventListener("submit", event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add("was-validated");
+      }, false);
+    });
+  })();
+</script>
+
+</body>
+</html>

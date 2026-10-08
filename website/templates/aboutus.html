@@ -1,0 +1,470 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Us – {{ company.company_name|default:"Panchamul" }}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --p-50:#e8f1f8;--p-100:#b6d3e9;--p-200:#93bede;--p-300:#62a0cf;--p-400:#438dc5;
+  --p-500:#1471b7;--p-600:#1267a7;--p-700:#0e5082;--p-800:#0b3e65;--p-900:#082f4d;
+  --s-100:#f1f9fd;--s-200:#eaf6fc;--s-500:#d1ecf9;
+  --b-50:#ecf6fe;--b-100:#c4e3fc;--b-200:#a8d6fa;--b-300:#80c3f8;--b-400:#68b7f7;--b-500:#42a5f5;--b-600:#3c96df;--b-700:#2f75ae;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--s-200);color:var(--p-500);overflow-x:hidden}
+h1,h2,h3,.nav-link,.btn-pill{font-family:'Lato',sans-serif}
+img{max-width:100%}
+.ph{background:linear-gradient(145deg,var(--p-100),var(--p-300))}
+section{position:relative}
+.sec-title{font-weight:700;color:var(--p-600);font-size:clamp(1.6rem,3vw,2.2rem)}
+
+/* ================= HERO ================= */
+.hero{position:relative;color:#fff;min-height:560px;background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 60%,var(--p-100) 100%);overflow:hidden}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:150px;background:var(--s-200);clip-path:ellipse(75% 100% at 60% 100%);z-index:3}
+.navbar{position:relative;z-index:6;padding-top:1.2rem}
+.navbar .nav-link{color:#fff;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;padding:.4rem .2rem;margin:0 1.4rem;border-bottom:2px solid transparent;transition:.3s}
+.navbar .nav-link:hover,.navbar .nav-link.active{color:#fff;border-bottom-color:#fff}
+.brand-logo{height:78px;width:auto;display:block;margin:0 auto}
+.navbar-toggler{border-color:rgba(255,255,255,.6)}
+.navbar-toggler-icon{filter:invert(1)}
+.hero-bottles{position:absolute;left:0;top:40px;width:min(52%,620px);z-index:2;animation:float 6s ease-in-out infinite}
+.hero-bottles img{width:100%;display:block}
+.hero-title{position:relative;z-index:4;text-align:center;padding:80px 0 0 36%}
+.hero-title h1{font-weight:700;font-size:clamp(2.2rem,4.4vw,3.2rem);margin:0}
+.hero-title h2{font-weight:400;font-size:clamp(1.3rem,2.4vw,1.9rem);margin:1.4rem 0 0}
+.in{opacity:0;transform:translateY(26px);animation:in .9s forwards}
+.in.d1{animation-delay:.2s}.in.d2{animation-delay:.5s}
+@keyframes in{to{opacity:1;transform:none}}
+.bubble{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);animation:rise linear infinite}
+@keyframes rise{from{transform:translateY(0);opacity:.7}to{transform:translateY(-600px);opacity:0}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-14px) rotate(1deg)}}
+@keyframes drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
+@keyframes pop{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes sway{0%,100%{transform:translate(0,0)}50%{transform:translate(8px,-10px)}}
+
+/* ================= REVEAL ================= */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s ease,transform .9s ease}
+.reveal.left{transform:translateX(-60px)}
+.reveal.right{transform:translateX(60px)}
+.reveal.zoom{transform:scale(.9)}
+.reveal.show{opacity:1;transform:none}
+.reveal.show .st{animation:pop .7s ease backwards;animation-delay:calc(var(--i,0) * .12s)}
+
+/* ================= OUR STORY ================= */
+.story{padding:70px 0 110px}
+.story h2{font-size:1.4rem;font-weight:700;color:var(--p-600);margin-bottom:1.2rem}
+.story .big{font-size:.9rem;line-height:1.85;letter-spacing:.07em;text-align:justify;color:var(--p-600)}
+.story .small{font-size:.7rem;line-height:1.7;color:var(--p-500);margin-top:1.6rem}
+.story-img{width:100%;aspect-ratio:1/.9;object-fit:cover;border-radius:10px;box-shadow:0 14px 34px rgba(8,47,77,.3);display:block;transition:transform .6s}
+.story-img:hover{transform:scale(1.03) rotate(1deg)}
+
+/* ================= WHAT WE DO ================= */
+.wwd{padding:60px 0 80px}
+.wwd-box{position:relative;background:linear-gradient(120deg,var(--b-700) 0%,#3c78d8 55%,var(--b-500) 100%);color:#fff;padding:80px 8% 80px 11%;width:72%;box-shadow:0 20px 50px rgba(47,117,174,.35)}
+.wwd-box h2{font-size:1.15rem;font-weight:400;margin-bottom:1.8rem}
+.wwd-box p{font-size:.7rem;line-height:1.7;color:#e8f1f8;margin-bottom:1.5rem;max-width:560px}
+.wwd-visual{position:absolute;right:3%;top:-70px;bottom:-30px;width:42%;z-index:2}
+.wwd-visual .splash-bg{position:absolute;right:-8%;top:0;width:75%;height:100%;object-fit:contain;animation:drift 9s ease-in-out infinite alternate}
+.wwd-visual .bottle{position:absolute;left:0;top:0;height:100%;width:auto;max-width:60%;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(8,47,77,.3));animation:float 6s ease-in-out infinite}
+
+/* ================= MISSION VISION GOALS ================= */
+.mvg-sec{padding:60px 0 90px;text-align:center}
+.mvg-sec .lead-text{font-size:.9rem;max-width:760px;margin:1rem auto 0;color:var(--p-500)}
+.mvg-shapes{position:relative;max-width:900px;margin:90px auto 60px;aspect-ratio:16/7.5}
+.shape{position:absolute;display:flex;align-items:center;justify-content:center;font-family:'Lato',sans-serif;font-weight:700;color:var(--p-300);font-size:clamp(1rem,2.4vw,1.7rem);animation:sway 7s ease-in-out infinite}
+.shape.m{left:0;top:12%;width:42%;height:68%;border-radius:50%;background:rgba(182,211,233,.55)}
+.shape.v{left:27%;top:6%;width:44%;height:90%;border-radius:55% 45% 50% 50%;background:rgba(128,195,248,.45);animation-delay:1s}
+.shape.v span{transform:rotate(-6deg);margin-top:55%}
+.shape.g{right:0;top:-12%;width:42%;height:92%;border-radius:55% 0 55% 55%;background:rgba(66,165,245,.5);color:#fff;animation-delay:2s}
+.mvg-cards .col-md-4{padding:0 1.6rem}
+.mvg-cards i{font-size:3rem;color:var(--b-200);display:inline-block;transition:transform .4s}
+.mvg-cards .c:hover i{transform:scale(1.15) rotate(-6deg)}
+.mvg-cards h3{font-size:1.2rem;font-weight:700;margin:.6rem 0 .8rem}
+.mvg-cards p{font-size:.7rem;line-height:1.6;letter-spacing:.05em;text-align:justify;text-align-last:center;margin:0}
+
+/* ================= WHY CHOOSE ================= */
+.why-top{padding:150px 0 20px;text-align:center}
+.why-top .band{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;overflow:hidden;pointer-events:none}
+.why-top .band img{width:104%;max-width:none;margin-left:-2%;height:100%;object-fit:cover;object-position:center;animation:drift 10s ease-in-out infinite alternate}
+.why-top .container{position:relative;z-index:1}
+.why-top .lead-text{font-size:.85rem;max-width:460px;margin:.8rem auto 0;color:var(--p-300)}
+.why{position:relative;padding:0 0 120px;overflow:hidden}
+.why-word{position:relative;z-index:0;text-align:center;font-family:'Lato',sans-serif;font-weight:900;font-size:clamp(3.4rem,16.5vw,15rem);line-height:.85;color:var(--b-300);letter-spacing:-.02em;margin:0;white-space:nowrap}
+.why-tag{position:absolute;right:12%;top:-1.2rem;z-index:1;font-size:clamp(1rem,2.4vw,1.9rem);font-weight:700;color:var(--b-300);opacity:.9}
+.why-deco{position:absolute;left:0;bottom:60px;width:34%;z-index:0;pointer-events:none;animation:float 8s ease-in-out infinite}
+.why-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem 1.6rem;margin-top:-1.2rem}
+.wc{background:rgba(255,255,255,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:8px;padding:2rem 1.4rem;text-align:center;box-shadow:0 10px 30px rgba(20,113,183,.12);transition:transform .4s,box-shadow .4s}
+.wc:hover{transform:translateY(-8px);box-shadow:0 18px 36px rgba(20,113,183,.22)}
+.wc h3{font-size:.95rem;font-weight:400;margin-bottom:1.1rem;display:flex;gap:.5rem;align-items:center;justify-content:center;color:var(--p-500)}
+.wc h3 i{font-size:1.05rem}
+.wc p{font-size:.78rem;line-height:1.75;letter-spacing:.1em;color:var(--p-600);margin:0}
+.wc:nth-child(4){grid-column:1;grid-row:2}
+.wc:nth-child(5){grid-column:3;grid-row:2}
+.wc:nth-child(6){grid-column:2;grid-row:3}
+.why-bottle{grid-column:2;grid-row:2;display:flex;justify-content:center;align-items:flex-end}
+.why-bottle img{width:75%;max-height:360px;object-fit:contain;filter:drop-shadow(0 16px 22px rgba(8,47,77,.25));animation:float 6s ease-in-out infinite;transform:rotate(14deg)}
+
+/* ================= CTA ================= */
+.cta{position:relative;min-height:520px;display:flex;align-items:center;color:#fff;overflow:hidden;background:var(--p-800)}
+.cta-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cta::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(8,47,77,.1) 0%,rgba(8,47,77,.75) 100%)}
+.cta .container{position:relative;z-index:2;padding:80px 12px}
+.cta h2{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.6rem);line-height:1.25}
+.cta p{font-size:.85rem;line-height:1.7;margin:1.4rem 0 2rem}
+.btn-pill{border:1px solid #fff;color:#fff;border-radius:50px;padding:.35rem 1.4rem;font-size:.78rem;background:rgba(255,255,255,.08);backdrop-filter:blur(4px);transition:.3s;text-decoration:none;display:inline-block}
+.btn-pill:hover{background:#fff;color:var(--p-600);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.btn-pill:active{transform:scale(.95)}
+.cta-btns{display:flex;gap:.8rem;flex-wrap:wrap}
+
+/* ================= FOOTER ================= */
+footer{background:linear-gradient(180deg,var(--p-500) 0%,var(--p-300) 55%,var(--p-200) 100%);color:#fff;padding:50px 0 24px}
+footer small.by{font-size:.55rem;font-weight:700;display:block;letter-spacing:.02em}
+footer .f-logo{height:90px;margin-top:.8rem}
+footer ul{list-style:none;padding:0;margin:0}
+footer li{margin-bottom:1.1rem;font-size:.75rem}
+footer a{color:#fff;text-decoration:none;transition:.3s}
+footer a:hover{opacity:.7}
+.social a{display:inline-flex;width:38px;height:38px;border-radius:50%;background:#fff;align-items:center;justify-content:center;margin-right:.9rem;font-size:1.1rem;transition:.3s}
+.social a:hover{transform:translateY(-4px) rotate(8deg);opacity:1}
+.fb{color:#1877f2}.ig{color:#e1306c}.tk{color:#000}
+.contact li{display:flex;gap:.8rem;align-items:center;font-size:.72rem}
+.copy{margin-top:70px;text-align:center;font-size:.7rem;border-top:1px solid rgba(255,255,255,.2);padding-top:1.4rem}
+.copy a{font-weight:700;color:var(--b-100)}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width:991.98px){
+  .navbar-collapse{background:rgba(8,47,77,.92);border-radius:12px;padding:1rem;margin-top:.8rem;text-align:center}
+  .navbar .nav-link{margin:.2rem 0;display:inline-block}
+  .brand-logo{height:62px}
+  .hero{min-height:auto;padding-bottom:140px}
+  .hero-bottles{position:relative;left:auto;top:auto;width:84%;max-width:420px;margin:1rem auto 0}
+  .hero-title{padding:1.5rem 0 0}
+  .hero::after{height:110px}
+
+  .reveal.left:not(.show),.reveal.right:not(.show){transform:translateY(40px)}
+
+  .story{padding:40px 0 70px}
+  .story .big{letter-spacing:.03em}
+
+  .wwd{padding:30px 0 60px}
+  .wwd-box{width:100%;padding:50px 24px 40px}
+  .wwd-visual{position:relative;right:auto;top:auto;bottom:auto;width:100%;height:420px;margin-top:1.5rem}
+  .wwd-visual .splash-bg{right:2%;width:70%}
+  .wwd-visual .bottle{left:50%;transform:translateX(-50%);animation:none;max-width:70%}
+
+  .mvg-shapes{margin:60px auto 40px}
+  .mvg-cards .col-md-4{margin-bottom:2.2rem}
+
+  .why-top{padding-top:110px}
+  .why-grid{grid-template-columns:repeat(2,1fr)}
+  .wc:nth-child(n){grid-column:auto;grid-row:auto}
+  .why-bottle{display:none}
+  .why-tag{right:6%}
+
+  .cta{min-height:460px;text-align:center}
+  .cta::before{background:rgba(8,47,77,.62)}
+  .cta-btns{justify-content:center}
+
+  footer{text-align:center}
+  .social,.contact li{justify-content:center}
+}
+@media (max-width:575.98px){
+  .why-grid{grid-template-columns:1fr}
+  .wc{padding:1.6rem 1.1rem}
+  .wwd-visual{height:340px}
+  .mvg-cards p{text-align:center}
+  .shape span{font-size:.9rem}
+  .why-tag{display:none}
+  .btn-pill{font-size:.72rem;padding:.3rem 1rem}
+}
+@media (prefers-reduced-motion:reduce){
+  /* only looping motion is switched off; reveals still play */
+  .bubble,.hero-bottles,.shape,.why-deco,.why-bottle img,.wwd-visual .splash-bg,.wwd-visual .bottle,
+  .why-top .band img{animation:none!important}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+
+  <span class="bubble" style="left:8%;bottom:25%;width:14px;height:14px;animation-duration:9s"></span>
+  <span class="bubble" style="left:40%;bottom:12%;width:9px;height:9px;animation-duration:7s;animation-delay:2s"></span>
+  <span class="bubble" style="left:70%;bottom:18%;width:18px;height:18px;animation-duration:11s;animation-delay:1s"></span>
+  <span class="bubble" style="left:92%;bottom:8%;width:10px;height:10px;animation-duration:8s;animation-delay:3s"></span>
+
+  <nav class="navbar navbar-expand-lg">
+    <div class="container position-relative">
+
+      <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand mx-auto order-2 d-lg-none" href="{% url 'website:home' %}">
+        <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+      </a>
+
+      <div class="collapse navbar-collapse order-3 align-items-lg-center" id="nav">
+        <ul class="navbar-nav justify-content-lg-end" style="flex:1 1 0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="{% url 'website:about' %}">About Us</a></li>
+        </ul>
+
+        <a class="navbar-brand d-none d-lg-block" style="margin:0 2rem" href="{% url 'website:home' %}">
+          <img class="brand-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+        </a>
+
+        <ul class="navbar-nav justify-content-lg-start" style="flex:1 1 0">
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:services' %}">Our Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'website:contact' %}">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero-bottles">
+    <img src="{% static 'website/images/splash crown 2 4.png' %}" alt="Panchamul bottles in a water splash">
+  </div>
+  <div class="hero-bottles">
+    <img src="{% static 'website/images/about_hero.png' %}" alt="Panchamul bottles in a water splash">
+  </div>
+
+  <div class="hero-title">
+    <h1 class="in d1">About us</h1>
+    <h2 class="in d2">Our Story</h2>
+  </div>
+
+</header>
+
+
+<!-- ===================== OUR STORY ===================== -->
+<section class="story">
+  <div class="container">
+    <div class="row align-items-center g-5">
+
+      <div class="col-lg-8 reveal left">
+        <h2 class="st" style="--i:0">Our Story</h2>
+        <p class="big st" style="--i:1">
+          {% if company and company.story_text %}{{ company.story_text }}{% else %}
+          Every great journey begins with nature. At Panchamul, our story starts at the heart of pristine natural springs, where water flows through layers of rock, creating the pure, refreshing taste that nature intended. We believe that every drop should reflect the beauty, purity, and strength of its source. That's why we carefully protect, filter, test, and bottle our spring water with the highest standards of quality and care, ensuring it reaches you just as fresh as it began.{% endif %}
+        </p>
+        <p class="small st" style="--i:2">
+          More than a bottle of water, Panchamul is a promise of trust, wellness, and sustainability. As we continue to grow, our commitment remains the same—to deliver natural spring water that refreshes lives, supports healthier communities, and honors the environment that makes it all possible. From nature's spring to your hands, every drop tells our story.
+        </p>
+      </div>
+
+      <div class="col-lg-4 reveal right">
+        <img class="story-img ph" src="{% static 'website/images/team.jpg' %}" alt="The Panchamul team at work">
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== WHAT WE DO ===================== -->
+<section class="wwd">
+  <div class="position-relative">
+
+    <div class="wwd-box reveal left">
+      <h2>What we do?</h2>
+      <p>At Panchamul, we do more than bottle water—we bring the purity of nature to every home. Every drop begins its journey in carefully protected natural springs, where it is naturally filtered through layers of rock and enriched with essential minerals.</p>
+      <p>Using advanced purification technology, rigorous quality testing, and hygienic bottling processes, we preserve the water's natural freshness while ensuring it meets the highest standards of purity and safety. From source to bottle, every step is carefully monitored to deliver water that is clean, refreshing, and consistently reliable.</p>
+      <p>Our commitment goes beyond providing premium spring water. We are dedicated to exceptional service, responsible environmental practices, and building lasting trust with our customers. At Panchamul, every bottle reflects our promise of purity, quality, safety, and care—delivering nature's finest refreshment for you and your family, every day.</p>
+    </div>
+
+    <div class="wwd-visual reveal right">
+      <img class="splash-bg" src="{% static 'website/images/about-side-splash.png' %}" alt="" aria-hidden="true">
+      <img class="bottle" src="{% static 'website/images/full-bottle.png' %}" alt="Panchamul bottle">
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ===================== MISSION, VISION AND GOALS ===================== -->
+<section class="mvg-sec">
+  <div class="container">
+
+    <div class="reveal">
+      <h2 class="sec-title">Our Mission, Vision and Goals</h2>
+      <p class="lead-text">Driven by quality, inspired by nature, and focused on the future, our mission, vision, and goals define everything we do.</p>
+    </div>
+
+    <div class="mvg-shapes reveal zoom" aria-hidden="true">
+      <div class="shape m"><span>Mission</span></div>
+      <div class="shape v"><span>Vision</span></div>
+      <div class="shape g"><span>Goals</span></div>
+    </div>
+
+    <div class="row mvg-cards reveal">
+      <div class="col-md-4 c st" style="--i:0">
+        <i class="bi bi-binoculars"></i>
+        <h3>Mission</h3>
+        <p>To provide naturally sourced spring water with the highest standards of purity, quality, and safety, ensuring fresh and reliable hydration for every customer.</p>
+      </div>
+      <div class="col-md-4 c st" style="--i:1">
+        <i class="bi bi-lightbulb"></i>
+        <h3>Vision</h3>
+        <p>To become a trusted spring water brand recognized for excellence, sustainability, and delivering natural freshness to communities everywhere.</p>
+      </div>
+      <div class="col-md-4 c st" style="--i:2">
+        <i class="bi bi-bullseye"></i>
+        <h3>Goals</h3>
+        <p>To expand our reach, continuously improve our quality, protect natural resources, and build lasting trust through exceptional products and service.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ===================== WHY CHOOSE ===================== -->
+<section class="why-top">
+  <div class="band" aria-hidden="true">
+    <img src="{% static 'website/images/water-splash.png' %}" alt="">
+  </div>
+  <div class="container reveal">
+    <h2 class="sec-title">Why choose</h2>
+    <p class="lead-text">Discover why families, businesses, and communities trust Panchamul for pure, refreshing, and reliable spring water.</p>
+  </div>
+</section>
+
+<section class="why">
+  <img class="why-deco" src="{% static 'website/images/splash-1st.png' %}" alt="" aria-hidden="true">
+
+  <div class="position-relative">
+    <span class="why-tag">प्राकृतिक मुहानको पानी</span>
+    <h2 class="why-word reveal zoom" aria-label="Panchamul">Panchamul</h2>
+  </div>
+
+  <div class="container">
+    <div class="why-grid reveal">
+
+      <div class="wc st" style="--i:0">
+        <h3><i class="bi bi-droplet-fill"></i> Naturally Sourced</h3>
+        <p>Our water is carefully sourced from protected natural springs, preserving its purity, refreshing taste, and essential minerals just as nature intended.</p>
+      </div>
+
+      <div class="wc st" style="--i:1">
+        <h3><i class="bi bi-shield-check"></i> Quality Assured</h3>
+        <p>Every batch undergoes comprehensive quality testing and strict quality control measures to ensure it meets the highest standards of safety, purity, and consistency.</p>
+      </div>
+
+      <div class="wc st" style="--i:2">
+        <h3><i class="bi bi-flower2"></i> Rich in Natural Minerals</h3>
+        <p>Naturally filtered through layers of rock, our spring water retains beneficial minerals that contribute to its crisp taste and refreshing drinking experience.</p>
+      </div>
+
+      <div class="wc st" style="--i:3">
+        <h3><i class="bi bi-patch-check"></i> Hygienic Bottling</h3>
+        <p>Using modern bottling technology and a hygienic production environment, we carefully package every bottle to maintain freshness, cleanliness, and product integrity.</p>
+      </div>
+
+      <div class="why-bottle st" style="--i:4">
+        <img src="{% static 'website/images/full-bottle.png' %}" alt="Panchamul bottle">
+      </div>
+
+      <div class="wc st" style="--i:4">
+        <h3><i class="bi bi-heart-fill"></i> Trusted Quality</h3>
+        <p>Our dedication to purity, consistency, and customer satisfaction has made Panchamul a trusted choice for families, businesses, and communities seeking reliable spring water.</p>
+      </div>
+
+      <div class="wc st" style="--i:5">
+        <h3><i class="bi bi-truck"></i> Reliable Delivery</h3>
+        <p>Our efficient distribution network ensures every bottle is delivered safely and on time, bringing fresh spring water to homes, businesses, and communities.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== CTA ===================== -->
+<section class="cta">
+  <img class="cta-bg ph" src="{% static 'website/images/hands.jpg' %}" alt="">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 offset-lg-6 reveal right">
+        <h2 class="st" style="--i:0">Experience the Purity of Panchamul</h2>
+        <p class="st" style="--i:1">Enjoy naturally sourced spring water that combines purity, freshness, and quality in every bottle. Contact us today to learn more or place your order.</p>
+        <div class="cta-btns st" style="--i:2">
+          <a href="{% url 'website:contact' %}" class="btn-pill">Contact us</a>
+          <a href="{% url 'website:contact' %}" class="btn-pill">Become a distributer</a>
+          <a href="{% url 'website:home' %}#products" class="btn-pill">Explore our products</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="container">
+    <div class="row g-4 align-items-start">
+
+      <div class="col-lg-4">
+        <small class="by">Processed by :<br>{{ company.company_name|default:"RAJBHANDARI AND SONS BEVERAGES COMPANY" }}</small>
+        <img class="f-logo" src="{% static 'website/images/logo.png' %}" alt="{{ company.company_name|default:'Panchamul' }}">
+      </div>
+
+      <div class="col-lg-3 offset-lg-1">
+        <ul>
+          <li><a href="{% url 'website:home' %}">Home</a></li>
+          <li><a href="{% url 'website:about' %}">About Us</a></li>
+          <li><a href="{% url 'website:home' %}#products">Our Products</a></li>
+          <li><a href="{% url 'website:contact' %}">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="social mb-4">
+          {% if company.facebook_url %}<a href="{{ company.facebook_url }}" class="fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook"></i></a>{% endif %}
+          {% if company.instagram_url %}<a href="{{ company.instagram_url }}" class="ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>{% endif %}
+          {% if company.youtube_url %}<a href="{{ company.youtube_url }}" class="tk" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>{% endif %}
+        </div>
+
+        <ul class="contact">
+          <li><i class="bi bi-geo-alt"></i><span>{{ company.address|default:"Rametar-04, Baglung, Gandaki Province" }}</span></li>
+          <li><i class="bi bi-telephone"></i><span>{{ company.phone|default:"+977 - 12345678901" }}</span></li>
+          <li><i class="bi bi-envelope"></i><span>{{ company.email|default:"email@gmail.com" }}</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="copy">
+      © {% now "Y" %} {{ company.company_name|default:"Panchamul" }} – Developed by <a href="#">Fusion IT Solutions</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  /* ---------- SCROLL REVEAL ---------- */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -8% 0px" });
+
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
